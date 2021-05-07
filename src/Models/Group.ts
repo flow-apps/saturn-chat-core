@@ -42,7 +42,6 @@ class Group {
     if (!this.id) {
       this.id = uuid();
     }
-    this.privacy = this.privacy.toUpperCase();
   }
 }
 

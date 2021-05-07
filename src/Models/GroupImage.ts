@@ -8,7 +8,7 @@ import {
 import { v4 as uuid } from "uuid";
 import { Group } from "./Group";
 
-@Entity("groups")
+@Entity("groups-images")
 class GroupImage {
   @PrimaryGeneratedColumn()
   readonly id: string;

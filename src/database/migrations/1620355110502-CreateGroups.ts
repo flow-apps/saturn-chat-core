@@ -27,7 +27,6 @@ export class CreateGroups1620355110502 implements MigrationInterface {
           {
             name: "privacy",
             type: "varchar",
-            default: "PUBLIC",
           },
           {
             name: "created_at",
@@ -38,9 +37,9 @@ export class CreateGroups1620355110502 implements MigrationInterface {
         foreignKeys: [
           {
             name: "FKOwner",
+            columnNames: ["owner_id"],
             referencedTableName: "users",
             referencedColumnNames: ["id"],
-            columnNames: ["owner_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },
