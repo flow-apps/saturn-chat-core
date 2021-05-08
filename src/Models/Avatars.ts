@@ -6,16 +6,16 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
-import { Group } from "./Group";
+import { User } from "./User";
 
-@Entity("groups-images")
-class GroupImage {
+@Entity("avatars")
+class Avatar {
   @PrimaryGeneratedColumn()
   readonly id: string;
 
-  @OneToOne(() => Group)
-  @JoinColumn({ name: "group_id" })
-  group: Group;
+  @OneToOne(() => User)
+  @JoinColumn({ name: "user_id" })
+  user: User;
 
   @Column()
   name: string;
@@ -30,4 +30,4 @@ class GroupImage {
   }
 }
 
-export { GroupImage };
+export { Avatar };
