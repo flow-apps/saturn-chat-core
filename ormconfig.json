@@ -5,12 +5,12 @@
   "username": "postgres",
   "password": "postgres",
   "database": "flow_chat",
-  "synchronize": true,
-  "logging": false,
+  "synchronize": false,
+  "logging": true,
   "entities": ["src/models/**/*.ts"],
   "migrations": ["src/database/migrations/**/*.ts"],
   "cli": {
-    "entitiesDir": "src/entities",
+    "entitiesDir": "src/models",
     "migrationsDir": "src/database/migrations"
   }
 }

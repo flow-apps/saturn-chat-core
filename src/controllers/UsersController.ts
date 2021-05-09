@@ -3,6 +3,7 @@ import { getCustomRepository } from "typeorm";
 import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
 import { UsersRepository } from "../repositories/UsersRepository";
+import bcrypt from "bcryptjs";
 
 class UsersController {
   async create(req: Request, res: Response) {
@@ -12,7 +13,9 @@ class UsersController {
       password: Yup.string().required(),
       avatar: Yup.string(),
     });
-    const { email } = req.body;
+    const { name, email, password, avatar } = req.body;
+
+    console.log(req.body);
 
     try {
       await schema.validate(req.body, { abortEarly: false });
@@ -24,13 +27,21 @@ class UsersController {
     const userAlreadyExists = await usersRepository.findOne({
       email,
     });
-    const user = usersRepository.create(req.body);
 
+    const user = usersRepository.create({
+      name,
+      email,
+      password: await bcrypt.hash(password, 12),
+      // avatar,
+    });
     if (userAlreadyExists) {
       throw new AppError("User already exists!");
     }
 
     await usersRepository.save(user);
+
+    user.password = undefined;
+
     return res.json(user);
   }
 }

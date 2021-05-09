@@ -1,42 +1,25 @@
-import "reflect-metadata";
 import "express-async-errors";
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import helmet from "helmet";
 import { createServer } from "http";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { routes } from "./routes";
 import { createConnection } from "typeorm";
-import { AppError } from "./errors/AppError";
+import { fakePoweredBy } from "./middlewares/fakePoweredBy";
+import { handlerError } from "./middlewares/handlerError";
+import compression from "compression";
 
 const app = express();
 const http = createServer(app);
 const io = new Server(http);
-createConnection();
+createConnection().then(() => console.log("Conectado ao banco!"));
 
 app.use(helmet());
+app.use(fakePoweredBy);
+app.use(compression({ level: 9 }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use((req, res, next) => {
-  res.set("X-Powered-By", "PHP/5.4.37");
-  next();
-});
 app.use(routes);
-app.use(
-  (err: Error | AppError, req: Request, res: Response, _next: NextFunction) => {
-    if (err instanceof AppError) {
-      return res.status(err.statusCode).json({
-        message: err.message,
-      });
-    }
-
-    return res.status(500).json({
-      status: "Server error",
-      message: `Internal server erro ${err.message}`,
-    });
-  }
-);
-
-io.on("connection", (socket: Socket) => {
-  console.log("Novo socket conectado: ", socket.id);
-});
+app.use(handlerError);
 
 export { http, io };
