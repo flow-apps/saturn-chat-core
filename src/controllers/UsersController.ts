@@ -5,7 +5,7 @@ import { AppError } from "../errors/AppError";
 import { UsersRepository } from "../repositories/UsersRepository";
 import bcrypt from "bcryptjs";
 import { imageProcessor } from "../utils/imageProcessor";
-import { uploadFile } from "../services/uploadFile";
+import { uploadFile } from "../services/UploadFiles";
 import { randomBytes } from "crypto";
 
 class UsersController {
