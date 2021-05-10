@@ -4,7 +4,7 @@ import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
 import { UsersRepository } from "../repositories/UsersRepository";
 import bcrypt from "bcryptjs";
-import { imageProcessor } from "../utils/imageProcessor";
+import { avatarProcessor } from "../utils/avatarProcessor";
 import { uploadFile } from "../services/UploadFiles";
 import { randomBytes } from "crypto";
 
@@ -42,12 +42,19 @@ class UsersController {
     }
 
     if (avatar) {
-      processedImage = await imageProcessor(avatar.buffer);
+      processedImage = await avatarProcessor({
+        avatar: avatar.buffer,
+        quality: 50,
+      });
+
       avatar.buffer = processedImage;
 
       const extension = avatar.mimetype.split("/")[1];
-      const filename = `avatar_${randomBytes(10).toString("hex")}.${extension}`;
-      const file = await uploadFile({
+      const randomString = `${new Date().getTime()}_${randomBytes(10).toString(
+        "hex"
+      )}`;
+      const filename = `avatar_${randomString}.${extension}`;
+      const uploadedAvatar = await uploadFile({
         file: avatar,
         filename,
         inLocal: true,
