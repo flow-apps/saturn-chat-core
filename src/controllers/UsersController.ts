@@ -53,7 +53,7 @@ class UsersController {
     if (avatar) {
       processedImage = await avatarProcessor({
         avatar: avatar.buffer,
-        quality: 50,
+        quality: 60,
       });
       avatar.buffer = processedImage;
 
