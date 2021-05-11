@@ -9,6 +9,11 @@ interface UploadFileProps {
   path?: string;
 }
 
+export interface UploadedFile {
+  name: string;
+  url: string;
+}
+
 async function uploadFile({ file, filename, inLocal, path }: UploadFileProps) {
   if (inLocal) {
     fs.writeFileSync(
@@ -17,7 +22,7 @@ async function uploadFile({ file, filename, inLocal, path }: UploadFileProps) {
     );
     return {
       name: filename,
-      url: `${process.env.API_URL}/${filename}`,
+      url: `${process.env.API_URL}/uploads/${filename}`,
     };
   }
   const bucket = storage.bucket(process.env.FIREBASE_STORAGE_URL);
@@ -35,7 +40,7 @@ async function uploadFile({ file, filename, inLocal, path }: UploadFileProps) {
       });
 
       fileStream.on("finish", () => {
-        const data = {
+        const data: UploadedFile = {
           name: filename,
           url: uploadFile.publicUrl(),
         };

@@ -5,9 +5,18 @@ import { AppError } from "../errors/AppError";
 import { UsersRepository } from "../repositories/UsersRepository";
 import bcrypt from "bcryptjs";
 import { avatarProcessor } from "../utils/avatarProcessor";
-import { uploadFile } from "../services/UploadFiles";
+import { UploadedFile, uploadFile } from "../services/UploadFiles";
 import { randomBytes } from "crypto";
 
+interface Data {
+  name: string;
+  email: string;
+  password: string;
+  avatar?: {
+    url: string;
+    name: string;
+  };
+}
 class UsersController {
   async create(req: Request, res: Response) {
     const schema = Yup.object().shape({
@@ -31,22 +40,21 @@ class UsersController {
       email,
     });
 
-    const user = usersRepository.create({
-      name,
-      email,
-      password: await bcrypt.hash(password, 12),
-    });
-
     if (userAlreadyExists) {
       throw new AppError("User already exists!");
     }
+
+    const data: Data = {
+      name,
+      email,
+      password: await bcrypt.hash(password, 12),
+    };
 
     if (avatar) {
       processedImage = await avatarProcessor({
         avatar: avatar.buffer,
         quality: 50,
       });
-
       avatar.buffer = processedImage;
 
       const extension = avatar.mimetype.split("/")[1];
@@ -54,14 +62,15 @@ class UsersController {
         "hex"
       )}`;
       const filename = `avatar_${randomString}.${extension}`;
-      const uploadedAvatar = await uploadFile({
+      const uploadedAvatar = (await uploadFile({
         file: avatar,
         filename,
         inLocal: true,
         path: "avatars",
-      });
+      })) as UploadedFile;
+      data.avatar = { url: uploadedAvatar.url, name: uploadedAvatar.name };
     }
-
+    const user = usersRepository.create({ ...data });
     await usersRepository.save(user);
     user.password = undefined;
 
