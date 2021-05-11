@@ -9,7 +9,6 @@ import { fakePoweredBy } from "./middlewares/fakePoweredBy";
 import { handlerError } from "./middlewares/handlerError";
 import compression from "compression";
 import path from "path";
-import { MIME_X_MS_BMP } from "jimp/*";
 
 const app = express();
 const http = createServer(app);
