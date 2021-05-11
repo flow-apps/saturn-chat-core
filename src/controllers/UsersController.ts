@@ -74,7 +74,24 @@ class UsersController {
     await usersRepository.save(user);
     user.password = undefined;
 
-    return res.json(user);
+    return res.status(200).json(user);
+  }
+
+  async index(req: Request, res: Response) {
+    const id = req.params;
+
+    if (!id) {
+      throw new AppError("User ID not provided");
+    }
+
+    const usersRepository = getCustomRepository(UsersRepository);
+    const user = await usersRepository.findOne(id, { relations: ["avatar"] });
+
+    if (!user) {
+      throw new AppError("User not found");
+    }
+
+    return res.status(200).json(user);
   }
 }
 

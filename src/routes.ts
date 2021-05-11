@@ -12,4 +12,6 @@ routes.post(
   usersController.create
 );
 
+routes.get("/api/users/:id", usersController.index);
+
 export { routes };
