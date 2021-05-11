@@ -7,27 +7,18 @@ import {
   JoinColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
-import { Avatar } from "./Avatar";
+import { User } from "./User";
 
-@Entity("users")
-class User {
+@Entity("avatars")
+class Avatar {
   @PrimaryColumn()
   readonly id: string;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
-  @Column()
-  email: string;
-
-  @Column()
-  password: string;
-
-  @OneToOne(() => Avatar, {
-    cascade: ["insert", "update"],
-  })
-  @JoinColumn()
-  avatar: Avatar;
+  @Column({ unique: true })
+  url: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -39,4 +30,4 @@ class User {
   }
 }
 
-export { User };
+export { Avatar };

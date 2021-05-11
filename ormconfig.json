@@ -5,7 +5,7 @@
   "username": "postgres",
   "password": "postgres",
   "database": "flow_chat",
-  "synchronize": false,
+  "synchronize": true,
   "logging": true,
   "entities": ["src/models/**/*.ts"],
   "migrations": ["src/database/migrations/**/*.ts"],
