@@ -6,3 +6,5 @@ tmp/
 temp/
 .env
 uploads
+firebase-key.json
+*.sqlite

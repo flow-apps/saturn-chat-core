@@ -4,7 +4,7 @@ import helmet from "helmet";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { routes } from "./routes";
-import { createConnection } from "typeorm";
+import createConnection from "./database";
 import { fakePoweredBy } from "./middlewares/fakePoweredBy";
 import { handlerError } from "./middlewares/handlerError";
 import compression from "compression";
@@ -13,7 +13,7 @@ import path from "path";
 const app = express();
 const http = createServer(app);
 const io = new Server(http);
-createConnection().then(() => console.log("Conectado ao banco!"));
+createConnection();
 
 app.use(helmet());
 app.use(fakePoweredBy);
@@ -27,4 +27,4 @@ app.use(
 app.use(routes);
 app.use(handlerError);
 
-export { http, io };
+export { app, http, io };
