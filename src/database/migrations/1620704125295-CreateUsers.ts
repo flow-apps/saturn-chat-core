@@ -45,7 +45,8 @@ export class CreateUsers1620704125295 implements MigrationInterface {
             onUpdate: "CASCADE",
           },
         ],
-      })
+      }),
+      true
     );
   }
 
