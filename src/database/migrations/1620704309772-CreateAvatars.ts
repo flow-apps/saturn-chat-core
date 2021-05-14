@@ -14,7 +14,6 @@ export class CreateAvatars1620704309772 implements MigrationInterface {
           {
             name: "name",
             type: "varchar",
-            isUnique: true,
           },
           {
             name: "url",
@@ -27,7 +26,8 @@ export class CreateAvatars1620704309772 implements MigrationInterface {
             default: "now()",
           },
         ],
-      })
+      }),
+      true
     );
   }
 

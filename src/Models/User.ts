@@ -9,7 +9,7 @@ import {
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
 
-@Entity("users")
+@Entity({ name: "users" })
 class User {
   @PrimaryColumn()
   readonly id: string;
