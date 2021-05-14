@@ -1,20 +1,12 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  OneToOne,
-  JoinColumn,
-} from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
 import { v4 as uuid } from "uuid";
-import { User } from "./User";
 
-@Entity("avatars")
+@Entity({ name: "avatars" })
 class Avatar {
   @PrimaryColumn()
   readonly id: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @Column({ unique: true })
