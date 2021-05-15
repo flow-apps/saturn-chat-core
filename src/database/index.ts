@@ -5,7 +5,8 @@ export default async (): Promise<Connection> => {
 
   return createConnection(
     Object.assign(defaultOptions, {
-      database: !process.env.NODE_ENV ? "flow_chat" : "flow_chat_test",
+      database:
+        process.env.NODE_ENV === "test" ? "flow_chat_test" : "flow_chat",
     })
   );
 };
