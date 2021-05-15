@@ -24,7 +24,9 @@ class User {
   password: string;
 
   @OneToOne(() => Avatar, {
-    cascade: ["insert", "update"],
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+    cascade: true,
   })
   @JoinColumn()
   avatar: Avatar;

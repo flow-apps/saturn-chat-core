@@ -5,8 +5,9 @@ import { AppError } from "../errors/AppError";
 import { UsersRepository } from "../repositories/UsersRepository";
 import bcrypt from "bcryptjs";
 import { avatarProcessor } from "../utils/avatarProcessor";
-import { UploadedFile, uploadFile } from "../services/UploadFiles";
+import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { randomBytes } from "crypto";
+import { AvatarsRepository } from "../repositories/AvatarsRepository";
 
 interface Data {
   name: string;
@@ -15,6 +16,7 @@ interface Data {
   avatar?: {
     url: string;
     name: string;
+    path: string;
   };
 }
 class UsersController {
@@ -62,13 +64,19 @@ class UsersController {
         "hex"
       )}`;
       const filename = `avatar_${randomString}.${extension}`;
-      const uploadedAvatar = (await uploadFile({
+      const storage = new StorageManager();
+      const uploadedAvatar = (await storage.uploadFile({
         file: avatar,
         filename,
-        inLocal: true,
+        inLocal: false,
         path: "avatars",
       })) as UploadedFile;
-      data.avatar = { url: uploadedAvatar.url, name: uploadedAvatar.name };
+
+      data.avatar = {
+        url: uploadedAvatar.url,
+        name: uploadedAvatar.name,
+        path: uploadedAvatar.path,
+      };
     }
     const user = usersRepository.create({ ...data });
     await usersRepository.save(user);
@@ -92,6 +100,29 @@ class UsersController {
     }
 
     return res.status(200).json(user);
+  }
+
+  async delete(req: Request, res: Response) {
+    const { id } = req.params;
+    const usersRepository = getCustomRepository(UsersRepository);
+    const avatarsRepository = getCustomRepository(AvatarsRepository);
+
+    if (!id) {
+      throw new AppError("User ID not provided!");
+    }
+
+    const user = await usersRepository.findOne(id, { relations: ["avatar"] });
+
+    if (!user) {
+      throw new AppError("User not found!");
+    }
+    const storage = new StorageManager();
+    await storage.deleteFile(user.avatar.path, false);
+
+    await avatarsRepository.delete(user.avatar.id);
+    await usersRepository.delete(user.id);
+
+    return res.status(204).send();
   }
 }
 

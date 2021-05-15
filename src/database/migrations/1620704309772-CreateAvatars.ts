@@ -21,6 +21,10 @@ export class CreateAvatars1620704309772 implements MigrationInterface {
             isUnique: true,
           },
           {
+            name: "path",
+            type: "varchar",
+          },
+          {
             name: "created_at",
             type: "timestamp",
             default: "now()",
