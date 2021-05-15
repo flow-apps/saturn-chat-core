@@ -7,12 +7,12 @@ const routes = Router();
 const usersController = new UsersController();
 
 routes.post(
-  "/api/users",
+  "/users",
   multer(configMulter()).single("avatar"),
   usersController.create
 );
 
-routes.get("/api/users/:id", usersController.index);
-routes.delete("/api/users/:id", usersController.delete);
+routes.get("/users/:id", usersController.index);
+routes.delete("/users/:id", usersController.delete);
 
 export { routes };

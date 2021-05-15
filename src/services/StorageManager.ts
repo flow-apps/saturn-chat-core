@@ -1,7 +1,7 @@
 import { storage } from "../configs/storage";
 import { join } from "path";
 import fs from "fs";
-import { Bucket, Storage } from "@google-cloud/storage";
+import { Bucket } from "@google-cloud/storage";
 
 interface UploadFileProps {
   file: Express.Multer.File;
