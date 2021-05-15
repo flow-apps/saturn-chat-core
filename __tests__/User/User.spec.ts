@@ -1,4 +1,3 @@
-import fs from "fs";
 import path from "path";
 import request from "supertest";
 import { Connection } from "typeorm";
@@ -19,9 +18,16 @@ describe("Users Tests", () => {
     await connection.dropDatabase();
   });
 
+  it("Should be not able create user without required data", async () => {
+    const response = await request(app).post("/users");
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toHaveProperty("message");
+  });
+
   it("Should be able to create a user", async () => {
     const response = await request(app)
-      .post("/api/users")
+      .post("/users")
       .field("name", "User Test")
       .field("email", "user@example.com")
       .field("password", "Test123")
@@ -37,11 +43,33 @@ describe("Users Tests", () => {
     expect(response.body).toHaveProperty("avatar.id");
   });
 
+  it("Should be not able create user with duplicate email", async () => {
+    const response = await request(app)
+      .post("/users")
+      .field("name", "User Test")
+      .field("email", "user@example.com")
+      .field("password", "Test123")
+      .attach(
+        "avatar",
+        path.join(__dirname, "..", "..", "uploads", "files", "avatar.test.jpeg")
+      );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toHaveProperty("message");
+  });
+
   it("Should be able get the created user", async () => {
-    const response = await request(app).get(`/api/users/${userID}`);
+    const response = await request(app).get(`/users/${userID}`);
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty("id");
     expect(response.body.id).toEqual(userID);
+  });
+
+  it("Should be able delete the created user", async () => {
+    const response = await request(app).delete(`/users/${userID}`);
+
+    expect(response.statusCode).toBe(204);
+    expect(response.ok).toBe(true);
   });
 });
