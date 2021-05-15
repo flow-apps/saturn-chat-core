@@ -1,42 +1,39 @@
+import { v4 as uuid } from "uuid";
 import {
-  Entity,
-  PrimaryColumn,
   Column,
   CreateDateColumn,
-  OneToOne,
+  Entity,
   JoinColumn,
-  OneToMany,
+  ManyToOne,
+  PrimaryColumn,
   UpdateDateColumn,
-  JoinTable,
 } from "typeorm";
-import { v4 as uuid } from "uuid";
-import { Avatar } from "./Avatar";
-import { Group } from "./Group";
+import { User } from "./User";
 
-@Entity({ name: "users" })
-class User {
+@Entity({ name: "groups" })
+class Group {
   @PrimaryColumn()
   readonly id: string;
 
   @Column()
+  owner_id: string;
+
+  @Column({ length: 100 })
   name: string;
 
-  @Column()
-  email: string;
+  @Column({ length: 500 })
+  description: string;
 
   @Column()
-  password: string;
+  privacy: string;
 
-  @OneToMany(() => Group, (group) => group.owner)
-  groups: Group[];
-
-  @OneToOne(() => Avatar, {
+  @ManyToOne(() => User, (user) => user.id, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
   })
-  @JoinColumn()
-  avatar: Avatar;
+  @JoinColumn({ name: "owner_id" })
+  owner: User;
 
   @CreateDateColumn()
   created_at: Date;
@@ -51,4 +48,4 @@ class User {
   }
 }
 
-export { User };
+export { Group };
