@@ -13,5 +13,6 @@ routes.post(
 );
 
 routes.get("/api/users/:id", usersController.index);
+routes.delete("/api/users/:id", usersController.delete);
 
 export { routes };
