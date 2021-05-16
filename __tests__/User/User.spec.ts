@@ -2,7 +2,7 @@ import path from "path";
 import request from "supertest";
 import { Connection } from "typeorm";
 import createConnection from "../../src/database";
-import { app } from "../../src/http";
+import { http } from "../../src/http";
 
 describe("Users Tests", () => {
   let connection: Connection;
@@ -19,14 +19,14 @@ describe("Users Tests", () => {
   });
 
   it("Should be not able create user without required data", async () => {
-    const response = await request(app).post("/users");
+    const response = await request(http).post("/users");
 
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty("message");
   });
 
   it("Should be able to create a user", async () => {
-    const response = await request(app)
+    const response = await request(http)
       .post("/users")
       .field("name", "User Test")
       .field("email", "user@example.com")
@@ -44,7 +44,7 @@ describe("Users Tests", () => {
   });
 
   it("Should be not able create user with duplicate email", async () => {
-    const response = await request(app)
+    const response = await request(http)
       .post("/users")
       .field("name", "User Test")
       .field("email", "user@example.com")
@@ -59,7 +59,7 @@ describe("Users Tests", () => {
   });
 
   it("Should be able get the created user", async () => {
-    const response = await request(app).get(`/users/${userID}`);
+    const response = await request(http).get(`/users/${userID}`);
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty("id");
@@ -67,7 +67,7 @@ describe("Users Tests", () => {
   });
 
   it("Should be able delete the created user", async () => {
-    const response = await request(app).delete(`/users/${userID}`);
+    const response = await request(http).delete(`/users/${userID}`);
 
     expect(response.statusCode).toBe(204);
     expect(response.ok).toBe(true);
