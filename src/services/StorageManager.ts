@@ -2,10 +2,10 @@ import { storage } from "../configs/storage";
 import { join } from "path";
 import fs from "fs";
 import { Bucket } from "@google-cloud/storage";
+import { randomBytes } from "crypto";
 
 interface UploadFileProps {
   file: Express.Multer.File;
-  filename: string;
   inLocal?: boolean;
   path?: string;
 }
@@ -35,7 +35,10 @@ class StorageManager {
     };
   }
 
-  async uploadFile({ file, filename, inLocal, path }: UploadFileProps) {
+  async uploadFile({ file, inLocal, path }: UploadFileProps) {
+    const randomString = `${randomBytes(16).toString("hex")}`;
+    const filename = `${randomString}_${file.originalname}`;
+
     if (inLocal) return this.saveInLocal(file, filename);
     try {
       return new Promise((resolve, reject) => {

@@ -24,7 +24,11 @@ routes.delete("/users/:id", usersController.delete);
  - GROUP ROUTES
 */
 
-routes.post("/groups", groupsController.create);
+routes.post(
+  "/groups",
+  multer(configMulter()).single("group_avatar"),
+  groupsController.create
+);
 routes.get("/groups/:id", groupsController.index);
 
 export { routes };
