@@ -4,6 +4,7 @@ import { configMulter } from "./configs/multer";
 import { UsersController } from "./controllers/UsersController";
 import { GroupsController } from "./controllers/GroupsController";
 import { AuthController } from "./controllers/AuthController";
+import { authProvider } from "./middlewares/authProvider";
 
 const routes = Router();
 const usersController = new UsersController();
@@ -19,7 +20,7 @@ routes.post(
   multer(configMulter()).single("avatar"),
   usersController.create
 );
-routes.get("/users/:id", usersController.index);
+routes.get("/users/", authProvider, usersController.index);
 routes.delete("/users/:id", usersController.delete);
 
 /*
