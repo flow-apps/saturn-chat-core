@@ -28,4 +28,4 @@ app.use(
 app.use(routes);
 app.use(handlerError);
 
-export { app, http, io };
+export { http, io };
