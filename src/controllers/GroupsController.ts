@@ -50,11 +50,9 @@ class GroupsController {
         quality: 60,
       });
       groupAvatar.buffer = processedImage;
-
       const storage = new StorageManager();
       const uploadedAvatar = (await storage.uploadFile({
         file: groupAvatar,
-        inLocal: process.env.NODE_ENV === "development" ? true : false,
         path: "groups/avatars",
       })) as UploadedFile;
 
@@ -87,7 +85,28 @@ class GroupsController {
 
     return res.status(200).json(group);
   }
-  // async delete()
+  async delete(req: Request, res: Response) {
+    const { id } = req.params;
+    const groupsRepository = getCustomRepository(GroupsRepository);
+    const storage = new StorageManager();
+
+    if (!id) {
+      throw new AppError("Group ID not provided!");
+    }
+
+    const group = await groupsRepository.findOne(id, {
+      relations: ["group_avatar"],
+    });
+
+    if (!group) {
+      throw new AppError("Group not found!", 404);
+    }
+
+    await storage.deleteFile(group.group_avatar.path);
+    await groupsRepository.delete(group.id);
+
+    return res.sendStatus(204);
+  }
 }
 
 export { GroupsController };

@@ -61,7 +61,6 @@ class UsersController {
       const storage = new StorageManager();
       const uploadedAvatar = (await storage.uploadFile({
         file: avatar,
-        inLocal: process.env.NODE_ENV === "development" ? true : false,
         path: "avatars",
       })) as UploadedFile;
 
@@ -112,10 +111,7 @@ class UsersController {
       throw new AppError("User not found!");
     }
     const storage = new StorageManager();
-    await storage.deleteFile(
-      user.avatar.path,
-      process.env.NODE_ENV === "development" ? true : false
-    );
+    await storage.deleteFile(user.avatar.path);
 
     await avatarsRepository.delete(user.avatar.id);
     await usersRepository.delete(user.id);
