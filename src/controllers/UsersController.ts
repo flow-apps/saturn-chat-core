@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { getCustomRepository } from "typeorm";
 import * as Yup from "yup";
+import jwt from "jsonwebtoken";
 import { AppError } from "../errors/AppError";
 import { AvatarsRepository } from "../repositories/AvatarsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
@@ -74,7 +75,9 @@ class UsersController {
     await usersRepository.save(user);
     user.password = undefined;
 
-    return res.status(200).json(user);
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY);
+
+    return res.status(200).json({ user, token });
   }
 
   async index(req: Request, res: Response) {
