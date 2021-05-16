@@ -8,6 +8,7 @@ import { AvatarsRepository } from "../repositories/AvatarsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { avatarProcessor } from "../utils/avatarProcessor";
+import { RequestAuthenticated } from "../middlewares/authProvider";
 
 interface Data {
   name: string;
@@ -80,8 +81,8 @@ class UsersController {
     return res.status(200).json({ user, token });
   }
 
-  async index(req: Request, res: Response) {
-    const id = req.params;
+  async index(req: RequestAuthenticated, res: Response) {
+    const id = req.userId;
 
     if (!id) {
       throw new AppError("User ID not provided");
