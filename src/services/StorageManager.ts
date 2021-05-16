@@ -35,7 +35,11 @@ class StorageManager {
     };
   }
 
-  async uploadFile({ file, inLocal, path }: UploadFileProps) {
+  async uploadFile({
+    file,
+    inLocal = process.env.NODE_ENV === "development" ? true : false,
+    path,
+  }: UploadFileProps) {
     const randomString = `${randomBytes(16).toString("hex")}`;
     const filename = `${randomString}_${file.originalname}`;
 
@@ -70,7 +74,10 @@ class StorageManager {
     }
   }
 
-  async deleteFile(path: string, InLocal?: boolean) {
+  async deleteFile(
+    path: string,
+    InLocal = process.env.NODE_ENV === "development" ? true : false
+  ) {
     try {
       if (InLocal) {
         fs.unlinkSync(path);

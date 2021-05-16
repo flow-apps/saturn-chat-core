@@ -30,5 +30,6 @@ routes.post(
   groupsController.create
 );
 routes.get("/groups/:id", groupsController.index);
+routes.delete("/groups/:id", groupsController.delete);
 
 export { routes };
