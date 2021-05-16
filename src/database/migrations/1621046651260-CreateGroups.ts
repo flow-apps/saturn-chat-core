@@ -16,6 +16,10 @@ export class CreateGroups1621046651260 implements MigrationInterface {
             type: "uuid",
           },
           {
+            name: "group_avatar_id",
+            type: "uuid",
+          },
+          {
             name: "name",
             type: "varchar",
             length: "100",
@@ -46,6 +50,14 @@ export class CreateGroups1621046651260 implements MigrationInterface {
             referencedTableName: "users",
             referencedColumnNames: ["id"],
             columnNames: ["owner_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+          },
+          {
+            name: "FKGroupAvatarID",
+            referencedTableName: "groups_avatars",
+            referencedColumnNames: ["id"],
+            columnNames: ["group_avatar_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },

@@ -5,10 +5,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
+import { GroupAvatar } from "./GroupAvatar";
 
 @Entity({ name: "groups" })
 class Group {
@@ -17,6 +19,14 @@ class Group {
 
   @Column()
   owner_id: string;
+
+  @OneToOne(() => GroupAvatar, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+    cascade: true,
+  })
+  @JoinColumn()
+  group_avatar: GroupAvatar;
 
   @Column({ length: 100 })
   name: string;

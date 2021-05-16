@@ -1,13 +1,12 @@
+import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { getCustomRepository } from "typeorm";
 import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
-import { UsersRepository } from "../repositories/UsersRepository";
-import bcrypt from "bcryptjs";
-import { avatarProcessor } from "../utils/avatarProcessor";
-import { StorageManager, UploadedFile } from "../services/StorageManager";
-import { randomBytes } from "crypto";
 import { AvatarsRepository } from "../repositories/AvatarsRepository";
+import { UsersRepository } from "../repositories/UsersRepository";
+import { StorageManager, UploadedFile } from "../services/StorageManager";
+import { avatarProcessor } from "../utils/avatarProcessor";
 
 interface Data {
   name: string;
@@ -59,15 +58,9 @@ class UsersController {
       });
       avatar.buffer = processedImage;
 
-      const extension = avatar.mimetype.split("/")[1];
-      const randomString = `${new Date().getTime()}_${randomBytes(10).toString(
-        "hex"
-      )}`;
-      const filename = `avatar_${randomString}.${extension}`;
       const storage = new StorageManager();
       const uploadedAvatar = (await storage.uploadFile({
         file: avatar,
-        filename,
         inLocal: process.env.NODE_ENV === "development" ? true : false,
         path: "avatars",
       })) as UploadedFile;
