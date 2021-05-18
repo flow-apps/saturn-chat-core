@@ -5,6 +5,7 @@ import { UsersController } from "./controllers/UsersController";
 import { GroupsController } from "./controllers/GroupsController";
 import { AuthController } from "./controllers/AuthController";
 import { authProvider } from "./middlewares/authProvider";
+import { rateLimiterMiddleware } from "./middlewares/rateLimiter";
 
 const routes = Router();
 const usersController = new UsersController();
@@ -39,6 +40,6 @@ routes.delete("/groups/:id", groupsController.delete);
  - AUTH ROUTES
 */
 
-routes.post("/auth", authController.authenticate);
+routes.post("/auth", rateLimiterMiddleware, authController.authenticate);
 
 export { routes };
