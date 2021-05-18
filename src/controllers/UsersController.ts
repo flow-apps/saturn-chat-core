@@ -84,10 +84,6 @@ class UsersController {
   async index(req: RequestAuthenticated, res: Response) {
     const id = req.userId;
 
-    if (!id) {
-      throw new AppError("User ID not provided");
-    }
-
     const usersRepository = getCustomRepository(UsersRepository);
     const user = await usersRepository.findOne(id, {
       relations: ["avatar", "groups"],
@@ -100,20 +96,21 @@ class UsersController {
     return res.status(200).json(user);
   }
 
-  async delete(req: Request, res: Response) {
-    const { id } = req.params;
+  async delete(req: RequestAuthenticated, res: Response) {
+    const id = req.userId;
     const usersRepository = getCustomRepository(UsersRepository);
     const avatarsRepository = getCustomRepository(AvatarsRepository);
-
-    if (!id) {
-      throw new AppError("User ID not provided!");
-    }
 
     const user = await usersRepository.findOne(id, { relations: ["avatar"] });
 
     if (!user) {
       throw new AppError("User not found!");
     }
+
+    if (user.id !== id) {
+      throw new AppError("User not authorized for this action!", 403);
+    }
+
     const storage = new StorageManager();
     await storage.deleteFile(user.avatar.path);
 
