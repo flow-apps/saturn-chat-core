@@ -1,7 +1,3 @@
-# Awesome Project Build with TypeORM
+## O que é o Flow Chat?
 
-Steps to run this project:
-
-1. Run `npm i` command
-2. Setup database settings inside `ormconfig.json` file
-3. Run `npm start` command
+Essa é a API de um app mobile chamado Flow Chat, um app baseado em salas de bate-papo, onde os usuários pode criar seus próprios grupos, adicionar usuários a eles, conversar, enviar arquivos, e muito mais.
