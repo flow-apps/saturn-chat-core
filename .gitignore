@@ -8,3 +8,4 @@ temp/
 uploads
 firebase-key.json
 *.sqlite
+*.log
