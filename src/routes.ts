@@ -21,8 +21,8 @@ routes.post(
   multer(configMulter()).single("avatar"),
   usersController.create
 );
-routes.get("/users/", authProvider, usersController.index);
-routes.delete("/users/:id", usersController.delete);
+routes.get("/users", authProvider, usersController.index);
+routes.delete("/users", authProvider, usersController.delete);
 
 /*
  - GROUP ROUTES
@@ -30,11 +30,12 @@ routes.delete("/users/:id", usersController.delete);
 
 routes.post(
   "/groups",
+  authProvider,
   multer(configMulter()).single("group_avatar"),
   groupsController.create
 );
 routes.get("/groups/:id", groupsController.index);
-routes.delete("/groups/:id", groupsController.delete);
+routes.delete("/groups/:id", authProvider, groupsController.delete);
 
 /*
  - AUTH ROUTES

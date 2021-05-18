@@ -5,6 +5,7 @@ import { GroupsRepository } from "../repositories/GroupsRepository";
 import { Request, Response } from "express";
 import { avatarProcessor } from "../utils/avatarProcessor";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
+import { RequestAuthenticated } from "../middlewares/authProvider";
 
 interface Data {
   name: string;
@@ -18,7 +19,7 @@ interface Data {
   };
 }
 class GroupsController {
-  async create(req: Request, res: Response) {
+  async create(req: RequestAuthenticated, res: Response) {
     const body = req.body;
     const groupAvatar = req.file;
     const groupsRepository = getCustomRepository(GroupsRepository);
@@ -26,7 +27,6 @@ class GroupsController {
       name: Yup.string().max(100).required(),
       description: Yup.string().max(500).required(),
       privacy: Yup.string().uppercase().required(),
-      owner_id: Yup.string().required(),
     });
 
     try {
@@ -39,7 +39,7 @@ class GroupsController {
       name: body.name,
       description: body.description,
       privacy: String(body.privacy).toUpperCase(),
-      owner_id: body.owner_id,
+      owner_id: req.userId,
     };
 
     let processedImage: Buffer;
@@ -85,7 +85,7 @@ class GroupsController {
 
     return res.status(200).json(group);
   }
-  async delete(req: Request, res: Response) {
+  async delete(req: RequestAuthenticated, res: Response) {
     const { id } = req.params;
     const groupsRepository = getCustomRepository(GroupsRepository);
     const storage = new StorageManager();
@@ -100,6 +100,10 @@ class GroupsController {
 
     if (!group) {
       throw new AppError("Group not found!", 404);
+    }
+
+    if (group.owner_id !== req.userId) {
+      throw new AppError("User not authorized for this action!", 403);
     }
 
     await storage.deleteFile(group.group_avatar.path);
