@@ -29,6 +29,8 @@ class GroupsController {
       privacy: Yup.string().uppercase().required(),
     });
 
+    console.log(groupAvatar);
+
     try {
       await schema.validate(body, { abortEarly: false });
     } catch (error) {
@@ -110,6 +112,17 @@ class GroupsController {
     await groupsRepository.delete(group.id);
 
     return res.sendStatus(204);
+  }
+
+  async list(req: RequestAuthenticated, res: Response) {
+    const groupsRepository = getCustomRepository(GroupsRepository);
+
+    const groups = await groupsRepository.find({
+      where: { owner_id: req.userId },
+      relations: ["owner", "group_avatar"],
+    });
+
+    return res.status(200).json(groups);
   }
 }
 

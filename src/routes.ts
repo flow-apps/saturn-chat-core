@@ -34,7 +34,8 @@ routes.post(
   multer(configMulter()).single("group_avatar"),
   groupsController.create
 );
-routes.get("/groups/:id", groupsController.index);
+routes.get("/group/:id", groupsController.index);
+routes.get("/groups/list", authProvider, groupsController.list);
 routes.delete("/groups/:id", authProvider, groupsController.delete);
 
 /*
