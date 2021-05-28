@@ -10,11 +10,10 @@ import { fakePoweredBy } from "./middlewares/fakePoweredBy";
 import { handlerError } from "./middlewares/handlerError";
 import { routes } from "./routes";
 
+createConnection();
 const app = express();
 const http = createServer(app);
 const io = new Server(http);
-
-createConnection();
 
 app.use(helmet());
 app.use(fakePoweredBy);
