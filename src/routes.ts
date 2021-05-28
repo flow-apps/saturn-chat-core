@@ -36,7 +36,7 @@ routes.post(
 );
 routes.get("/group/:id", groupsController.index);
 routes.get("/groups/list", authProvider, groupsController.list);
-routes.delete("/groups/:id", authProvider, groupsController.delete);
+routes.delete("/group/:id", authProvider, groupsController.delete);
 
 /*
  - AUTH ROUTES
