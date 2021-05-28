@@ -7,7 +7,7 @@ import {
   JoinColumn,
   OneToMany,
   UpdateDateColumn,
-  JoinTable,
+  PrimaryGeneratedColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";

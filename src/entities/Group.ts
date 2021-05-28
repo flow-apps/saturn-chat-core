@@ -5,12 +5,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
 import { GroupAvatar } from "./GroupAvatar";
+import { Message } from "./Message";
 
 @Entity({ name: "groups" })
 class Group {
@@ -27,6 +29,10 @@ class Group {
   })
   @JoinColumn()
   group_avatar: GroupAvatar;
+
+  @OneToMany(() => Message, (message) => message.id)
+  @JoinColumn()
+  messages: Message[];
 
   @Column({ length: 100 })
   name: string;
