@@ -17,11 +17,18 @@ class Message {
   @PrimaryColumn()
   readonly id: string;
 
+  @Column()
+  group_id: string;
+
+  @Column()
+  author_id: string;
+
   @ManyToOne(() => Group, (group) => group.id)
   @JoinColumn({ name: "group_id" })
   group: Group;
 
   @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn({ name: "author_id" })
   author: User;
 
   @Column({ length: 500 })
