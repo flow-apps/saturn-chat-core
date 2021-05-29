@@ -4,7 +4,6 @@ import "express-async-errors";
 import helmet from "helmet";
 import { createServer } from "http";
 import path from "path";
-import { Server } from "socket.io";
 import createConnection from "./database";
 import { fakePoweredBy } from "./middlewares/fakePoweredBy";
 import { handlerError } from "./middlewares/handlerError";
@@ -13,7 +12,6 @@ import { routes } from "./routes";
 createConnection();
 const app = express();
 const http = createServer(app);
-const io = new Server(http);
 
 app.use(helmet());
 app.use(fakePoweredBy);
@@ -27,4 +25,4 @@ app.use(
 app.use(routes);
 app.use(handlerError);
 
-export { http, io };
+export { http };

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../errors/AppError";
 import jwt from "jsonwebtoken";
+import { validateJWT } from "../utils/validateJwt";
 
 export interface RequestAuthenticated extends Request {
   userId: string;
@@ -17,19 +18,7 @@ function authProvider(
     throw new AppError("No token provided");
   }
 
-  const tokenParts = authHeader.split(" ");
-
-  if (tokenParts.length !== 2) {
-    throw new AppError("Token error");
-  }
-
-  const [schema, token] = tokenParts;
-
-  if (schema !== "Bearer") {
-    throw new AppError("Invalid type token");
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded: any) => {
+  return validateJWT(authHeader, (err, decoded: any) => {
     if (err) throw new AppError("Token invalid");
 
     req.userId = decoded.id;

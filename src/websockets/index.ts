@@ -1,8 +1,29 @@
-import { io } from "../http";
+import { Server, Socket } from "socket.io";
+import { http } from "../http";
+import { validateJWT } from "../utils/validateJwt";
 
-io.on("connection", async (socket) => {
-  const queries = socket.handshake.query;
+interface ISocketAuthenticated extends Socket {
+  userID?: string;
+}
 
-  console.log(`Socket conectado: ${socket.id}`);
-  console.log(`Queries do socket: `, queries);
+const io = new Server(http);
+
+io.use((socket: ISocketAuthenticated, _next) => {
+  const token = socket.handshake.query.token;
+
+  if (token) {
+    validateJWT(String(token), (err, decoded: any) => {
+      if (err) {
+        socket.disconnect();
+        return _next(new Error("Authentication error"));
+      }
+      socket.userID = decoded.id;
+      _next();
+    });
+  } else {
+    socket.disconnect();
+    return _next(new Error("Authentication error"));
+  }
 });
+
+export { io, ISocketAuthenticated };
