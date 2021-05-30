@@ -6,11 +6,13 @@ import { GroupsController } from "./controllers/GroupsController";
 import { AuthController } from "./controllers/AuthController";
 import { authProvider } from "./middlewares/authProvider";
 import { rateLimiterMiddleware } from "./middlewares/rateLimiter";
+import { MessagesController } from "./controllers/MessagesController";
 
 const routes = Router();
 const usersController = new UsersController();
 const groupsController = new GroupsController();
 const authController = new AuthController();
+const messageController = new MessagesController();
 
 /*
  - USER ROUTES
@@ -43,5 +45,11 @@ routes.delete("/group/:id", authProvider, groupsController.delete);
 */
 
 routes.post("/auth", rateLimiterMiddleware, authController.authenticate);
+
+/*
+  - MESSAGE ROUTES
+*/
+
+routes.get("/messages/:groupID", authProvider, messageController.list);
 
 export { routes };

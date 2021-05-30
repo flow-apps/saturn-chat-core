@@ -26,6 +26,7 @@ class MessagesService {
     const newMessage = messageRepository.create(msgData);
     const savedMessage = await messageRepository.save(newMessage);
     const message = await messageRepository.findOne(savedMessage.id, {
+      where: { group_id: savedMessage.group_id },
       relations: ["author", "author.avatar", "group"],
     });
 
