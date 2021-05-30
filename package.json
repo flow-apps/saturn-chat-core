@@ -12,6 +12,7 @@
   "dependencies": {
     "@google-cloud/storage": "^5.8.5",
     "bcryptjs": "^2.4.3",
+    "class-validator": "^0.13.1",
     "compression": "^1.7.4",
     "dotenv": "^9.0.1",
     "express": "^4.17.1",
