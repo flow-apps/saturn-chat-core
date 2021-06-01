@@ -15,9 +15,6 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       group_id: groupID,
       message: data.message,
     });
-
-    console.log(createdMessage);
-
     socket.emit("sended_user_message", createdMessage);
     socket.in(groupID).emit("new_user_message", createdMessage);
   });
