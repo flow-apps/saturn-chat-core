@@ -8,11 +8,18 @@ import createConnection from "./database";
 import { fakePoweredBy } from "./middlewares/fakePoweredBy";
 import { handlerError } from "./middlewares/handlerError";
 import { routes } from "./routes";
+import cors from "cors";
 
 createConnection();
 const app = express();
 const http = createServer(app);
 
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "DELETE"],
+  })
+);
 app.use(helmet());
 app.use(fakePoweredBy);
 app.use(compression({ level: 9 }));
