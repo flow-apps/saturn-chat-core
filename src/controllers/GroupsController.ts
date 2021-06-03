@@ -29,8 +29,6 @@ class GroupsController {
       privacy: Yup.string().uppercase().required(),
     });
 
-    console.log(groupAvatar);
-
     try {
       await schema.validate(body, { abortEarly: false });
     } catch (error) {
@@ -78,7 +76,13 @@ class GroupsController {
     }
 
     const group = await groupsRepository.findOne(id, {
-      relations: ["owner", "group_avatar"],
+      relations: [
+        "owner",
+        "group_avatar",
+        "participants",
+        "participants.participant",
+        "participants.participant.avatar",
+      ],
     });
 
     if (!group) {

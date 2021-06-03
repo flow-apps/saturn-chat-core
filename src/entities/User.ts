@@ -8,10 +8,12 @@ import {
   OneToMany,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
+  ManyToOne,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
 import { Group } from "./Group";
+import { Participant } from "./Participant";
 
 @Entity({ name: "users" })
 class User {
@@ -28,6 +30,7 @@ class User {
   password: string;
 
   @OneToMany(() => Group, (group) => group.owner)
+  @JoinColumn()
   groups: Group[];
 
   @OneToOne(() => Avatar, {
@@ -37,6 +40,10 @@ class User {
   })
   @JoinColumn()
   avatar: Avatar;
+
+  @OneToMany(() => Participant, (participant) => participant.participant)
+  @JoinColumn()
+  participating: Participant[];
 
   @CreateDateColumn()
   created_at: Date;

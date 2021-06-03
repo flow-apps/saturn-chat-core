@@ -13,6 +13,7 @@ import {
 import { User } from "./User";
 import { GroupAvatar } from "./GroupAvatar";
 import { Message } from "./Message";
+import { Participant } from "./Participant";
 
 @Entity({ name: "groups" })
 class Group {
@@ -33,6 +34,10 @@ class Group {
   @OneToMany(() => Message, (message) => message.id)
   @JoinColumn()
   messages: Message[];
+
+  @OneToMany(() => Participant, (participant) => participant.group)
+  @JoinColumn()
+  participants: Participant[];
 
   @Column({ length: 100 })
   name: string;
