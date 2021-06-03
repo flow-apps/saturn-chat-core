@@ -1,11 +1,12 @@
-import { getCustomRepository } from "typeorm";
+import { Request, Response } from "express";
+import { getCustomRepository, ILike, Not } from "typeorm";
 import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
-import { GroupsRepository } from "../repositories/GroupsRepository";
-import { Request, Response } from "express";
-import { avatarProcessor } from "../utils/avatarProcessor";
-import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { RequestAuthenticated } from "../middlewares/authProvider";
+import { GroupsRepository } from "../repositories/GroupsRepository";
+import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { StorageManager, UploadedFile } from "../services/StorageManager";
+import { avatarProcessor } from "../utils/avatarProcessor";
 
 interface Data {
   name: string;
@@ -80,8 +81,8 @@ class GroupsController {
         "owner",
         "group_avatar",
         "participants",
-        "participants.participant",
-        "participants.participant.avatar",
+        "participants.user",
+        "participants.user.avatar",
       ],
     });
 
@@ -119,13 +120,33 @@ class GroupsController {
   }
 
   async list(req: RequestAuthenticated, res: Response) {
-    const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
 
-    const groups = await groupsRepository.find({
-      where: { owner_id: req.userId },
-      relations: ["owner", "group_avatar"],
+    const groups = await participantsRepository.find({
+      where: { user_id: req.userId },
+      loadEagerRelations: true,
     });
 
+    return res.status(200).json(groups);
+  }
+
+  async search(req: RequestAuthenticated, res: Response) {
+    const { q, _limit, _page } = req.query;
+    const groupsRepository = getCustomRepository(GroupsRepository);
+
+    if (!q) {
+      throw new AppError("Query not provided");
+    }
+
+    const query = String(q).toLowerCase().trim();
+
+    const groups = await groupsRepository.find({
+      where: {
+        name: ILike(`%${query}%`),
+        privacy: Not("PRIVATE"),
+      },
+      cache: true,
+    });
     return res.status(200).json(groups);
   }
 }

@@ -27,6 +27,7 @@ class Group {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
+    eager: true,
   })
   @JoinColumn()
   group_avatar: GroupAvatar;
