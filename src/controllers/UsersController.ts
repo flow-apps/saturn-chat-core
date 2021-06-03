@@ -86,7 +86,7 @@ class UsersController {
 
     const usersRepository = getCustomRepository(UsersRepository);
     const user = await usersRepository.findOne(id, {
-      relations: ["avatar", "groups"],
+      relations: ["avatar", "groups", "participating"],
     });
 
     if (!user) {

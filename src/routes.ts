@@ -7,12 +7,14 @@ import { AuthController } from "./controllers/AuthController";
 import { authProvider } from "./middlewares/authProvider";
 import { rateLimiterMiddleware } from "./middlewares/rateLimiter";
 import { MessagesController } from "./controllers/MessagesController";
+import { ParticipantsController } from "./controllers/ParticipantsController";
 
 const routes = Router();
 const usersController = new UsersController();
 const groupsController = new GroupsController();
 const authController = new AuthController();
 const messageController = new MessagesController();
+const participantsController = new ParticipantsController();
 
 /*
  - USER ROUTES
@@ -37,18 +39,15 @@ routes.post(
   groupsController.create
 );
 routes.get("/group/:id", groupsController.index);
+routes.get(
+  "/group/participants/new/:group_id",
+  authProvider,
+  participantsController.new
+);
 routes.get("/groups/list", authProvider, groupsController.list);
 routes.delete("/group/:id", authProvider, groupsController.delete);
 
-/*
- - AUTH ROUTES
-*/
-
 routes.post("/auth", rateLimiterMiddleware, authController.authenticate);
-
-/*
-  - MESSAGE ROUTES
-*/
 
 routes.get("/messages/:groupID", authProvider, messageController.list);
 
