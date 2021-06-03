@@ -28,10 +28,6 @@ routes.post(
 routes.get("/users", authProvider, usersController.index);
 routes.delete("/users", authProvider, usersController.delete);
 
-/*
- - GROUP ROUTES
-*/
-
 routes.post(
   "/groups",
   authProvider,
@@ -45,6 +41,7 @@ routes.get(
   participantsController.new
 );
 routes.get("/groups/list", authProvider, groupsController.list);
+routes.get("/groups/search", authProvider, groupsController.search);
 routes.delete("/group/:id", authProvider, groupsController.delete);
 
 routes.post("/auth", rateLimiterMiddleware, authController.authenticate);
