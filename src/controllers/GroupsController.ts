@@ -145,7 +145,9 @@ class GroupsController {
         name: ILike(`%${query}%`),
         privacy: Not("PRIVATE"),
       },
-      cache: true,
+      skip: Number(_page) * Number(_limit),
+      take: Number(_limit),
+      cache: 10000,
     });
     return res.status(200).json(groups);
   }
