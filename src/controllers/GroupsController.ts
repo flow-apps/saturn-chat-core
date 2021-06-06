@@ -71,24 +71,24 @@ class GroupsController {
   async index(req: Request, res: Response) {
     const { id } = req.params;
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!id) {
       throw new AppError("Group ID not provided!");
     }
 
     const group = await groupsRepository.findOne(id, {
-      relations: [
-        "owner",
-        "group_avatar",
-        "participants",
-        "participants.user",
-        "participants.user.avatar",
-      ],
+      relations: ["owner", "group_avatar", "participants"],
+      loadEagerRelations: true,
     });
 
     if (!group) {
       throw new AppError("Group not found", 404);
     }
+
+    const count = await participantsRepository.count({
+      where: { group_id: id },
+    });
 
     return res.status(200).json(group);
   }
@@ -133,6 +133,7 @@ class GroupsController {
   async search(req: RequestAuthenticated, res: Response) {
     const { q, _limit, _page } = req.query;
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!q) {
       throw new AppError("Query not provided");
@@ -149,6 +150,7 @@ class GroupsController {
       take: Number(_limit),
       cache: 10000,
     });
+
     return res.status(200).json(groups);
   }
 }
