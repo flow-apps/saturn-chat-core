@@ -53,6 +53,7 @@ class Group {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
+    eager: true,
   })
   @JoinColumn({ name: "owner_id" })
   owner: User;
