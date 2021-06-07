@@ -40,6 +40,11 @@ routes.get(
   authProvider,
   participantsController.new
 );
+routes.get(
+  "/group/participant/:group_id",
+  authProvider,
+  participantsController.index
+);
 routes.get("/groups/list", authProvider, groupsController.list);
 routes.get("/groups/search", authProvider, groupsController.search);
 routes.delete("/group/:id", authProvider, groupsController.delete);
