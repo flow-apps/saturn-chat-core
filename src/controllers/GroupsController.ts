@@ -5,6 +5,7 @@ import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { ParticipantsService } from "../services/ParticipantsService";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { avatarProcessor } from "../utils/avatarProcessor";
 
@@ -24,6 +25,7 @@ class GroupsController {
     const body = req.body;
     const groupAvatar = req.file;
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participants = new ParticipantsService();
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
       description: Yup.string().max(500).required(),
@@ -66,6 +68,8 @@ class GroupsController {
 
     const group = groupsRepository.create(data);
     await groupsRepository.save(group);
+
+    await participants.new({ group_id: group.id, user_id: req.userId });
     return res.status(200).json(group);
   }
   async index(req: Request, res: Response) {
@@ -133,7 +137,6 @@ class GroupsController {
   async search(req: RequestAuthenticated, res: Response) {
     const { q, _limit, _page } = req.query;
     const groupsRepository = getCustomRepository(GroupsRepository);
-    const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!q) {
       throw new AppError("Query not provided");
