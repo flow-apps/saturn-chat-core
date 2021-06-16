@@ -32,6 +32,16 @@ class MessagesService {
 
     return message;
   }
+
+  async delete(messageID: string) {
+    const messageRepository = getCustomRepository(MessagesRepository);
+
+    try {
+      return await messageRepository.delete(messageID);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 }
 
 export { MessagesService };
