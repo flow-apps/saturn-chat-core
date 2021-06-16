@@ -18,4 +18,10 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     socket.emit("sended_user_message", createdMessage);
     socket.in(groupID).emit("new_user_message", createdMessage);
   });
+
+  socket.on("delete_user_message", async (messageID: string) => {
+    await messagesService.delete(messageID);
+    socket.in(groupID).emit("delete_user_message", messageID);
+    socket.emit("delete_user_message", messageID);
+  });
 });
