@@ -41,7 +41,7 @@ class User {
   @JoinColumn()
   avatar: Avatar;
 
-  @OneToMany(() => Participant, (participant) => participant.participant)
+  @OneToMany(() => Participant, (participant) => participant.user)
   @JoinColumn()
   participating: Participant[];
 
