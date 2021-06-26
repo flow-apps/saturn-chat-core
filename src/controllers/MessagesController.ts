@@ -6,7 +6,6 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 
 class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
-    const userId = req.userId;
     const { groupID } = req.params;
     const { _limit, _page } = req.query;
     const messageRepository = getCustomRepository(MessagesRepository);

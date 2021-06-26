@@ -4,8 +4,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
-  OneToOne,
   PrimaryColumn,
 } from "typeorm";
 import { Group } from "./Group";

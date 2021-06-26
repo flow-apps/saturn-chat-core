@@ -39,6 +39,23 @@ class ParticipantsController {
 
     return res.status(200).json({ participant });
   }
+
+  async list(req: RequestAuthenticated, res: Response) {
+    const participantsService = new ParticipantsService();
+    const { group_id, _limit, _page } = req.query;
+    const groupID = String(group_id);
+    const limit = parseInt(String(_limit));
+
+    const page = parseInt(String(_page));
+
+    if (!groupID) {
+      throw new AppError("Group ID not provided");
+    }
+
+    const participants = await participantsService.list(groupID, page, limit);
+
+    return res.status(200).json(participants);
+  }
 }
 
 export { ParticipantsController };

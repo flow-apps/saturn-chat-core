@@ -31,6 +31,27 @@ class ParticipantsService {
 
     return participant;
   }
+
+  async exit(participantID: string) {
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+
+    if (!participantID) return new Error("Participant ID not provided");
+
+    return await participantsRepository.delete(participantID);
+  }
+
+  async list(groupID: string, _page: number, _limit: number) {
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const participants = await participantsRepository.find({
+      where: [{ group_id: groupID }],
+      loadEagerRelations: true,
+      take: _limit,
+      skip: _page * _limit,
+      order: { participating_since: "ASC" },
+    });
+
+    return participants;
+  }
 }
 
 export { ParticipantsService };

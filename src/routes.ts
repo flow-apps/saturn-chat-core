@@ -41,6 +41,11 @@ routes.get(
   participantsController.new
 );
 routes.get(
+  "/group/participants/list",
+  authProvider,
+  participantsController.list
+);
+routes.get(
   "/group/participant/:group_id",
   authProvider,
   participantsController.index
