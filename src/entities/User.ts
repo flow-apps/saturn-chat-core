@@ -37,6 +37,7 @@ class User {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
+    eager: true,
   })
   @JoinColumn()
   avatar: Avatar;

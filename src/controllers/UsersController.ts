@@ -82,10 +82,10 @@ class UsersController {
   }
 
   async index(req: RequestAuthenticated, res: Response) {
-    const id = req.userId;
+    const id = req.query.user_id || req.userId;
 
     const usersRepository = getCustomRepository(UsersRepository);
-    const user = await usersRepository.findOne(id, {
+    const user = await usersRepository.findOne(String(id), {
       relations: ["avatar", "groups", "participating"],
     });
 
