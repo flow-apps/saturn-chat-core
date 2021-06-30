@@ -49,6 +49,9 @@ class Group {
   @Column()
   privacy: string;
 
+  @Column("varchar", { array: true, nullable: true, default: [] })
+  tags: string[];
+
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",

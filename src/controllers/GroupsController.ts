@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getCustomRepository, ILike, Not } from "typeorm";
+import { Equal, getCustomRepository, ILike, In, Like, Not, Raw } from "typeorm";
 import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
@@ -9,11 +9,19 @@ import { ParticipantsService } from "../services/ParticipantsService";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { avatarProcessor } from "../utils/avatarProcessor";
 
+interface Body {
+  name: string;
+  description: string;
+  privacy: string;
+  tags?: string;
+}
+
 interface Data {
   name: string;
   owner_id: string;
   description: string;
   privacy: string;
+  tags?: string[];
   group_avatar?: {
     url: string;
     name: string;
@@ -22,7 +30,7 @@ interface Data {
 }
 class GroupsController {
   async create(req: RequestAuthenticated, res: Response) {
-    const body = req.body;
+    const body = req.body as Body;
     const groupAvatar = req.file;
     const groupsRepository = getCustomRepository(GroupsRepository);
     const participants = new ParticipantsService();
@@ -30,6 +38,7 @@ class GroupsController {
       name: Yup.string().max(100).required(),
       description: Yup.string().max(500).required(),
       privacy: Yup.string().uppercase().required(),
+      tags: Yup.string(),
     });
 
     try {
@@ -43,6 +52,13 @@ class GroupsController {
       description: body.description,
       privacy: String(body.privacy).toUpperCase(),
       owner_id: req.userId,
+      tags: body.tags
+        ? body.tags
+            .trim()
+            .toLowerCase()
+            .split(",")
+            .map((tag) => tag.trim())
+        : [],
     };
 
     let processedImage: Buffer;
@@ -89,10 +105,6 @@ class GroupsController {
     if (!group) {
       throw new AppError("Group not found", 404);
     }
-
-    const count = await participantsRepository.count({
-      where: { group_id: id },
-    });
 
     return res.status(200).json(group);
   }
@@ -142,17 +154,26 @@ class GroupsController {
       throw new AppError("Query not provided");
     }
 
-    const query = String(q).toLowerCase().trim();
+    const query = String(q).trim();
 
     const groups = await groupsRepository.find({
-      where: {
-        name: ILike(`%${query}%`),
-        privacy: Not("PRIVATE"),
-      },
+      where: [
+        {
+          name: ILike(`%${query}%`),
+          privacy: Not("PRIVATE"),
+        },
+        {
+          tags: Raw((alias) => `${alias} @> :tags`, { tags: [query] }),
+          privacy: Not("PRIVATE"),
+        },
+      ],
       skip: Number(_page) * Number(_limit),
       take: Number(_limit),
+
       cache: 10000,
     });
+
+    console.log(groups);
 
     return res.status(200).json(groups);
   }
