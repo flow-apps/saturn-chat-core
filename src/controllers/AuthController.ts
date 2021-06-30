@@ -20,10 +20,11 @@ class AuthController {
     } catch (error) {
       throw new AppError(error);
     }
-    const user = await userRepository.findOne({
-      where: { email: body.email },
-      relations: ["avatar"],
-    });
+    const user = await userRepository
+      .createQueryBuilder("user")
+      .where("user.email = :email", { email: body.email })
+      .addSelect("user.password")
+      .getOne();
 
     if (!user) {
       throw new AppError("User not found!", 404);
