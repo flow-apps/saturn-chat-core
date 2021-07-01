@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
-export class CreateMessages1622164951875 implements MigrationInterface {
+export class CreateAudios1625073264140 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: "messages",
+        name: "audios",
         columns: [
           {
             name: "id",
@@ -12,27 +12,26 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             isPrimary: true,
           },
           {
-            name: "author_id",
-            type: "uuid",
+            name: "name",
+            type: "varchar",
+            isUnique: true,
           },
           {
             name: "group_id",
-            type: "uuid",
-          },
-          {
-            name: "message",
             type: "varchar",
-            length: "500",
           },
           {
-            name: "voice_message_id",
+            name: "participant_id",
             type: "varchar",
-            isNullable: true,
           },
           {
-            name: "updated_at",
-            type: "timestamp",
-            default: "now()",
+            name: "url",
+            type: "varchar",
+            isUnique: true,
+          },
+          {
+            name: "path",
+            type: "varchar",
           },
           {
             name: "created_at",
@@ -42,10 +41,10 @@ export class CreateMessages1622164951875 implements MigrationInterface {
         ],
         foreignKeys: [
           {
-            name: "FKAuthorID",
-            referencedTableName: "users",
+            name: "FKParticipantID",
+            referencedTableName: "participants",
             referencedColumnNames: ["id"],
-            columnNames: ["author_id"],
+            columnNames: ["participant_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },
@@ -57,21 +56,12 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },
-          {
-            name: "FKVoiceMessageID",
-            referencedTableName: "audios",
-            referencedColumnNames: ["id"],
-            columnNames: ["voice_message_id"],
-            onDelete: "CASCADE",
-            onUpdate: "CASCADE",
-          },
         ],
-      }),
-      true
+      })
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable("messages");
+    await queryRunner.dropTable("audios");
   }
 }

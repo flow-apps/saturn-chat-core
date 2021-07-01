@@ -57,5 +57,11 @@ routes.delete("/group/:id", authProvider, groupsController.delete);
 routes.post("/auth", rateLimiterMiddleware, authController.authenticate);
 
 routes.get("/messages/:groupID", authProvider, messageController.list);
+routes.post(
+  "/messages/SendAttachment/:groupID",
+  authProvider,
+  multer(configMulter(50, ["*/*"])).single("attachment"),
+  messageController.createAttachment
+);
 
 export { routes };

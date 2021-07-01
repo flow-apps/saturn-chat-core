@@ -14,7 +14,7 @@ function configMulter(
         ? allowedMimeTypes
         : ["image/jpeg", "image/pjpeg", "image/webp", "image/png", "image/jpg"];
 
-      if (allowed.includes(file.mimetype)) {
+      if (allowed.includes(file.mimetype) || allowed.includes("*/*")) {
         cb(null, true);
       } else {
         cb(new Error("Invalid file type."));

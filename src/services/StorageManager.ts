@@ -45,7 +45,7 @@ class StorageManager {
 
     if (inLocal) return this.saveInLocal(file, filename);
     try {
-      return new Promise((resolve, reject) => {
+      return new Promise<UploadedFile>((resolve, reject) => {
         const uploadFile = this.bucket.file(`${path}/${filename}`);
         const fileStream = uploadFile.createWriteStream({
           public: true,
