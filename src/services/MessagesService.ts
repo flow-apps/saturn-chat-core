@@ -1,9 +1,17 @@
 import { getCustomRepository } from "typeorm";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import * as Yup from "yup";
+import { Audio } from "../entities/Audio";
+import { AudiosRepository } from "../repositories/AudiosRepository";
 
 interface ICreateMessageProps {
   message: string;
+  group_id: string;
+  author_id: string;
+}
+
+interface ICreateAudioProps {
+  audio: Audio;
   group_id: string;
   author_id: string;
 }
@@ -31,6 +39,29 @@ class MessagesService {
     });
 
     return message;
+  }
+
+  async createAudio(audioData: ICreateAudioProps) {
+    try {
+      const messagesRepository = getCustomRepository(MessagesRepository);
+      const data = {
+        message: "",
+        author_id: audioData.author_id,
+        group_id: audioData.group_id,
+        voice_message_id: audioData.audio.id,
+      };
+
+      const newMessage = messagesRepository.create(data);
+      await messagesRepository.save(newMessage);
+      const completedMessage = await messagesRepository.findOne(newMessage.id, {
+        loadEagerRelations: true,
+        relations: ["author", "author.avatar", "group"],
+      });
+
+      return completedMessage;
+    } catch (error) {
+      new Error(error);
+    }
   }
 
   async delete(messageID: string) {

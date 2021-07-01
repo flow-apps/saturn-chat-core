@@ -5,12 +5,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { Group } from "./Group";
 import { User } from "./User";
+import { Audio } from "./Audio";
 
 @Entity({ name: "messages" })
 class Message {
@@ -33,6 +34,19 @@ class Message {
 
   @Column({ length: 500 })
   message: string;
+
+  @Column({ nullable: true })
+  voice_message_id: string;
+
+  @OneToOne(() => Audio, {
+    cascade: true,
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({ name: "voice_message_id" })
+  voice_message: Audio;
 
   @UpdateDateColumn()
   updated_at: Date;

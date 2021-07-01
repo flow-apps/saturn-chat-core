@@ -22,6 +22,17 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     socket.in(groupID).emit("new_user_message", createdMessage);
   });
 
+  socket.on("new_voice_message", async (data) => {
+    const newVoiceMessage = await messagesService.createAudio({
+      audio: data.audio,
+      author_id: userID,
+      group_id: groupID,
+    });
+
+    socket.emit("sended_user_message", newVoiceMessage);
+    socket.in(groupID).emit("new_user_message", newVoiceMessage);
+  });
+
   socket.on("delete_user_message", async (messageID: string) => {
     await messagesService.delete(messageID);
     socket.in(groupID).emit("delete_user_message", messageID);
