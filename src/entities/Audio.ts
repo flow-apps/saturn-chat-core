@@ -7,7 +7,6 @@ import {
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
-import { Message } from "./Message";
 
 @Entity({ name: "audios" })
 class Audio {
@@ -26,7 +25,7 @@ class Audio {
   @Column()
   group_id: string;
 
-  @Column()
+  @Column({ select: false })
   path: string;
 
   @CreateDateColumn()

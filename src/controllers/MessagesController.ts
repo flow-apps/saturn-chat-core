@@ -34,28 +34,32 @@ class MessagesController {
     const audiosRepository = getCustomRepository(AudiosRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
+    const attachType = String(req.query.type);
     const groupID = req.params.groupID;
-    const participant = await participantsRepository.findOne({
-      where: { group_id: groupID, user_id: req.userId },
-    });
-    const file = req.file;
 
-    const uploadedFile = await storage.uploadFile({
-      file,
-      path: `groups/${groupID}/audios`,
-    });
+    if (attachType === "voice_message") {
+      const participant = await participantsRepository.findOne({
+        where: { group_id: groupID, user_id: req.userId },
+      });
+      const file = req.file;
 
-    const audio = audiosRepository.create({
-      name: uploadedFile.name,
-      group_id: groupID,
-      participant_id: participant.id,
-      url: uploadedFile.url,
-      path: uploadedFile.path,
-    });
+      const uploadedFile = await storage.uploadFile({
+        file,
+        path: `groups/${groupID}/audios`,
+      });
 
-    await audiosRepository.save(audio);
+      const audio = audiosRepository.create({
+        name: uploadedFile.name,
+        group_id: groupID,
+        participant_id: participant.id,
+        url: uploadedFile.url,
+        path: uploadedFile.path,
+      });
 
-    return res.json(audio);
+      await audiosRepository.save(audio);
+
+      return res.json(audio);
+    }
   }
 }
 
