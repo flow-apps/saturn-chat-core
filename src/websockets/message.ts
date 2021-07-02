@@ -27,6 +27,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       audio: data.audio,
       author_id: userID,
       group_id: groupID,
+      message: data.message,
     });
 
     socket.emit("sended_user_message", newVoiceMessage);
