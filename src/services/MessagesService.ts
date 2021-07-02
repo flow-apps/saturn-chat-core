@@ -2,7 +2,6 @@ import { getCustomRepository } from "typeorm";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import * as Yup from "yup";
 import { Audio } from "../entities/Audio";
-import { AudiosRepository } from "../repositories/AudiosRepository";
 
 interface ICreateMessageProps {
   message: string;
@@ -12,6 +11,7 @@ interface ICreateMessageProps {
 
 interface ICreateAudioProps {
   audio: Audio;
+  message?: string;
   group_id: string;
   author_id: string;
 }
@@ -45,7 +45,7 @@ class MessagesService {
     try {
       const messagesRepository = getCustomRepository(MessagesRepository);
       const data = {
-        message: "",
+        message: audioData.message ? audioData.message : "",
         author_id: audioData.author_id,
         group_id: audioData.group_id,
         voice_message_id: audioData.audio.id,
