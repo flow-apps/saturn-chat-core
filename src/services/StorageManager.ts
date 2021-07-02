@@ -3,6 +3,7 @@ import { join } from "path";
 import fs from "fs";
 import { Bucket } from "@google-cloud/storage";
 import { randomBytes } from "crypto";
+import { clearFilename } from "../utils/clear";
 
 interface UploadFileProps {
   file: Express.Multer.File;
@@ -40,8 +41,9 @@ class StorageManager {
     inLocal = process.env.NODE_ENV === "development" ? true : false,
     path,
   }: UploadFileProps) {
-    const randomString = `${randomBytes(16).toString("hex")}`;
-    const filename = `${randomString}_${file.originalname}`;
+    const originalName = clearFilename(file.originalname);
+    const randomString = randomBytes(16).toString("hex");
+    const filename = `${randomString}_${originalName}`;
 
     if (inLocal) return this.saveInLocal(file, filename);
     try {

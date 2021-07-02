@@ -16,6 +16,12 @@ class Audio {
   @Column()
   name: string;
 
+  @Column({ default: 0 })
+  size: number;
+
+  @Column({ default: 0 })
+  duration: number;
+
   @Column({ unique: true })
   url: string;
 

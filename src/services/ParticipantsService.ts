@@ -8,11 +8,40 @@ interface INewParticipant {
 }
 
 class ParticipantsService {
+  async index(userID: string, groupID: string) {
+    try {
+      const participantsRepository = getCustomRepository(
+        ParticipantsRepository
+      );
+      const participant = await participantsRepository.findOne({
+        where: [{ user_id: userID, group_id: groupID }],
+        cache: 5000,
+      });
+
+      if (!participant) {
+        throw new Error("Participant not found");
+      }
+
+      return participant;
+    } catch (error) {
+      new Error(error);
+    }
+  }
+
   async new({ group_id, user_id }: INewParticipant) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!group_id) {
       throw new AppError("Group ID not provided");
+    }
+
+    const existsParticipant = await participantsRepository.findOne({
+      where: { group_id, user_id },
+      relations: ["group"],
+    });
+
+    if (existsParticipant) {
+      return existsParticipant;
     }
 
     const createdParticipant = participantsRepository.create({
@@ -21,7 +50,6 @@ class ParticipantsService {
     });
 
     await participantsRepository.save(createdParticipant);
-
     const participant = await participantsRepository.findOne(
       createdParticipant.id,
       {
