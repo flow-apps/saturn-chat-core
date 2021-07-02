@@ -17,6 +17,14 @@ export class CreateAudios1625073264140 implements MigrationInterface {
             isUnique: true,
           },
           {
+            name: "size",
+            type: "integer",
+          },
+          {
+            name: "duration",
+            type: "integer",
+          },
+          {
             name: "group_id",
             type: "varchar",
           },

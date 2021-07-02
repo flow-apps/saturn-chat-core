@@ -1,10 +1,8 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { getCustomRepository } from "typeorm";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { MessagesRepository } from "../repositories/MessagesRepository";
-import fs from "fs";
-import path from "path";
 import { StorageManager } from "../services/StorageManager";
 import { AudiosRepository } from "../repositories/AudiosRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
@@ -13,7 +11,19 @@ class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
     const { groupID } = req.params;
     const { _limit, _page } = req.query;
+
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
+
+    const participant = await participantsRepository.findOne({
+      where: { group_id: groupID, user_id: req.userId },
+      cache: 50000,
+    });
+
+    if (!participant) {
+      throw new AppError("Participant not found", 404);
+    }
+
     if (!groupID) {
       throw new AppError("Group ID not provided");
     }
@@ -30,6 +40,7 @@ class MessagesController {
   }
 
   async createAttachment(req: RequestAuthenticated, res: Response) {
+    const body = req.body;
     const storage = new StorageManager();
     const audiosRepository = getCustomRepository(AudiosRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
@@ -37,12 +48,17 @@ class MessagesController {
     const attachType = String(req.query.type);
     const groupID = req.params.groupID;
 
-    if (attachType === "voice_message") {
-      const participant = await participantsRepository.findOne({
-        where: { group_id: groupID, user_id: req.userId },
-      });
-      const file = req.file;
+    const participant = await participantsRepository.findOne({
+      where: { group_id: groupID, user_id: req.userId },
+      cache: 50000,
+    });
 
+    if (!participant) {
+      throw new AppError("Participant not found", 404);
+    }
+
+    if (attachType === "voice_message") {
+      const file = req.file;
       const uploadedFile = await storage.uploadFile({
         file,
         path: `groups/${groupID}/audios`,
@@ -54,10 +70,11 @@ class MessagesController {
         participant_id: participant.id,
         url: uploadedFile.url,
         path: uploadedFile.path,
+        duration: body.duration,
+        size: body.size,
       });
 
       await audiosRepository.save(audio);
-
       return res.json(audio);
     }
   }
