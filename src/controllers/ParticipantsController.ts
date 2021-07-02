@@ -31,6 +31,7 @@ class ParticipantsController {
 
     const participant = await participantsRepository.findOne({
       where: { group_id, user_id: req.userId },
+      cache: 50000,
     });
 
     if (!participant) {
@@ -42,10 +43,10 @@ class ParticipantsController {
 
   async list(req: RequestAuthenticated, res: Response) {
     const participantsService = new ParticipantsService();
+
     const { group_id, _limit, _page } = req.query;
     const groupID = String(group_id);
     const limit = parseInt(String(_limit));
-
     const page = parseInt(String(_page));
 
     if (!groupID) {
@@ -53,7 +54,6 @@ class ParticipantsController {
     }
 
     const participants = await participantsService.list(groupID, page, limit);
-
     return res.status(200).json(participants);
   }
 }

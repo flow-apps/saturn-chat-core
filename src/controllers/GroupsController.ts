@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Equal, getCustomRepository, ILike, In, Like, Not, Raw } from "typeorm";
+import { getCustomRepository, ILike, Not, Raw } from "typeorm";
 import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
@@ -119,6 +119,7 @@ class GroupsController {
 
     const group = await groupsRepository.findOne(id, {
       relations: ["group_avatar"],
+      cache: 5000,
     });
 
     if (!group) {
@@ -172,9 +173,6 @@ class GroupsController {
 
       cache: 10000,
     });
-
-    console.log(groups);
-
     return res.status(200).json(groups);
   }
 }

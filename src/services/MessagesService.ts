@@ -2,8 +2,6 @@ import { getCustomRepository } from "typeorm";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import * as Yup from "yup";
 import { Audio } from "../entities/Audio";
-import { AudiosRepository } from "../repositories/AudiosRepository";
-import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { ParticipantsService } from "./ParticipantsService";
 
 interface ICreateMessageProps {
@@ -57,6 +55,17 @@ class MessagesService {
   async createAudio(audioData: ICreateAudioProps) {
     try {
       const messagesRepository = getCustomRepository(MessagesRepository);
+      const participantsService = new ParticipantsService();
+
+      const participant = await participantsService.index(
+        audioData.author_id,
+        audioData.group_id
+      );
+
+      if (!participant) {
+        throw new Error("Error on create a message for this group!");
+      }
+
       const data = {
         message: "",
         author_id: audioData.author_id,
