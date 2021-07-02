@@ -3,6 +3,8 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 import * as Yup from "yup";
 import { Audio } from "../entities/Audio";
 import { AudiosRepository } from "../repositories/AudiosRepository";
+import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { ParticipantsService } from "./ParticipantsService";
 
 interface ICreateMessageProps {
   message: string;
@@ -19,6 +21,17 @@ interface ICreateAudioProps {
 class MessagesService {
   async create(msgData: ICreateMessageProps) {
     const messageRepository = getCustomRepository(MessagesRepository);
+    const participantsService = new ParticipantsService();
+
+    const participant = await participantsService.index(
+      msgData.author_id,
+      msgData.group_id
+    );
+
+    if (!participant) {
+      throw new Error("Error on create a message for this group!");
+    }
+
     const schema = Yup.object().shape({
       message: Yup.string().max(500).required(),
       group_id: Yup.string().required(),
@@ -64,11 +77,16 @@ class MessagesService {
     }
   }
 
-  async delete(messageID: string) {
+  async delete(messageID: string, userID: string) {
     const messageRepository = getCustomRepository(MessagesRepository);
+    const message = await messageRepository.findOne(messageID);
+
+    if (userID !== message.author_id) {
+      throw new Error("Error on delete this message");
+    }
 
     try {
-      return await messageRepository.delete(messageID);
+      return await messageRepository.delete(message.id);
     } catch (error) {
       throw new Error(error);
     }

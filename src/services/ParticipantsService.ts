@@ -8,6 +8,22 @@ interface INewParticipant {
 }
 
 class ParticipantsService {
+  async index(userID: string, groupID: string) {
+    try {
+      const participantsRepository = getCustomRepository(
+        ParticipantsRepository
+      );
+      const participant = await participantsRepository.findOne({
+        where: [{ user_id: userID, group_id: groupID }],
+        cache: 5000,
+      });
+
+      return participant;
+    } catch (error) {
+      new Error(error);
+    }
+  }
+
   async new({ group_id, user_id }: INewParticipant) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
