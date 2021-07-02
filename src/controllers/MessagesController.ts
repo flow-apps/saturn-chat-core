@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { getCustomRepository } from "typeorm";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
@@ -11,7 +11,19 @@ class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
     const { groupID } = req.params;
     const { _limit, _page } = req.query;
+
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
+
+    const participant = await participantsRepository.findOne({
+      where: { group_id: groupID, user_id: req.userId },
+      cache: 50000,
+    });
+
+    if (!participant) {
+      throw new AppError("Participant not found", 404);
+    }
+
     if (!groupID) {
       throw new AppError("Group ID not provided");
     }
@@ -38,6 +50,7 @@ class MessagesController {
 
     const participant = await participantsRepository.findOne({
       where: { group_id: groupID, user_id: req.userId },
+      cache: 50000,
     });
 
     if (!participant) {

@@ -18,6 +18,10 @@ class ParticipantsService {
         cache: 5000,
       });
 
+      if (!participant) {
+        throw new Error("Participant not found");
+      }
+
       return participant;
     } catch (error) {
       new Error(error);
@@ -31,13 +35,21 @@ class ParticipantsService {
       throw new AppError("Group ID not provided");
     }
 
+    const existsParticipant = await participantsRepository.findOne({
+      where: { group_id, user_id },
+      relations: ["group"],
+    });
+
+    if (existsParticipant) {
+      return existsParticipant;
+    }
+
     const createdParticipant = participantsRepository.create({
       user_id,
       group_id,
     });
 
     await participantsRepository.save(createdParticipant);
-
     const participant = await participantsRepository.findOne(
       createdParticipant.id,
       {
