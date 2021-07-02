@@ -34,7 +34,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
   });
 
   socket.on("delete_user_message", async (messageID: string) => {
-    await messagesService.delete(messageID);
+    await messagesService.delete(messageID, userID);
     socket.in(groupID).emit("delete_user_message", messageID);
     socket.emit("delete_user_message", messageID);
   });
