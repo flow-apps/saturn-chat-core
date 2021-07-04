@@ -11,10 +11,17 @@ interface UploadFileProps {
   path?: string;
 }
 
+interface UploadMultipleFilesProps {
+  files: Express.Multer.File[];
+  path?: string;
+}
+
 export interface UploadedFile {
   name: string;
   url: string;
   path: string;
+  originalName: string;
+  size: number;
 }
 
 class StorageManager {
@@ -24,15 +31,21 @@ class StorageManager {
     this.bucket = storage.bucket(process.env.FIREBASE_STORAGE_URL);
   }
 
-  private async saveInLocal(file: Express.Multer.File, filename: string) {
+  private async saveInLocal(
+    file: Express.Multer.File,
+    filename: string,
+    originalName: string
+  ) {
     fs.writeFileSync(
       join(__dirname, "..", "..", "uploads", "files", filename),
       file.buffer
     );
     return {
       name: filename,
+      originalName,
       url: `${process.env.API_URL}/uploads/${filename}`,
       path: join(__dirname, "..", "..", "uploads", "files", filename),
+      size: file.size,
     };
   }
 
@@ -45,10 +58,10 @@ class StorageManager {
     const randomString = randomBytes(16).toString("hex");
     const filename = `${randomString}_${originalName}`;
 
-    if (inLocal) return this.saveInLocal(file, filename);
+    if (inLocal) return this.saveInLocal(file, filename, originalName);
     try {
       return new Promise<UploadedFile>((resolve, reject) => {
-        const uploadFile = this.bucket.file(`${path}/${filename}`);
+        const uploadFile = this.bucket.file(`files/${path}/${filename}`);
         const fileStream = uploadFile.createWriteStream({
           public: true,
           contentType: file.mimetype,
@@ -62,8 +75,10 @@ class StorageManager {
         fileStream.on("finish", () => {
           const data: UploadedFile = {
             name: filename,
+            originalName,
             url: uploadFile.publicUrl(),
             path: uploadFile.name,
+            size: file.size,
           };
           resolve(data);
         });
@@ -73,6 +88,24 @@ class StorageManager {
     } catch (error) {
       console.log(error);
       throw new Error("Error on upload file!");
+    }
+  }
+
+  async uploadMultipleFiles({ files, path }: UploadMultipleFilesProps) {
+    try {
+      const sendedFiles = files.map(async (file) => {
+        const sendedFile = await this.uploadFile({ file, path });
+
+        if (sendedFile) {
+          return sendedFile as UploadedFile;
+        }
+      });
+
+      const promisedFiles = await Promise.all(sendedFiles);
+
+      return promisedFiles;
+    } catch (error) {
+      throw new Error(error);
     }
   }
 

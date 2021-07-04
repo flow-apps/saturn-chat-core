@@ -6,6 +6,7 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 import { StorageManager } from "../services/StorageManager";
 import { AudiosRepository } from "../repositories/AudiosRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { FilesRepository } from "../repositories/FilesRepository";
 
 class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
@@ -42,7 +43,9 @@ class MessagesController {
   async createAttachment(req: RequestAuthenticated, res: Response) {
     const body = req.body;
     const storage = new StorageManager();
+
     const audiosRepository = getCustomRepository(AudiosRepository);
+    const filesRepository = getCustomRepository(FilesRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     const attachType = String(req.query.type);
@@ -58,10 +61,10 @@ class MessagesController {
     }
 
     if (attachType === "voice_message") {
-      const file = req.file;
+      const file = req.files[0] as Express.Multer.File;
       const uploadedFile = await storage.uploadFile({
         file,
-        path: `groups/${groupID}/audios`,
+        path: `groups/${groupID}/attachments/audios`,
       });
 
       const audio = audiosRepository.create({
@@ -76,6 +79,31 @@ class MessagesController {
 
       await audiosRepository.save(audio);
       return res.json(audio);
+    } else if (attachType === "files") {
+      const files = req.files as Express.Multer.File[];
+
+      const uploadedFiles = await storage.uploadMultipleFiles({
+        files,
+        path: `groups/${groupID}/attachments/files`,
+      });
+
+      const savedFiles = uploadedFiles.map(async (uFile) => {
+        const createdFile = filesRepository.create({
+          user_id: req.userId,
+          group_id: groupID,
+          name: uFile.name,
+          original_name: uFile.originalName,
+          path: uFile.path,
+          url: uFile.url,
+          size: uFile.size,
+        });
+
+        await filesRepository.save(createdFile);
+        return createdFile;
+      });
+
+      const promisedFiles = await Promise.all(savedFiles);
+      return res.json(promisedFiles);
     }
   }
 }

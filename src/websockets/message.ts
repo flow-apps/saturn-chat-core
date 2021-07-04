@@ -34,6 +34,18 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     socket.in(groupID).emit("new_user_message", newVoiceMessage);
   });
 
+  socket.on("new_message_with_files", async (data) => {
+    const newMessageWithFiles = await messagesService.createWithFiles({
+      author_id: userID,
+      group_id: groupID,
+      message: data.message,
+      files: data.files,
+    });
+
+    socket.emit("sended_user_message", newMessageWithFiles);
+    socket.in(groupID).emit("new_user_message", newMessageWithFiles);
+  });
+
   socket.on("delete_user_message", async (messageID: string) => {
     await messagesService.delete(messageID, userID);
     socket.in(groupID).emit("delete_user_message", messageID);

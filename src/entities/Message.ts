@@ -5,6 +5,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
@@ -12,6 +13,7 @@ import {
 import { Group } from "./Group";
 import { User } from "./User";
 import { Audio } from "./Audio";
+import { File } from "./File";
 
 @Entity({ name: "messages" })
 class Message {
@@ -47,6 +49,11 @@ class Message {
   })
   @JoinColumn({ name: "voice_message_id" })
   voice_message: Audio;
+
+  @OneToMany(() => File, (file) => file.message, {
+    eager: true,
+  })
+  files: File[];
 
   @UpdateDateColumn()
   updated_at: Date;

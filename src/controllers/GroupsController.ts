@@ -7,7 +7,7 @@ import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
-import { avatarProcessor } from "../utils/avatarProcessor";
+import { ImageProcessor } from "../utils/imageProcessor";
 
 interface Body {
   name: string;
@@ -31,6 +31,8 @@ interface Data {
 class GroupsController {
   async create(req: RequestAuthenticated, res: Response) {
     const body = req.body as Body;
+    const imageProcessor = new ImageProcessor();
+
     const groupAvatar = req.file;
     const groupsRepository = getCustomRepository(GroupsRepository);
     const participants = new ParticipantsService();
@@ -64,7 +66,7 @@ class GroupsController {
     let processedImage: Buffer;
 
     if (groupAvatar) {
-      processedImage = await avatarProcessor({
+      processedImage = await imageProcessor.avatar({
         avatar: groupAvatar.buffer,
         quality: 60,
       });
@@ -88,6 +90,7 @@ class GroupsController {
     await participants.new({ group_id: group.id, user_id: req.userId });
     return res.status(200).json(group);
   }
+
   async index(req: Request, res: Response) {
     const { id } = req.params;
     const groupsRepository = getCustomRepository(GroupsRepository);
@@ -108,6 +111,7 @@ class GroupsController {
 
     return res.status(200).json(group);
   }
+
   async delete(req: RequestAuthenticated, res: Response) {
     const { id } = req.params;
     const groupsRepository = getCustomRepository(GroupsRepository);
