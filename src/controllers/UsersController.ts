@@ -7,7 +7,7 @@ import { AppError } from "../errors/AppError";
 import { AvatarsRepository } from "../repositories/AvatarsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
-import { avatarProcessor } from "../utils/avatarProcessor";
+import { ImageProcessor } from "../utils/imageProcessor";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 
 interface Data {
@@ -21,6 +21,8 @@ interface Data {
   };
 }
 class UsersController {
+  private imageProcessor = new ImageProcessor();
+
   async create(req: Request, res: Response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
@@ -54,7 +56,7 @@ class UsersController {
     };
 
     if (avatar) {
-      processedImage = await avatarProcessor({
+      processedImage = await this.imageProcessor.avatar({
         avatar: avatar.buffer,
         quality: 60,
       });

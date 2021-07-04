@@ -60,7 +60,7 @@ routes.get("/messages/:groupID", authProvider, messageController.list);
 routes.post(
   "/messages/SendAttachment/:groupID",
   authProvider,
-  multer(configMulter(120, ["*/*"])).single("attachment"),
+  multer(configMulter(120, ["*/*"])).array("attachment"),
   messageController.createAttachment
 );
 
