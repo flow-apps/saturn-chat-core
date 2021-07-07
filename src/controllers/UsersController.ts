@@ -21,8 +21,6 @@ interface Data {
   };
 }
 class UsersController {
-  private imageProcessor = new ImageProcessor();
-
   async create(req: Request, res: Response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
@@ -32,6 +30,7 @@ class UsersController {
 
     const { name, email, password } = req.body;
     const avatar = req.file;
+    const imageProcessor = new ImageProcessor();
     let processedImage: Buffer;
 
     try {
@@ -56,7 +55,7 @@ class UsersController {
     };
 
     if (avatar) {
-      processedImage = await this.imageProcessor.avatar({
+      processedImage = await imageProcessor.avatar({
         avatar: avatar.buffer,
         quality: 60,
       });

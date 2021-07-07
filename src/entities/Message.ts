@@ -52,7 +52,9 @@ class Message {
 
   @OneToMany(() => File, (file) => file.message, {
     eager: true,
+    nullable: true,
   })
+  @JoinColumn()
   files: File[];
 
   @UpdateDateColumn()

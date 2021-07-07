@@ -25,6 +25,10 @@ export class CreateFiles1625275540216 implements MigrationInterface {
             type: "integer",
           },
           {
+            name: "type",
+            type: "varchar",
+          },
+          {
             name: "group_id",
             type: "varchar",
           },

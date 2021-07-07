@@ -44,6 +44,7 @@ class MessagesController {
     const body = req.body;
     const storage = new StorageManager();
 
+    const messageRepository = getCustomRepository(MessagesRepository);
     const audiosRepository = getCustomRepository(AudiosRepository);
     const filesRepository = getCustomRepository(FilesRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
@@ -80,30 +81,37 @@ class MessagesController {
       await audiosRepository.save(audio);
       return res.json(audio);
     } else if (attachType === "files") {
-      const files = req.files as Express.Multer.File[];
+      const createdMessage = messageRepository.create({
+        author_id: req.userId,
+        group_id: groupID,
+        message: "",
+      });
 
+      await messageRepository.save(createdMessage);
+
+      const files = req.files as Express.Multer.File[];
       const uploadedFiles = await storage.uploadMultipleFiles({
         files,
         path: `groups/${groupID}/attachments/files`,
       });
 
-      const savedFiles = uploadedFiles.map(async (uFile) => {
-        const createdFile = filesRepository.create({
-          user_id: req.userId,
-          group_id: groupID,
-          name: uFile.name,
-          original_name: uFile.originalName,
-          path: uFile.path,
-          url: uFile.url,
-          size: uFile.size,
-        });
+      const savedFiles = await Promise.all(
+        uploadedFiles.map(async (uFile) => {
+          if (uFile) {
+            const createdFile = filesRepository.create({
+              ...uFile,
+              user_id: req.userId,
+              group_id: groupID,
+              message_id: createdMessage.id,
+            });
 
-        await filesRepository.save(createdFile);
-        return createdFile;
-      });
+            await filesRepository.save(createdFile);
+            return createdFile;
+          }
+        })
+      );
 
-      const promisedFiles = await Promise.all(savedFiles);
-      return res.json(promisedFiles);
+      return res.json({ files: savedFiles, message_id: createdMessage.id });
     }
   }
 }

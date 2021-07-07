@@ -20,8 +20,9 @@ export interface UploadedFile {
   name: string;
   url: string;
   path: string;
-  originalName: string;
+  original_name: string;
   size: number;
+  type: string;
 }
 
 class StorageManager {
@@ -34,7 +35,8 @@ class StorageManager {
   private async saveInLocal(
     file: Express.Multer.File,
     filename: string,
-    originalName: string
+    original_name: string,
+    fileType: string
   ) {
     fs.writeFileSync(
       join(__dirname, "..", "..", "uploads", "files", filename),
@@ -42,10 +44,11 @@ class StorageManager {
     );
     return {
       name: filename,
-      originalName,
+      original_name,
       url: `${process.env.API_URL}/uploads/${filename}`,
       path: join(__dirname, "..", "..", "uploads", "files", filename),
       size: file.size,
+      type: fileType,
     };
   }
 
@@ -57,8 +60,10 @@ class StorageManager {
     const originalName = clearFilename(file.originalname);
     const randomString = randomBytes(16).toString("hex");
     const filename = `${randomString}_${originalName}`;
+    const fileType = file.mimetype.split("/")[0];
 
-    if (inLocal) return this.saveInLocal(file, filename, originalName);
+    if (inLocal)
+      return this.saveInLocal(file, filename, originalName, fileType);
     try {
       return new Promise<UploadedFile>((resolve, reject) => {
         const uploadFile = this.bucket.file(`files/${path}/${filename}`);
@@ -75,10 +80,11 @@ class StorageManager {
         fileStream.on("finish", () => {
           const data: UploadedFile = {
             name: filename,
-            originalName,
+            original_name: originalName,
             url: uploadFile.publicUrl(),
             path: uploadFile.name,
             size: file.size,
+            type: fileType,
           };
           resolve(data);
         });
