@@ -35,11 +35,11 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
   });
 
   socket.on("new_message_with_files", async (data) => {
-    const newMessageWithFiles = await messagesService.createWithFiles({
+    const newMessageWithFiles = await messagesService.getMessageWithFiles({
       author_id: userID,
       group_id: groupID,
+      message_id: data.message_id,
       message: data.message,
-      files: data.files,
     });
 
     socket.emit("sended_user_message", newMessageWithFiles);

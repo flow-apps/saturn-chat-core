@@ -24,6 +24,9 @@ class File {
   @Column({ default: 0 })
   size: number;
 
+  @Column({ default: "unknown" })
+  type: string;
+
   @Column({ unique: true })
   url: string;
 
@@ -33,7 +36,7 @@ class File {
   @Column()
   group_id: string;
 
-  @Column({ nullable: true, default: "" })
+  @Column({ nullable: true })
   message_id: string;
 
   @ManyToOne(() => Message, (file) => file.files, {

@@ -19,11 +19,11 @@ interface ICreateAudioProps {
   author_id: string;
 }
 
-interface ICreateMessageWithFilesProps {
-  files: File[];
+interface IGetMessageWithFilesProps {
   message: string;
-  group_id: string;
+  message_id: string;
   author_id: string;
+  group_id: string;
 }
 
 class MessagesService {
@@ -96,9 +96,8 @@ class MessagesService {
     }
   }
 
-  async createWithFiles(msgData: ICreateMessageWithFilesProps) {
+  async getMessageWithFiles(msgData: IGetMessageWithFilesProps) {
     const messagesRepository = getCustomRepository(MessagesRepository);
-    const filesRepository = getCustomRepository(FilesRepository);
     const participantsService = new ParticipantsService();
 
     const participant = await participantsService.index(
@@ -110,24 +109,17 @@ class MessagesService {
       throw new Error("Error on create a message for this group!");
     }
 
-    const data = {
+    await messagesRepository.update(msgData.message_id, {
       message: msgData.message,
-      author_id: msgData.author_id,
-      group_id: msgData.group_id,
-    };
-
-    const newMessage = messagesRepository.create(data);
-    await messagesRepository.save(newMessage);
-    const filesIds = msgData.files.map((file) => file.id);
-
-    await filesRepository.update(filesIds, {
-      message_id: newMessage.id,
     });
 
-    const completedMessage = await messagesRepository.findOne(newMessage.id, {
-      loadEagerRelations: true,
-      relations: ["author", "author.avatar", "group"],
-    });
+    const completedMessage = await messagesRepository.findOne(
+      msgData.message_id,
+      {
+        loadEagerRelations: true,
+        relations: ["author", "author.avatar", "group"],
+      }
+    );
 
     return completedMessage;
   }
