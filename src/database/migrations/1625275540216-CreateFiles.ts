@@ -82,7 +82,8 @@ export class CreateFiles1625275540216 implements MigrationInterface {
             onUpdate: "CASCADE",
           },
         ],
-      })
+      }),
+      true
     );
   }
 

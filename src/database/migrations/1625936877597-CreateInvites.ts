@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
-export class CreateAudios1625073264140 implements MigrationInterface {
+export class CreateInvites1625936877597 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: "audios",
+        name: "invites",
         columns: [
           {
             name: "id",
@@ -12,33 +12,32 @@ export class CreateAudios1625073264140 implements MigrationInterface {
             isPrimary: true,
           },
           {
-            name: "name",
+            name: "invite_code",
             type: "varchar",
             isUnique: true,
           },
           {
-            name: "size",
-            type: "integer",
+            name: "is_permanent",
+            type: "boolean",
+            default: false,
           },
           {
-            name: "duration",
+            name: "is_unlimited_usage",
+            type: "boolean",
+            default: false,
+          },
+          {
+            name: "usage_amount",
             type: "integer",
+            default: 1,
+          },
+          {
+            name: "expire_in",
+            type: "timestamp",
+            isNullable: true,
           },
           {
             name: "group_id",
-            type: "varchar",
-          },
-          {
-            name: "participant_id",
-            type: "varchar",
-          },
-          {
-            name: "url",
-            type: "varchar",
-            isUnique: true,
-          },
-          {
-            name: "path",
             type: "varchar",
           },
           {
@@ -49,17 +48,9 @@ export class CreateAudios1625073264140 implements MigrationInterface {
         ],
         foreignKeys: [
           {
-            name: "FKParticipantID",
-            referencedTableName: "participants",
-            referencedColumnNames: ["id"],
-            columnNames: ["participant_id"],
-            onDelete: "CASCADE",
-            onUpdate: "CASCADE",
-          },
-          {
             name: "FKGroupID",
-            referencedTableName: "groups",
             referencedColumnNames: ["id"],
+            referencedTableName: "groups",
             columnNames: ["group_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
@@ -71,6 +62,6 @@ export class CreateAudios1625073264140 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable("audios");
+    await queryRunner.dropTable("invites");
   }
 }

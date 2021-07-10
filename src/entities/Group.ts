@@ -14,6 +14,7 @@ import { User } from "./User";
 import { GroupAvatar } from "./GroupAvatar";
 import { Message } from "./Message";
 import { Participant } from "./Participant";
+import { Invite } from "./Invite";
 
 @Entity({ name: "groups" })
 class Group {
@@ -60,6 +61,12 @@ class Group {
   })
   @JoinColumn({ name: "owner_id" })
   owner: User;
+
+  @OneToMany(() => Invite, (invite) => invite.group, {
+    nullable: true,
+  })
+  @JoinColumn()
+  invites: Invite[];
 
   @CreateDateColumn()
   created_at: Date;
