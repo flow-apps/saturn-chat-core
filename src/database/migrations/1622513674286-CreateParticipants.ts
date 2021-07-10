@@ -39,9 +39,12 @@ export class CreateParticipants1622513674286 implements MigrationInterface {
             referencedColumnNames: ["id"],
           },
         ],
-      })
+      }),
+      true
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.dropTable("participants");
+  }
 }
