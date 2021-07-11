@@ -3,4 +3,4 @@ import "./websockets/group";
 import "./websockets/message";
 import { http } from "./http";
 
-http.listen(3000);
+http.listen(3000, () => console.log("Server started in port 3000"));
