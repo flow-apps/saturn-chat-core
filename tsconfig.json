@@ -14,5 +14,6 @@
     "resolveJsonModule": true,
     "sourceMap": true
   },
-  "exclude": ["node_modules"]
+  "include": ["src"],
+  "exclude": ["node_modules", ".vscode", "uploads", "__tests__"]
 }

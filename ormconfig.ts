@@ -8,12 +8,13 @@ export default {
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
   synchronize: false,
-  migrationsRun: false,
+  migrationsRun: true,
   logging: false,
-  entities: ["src/entities/**/*.ts"],
-  migrations: ["src/database/migrations/**/*.ts"],
+  entities: ["src/entities/**/*{.ts, .js}"],
+  migrations: ["src/database/migrations/**/*{.ts, .js}"],
   cli: {
     entitiesDir: "src/entities",
     migrationsDir: "src/database/migrations",
   },
+  autoSchemaSync: true
 };

@@ -27,14 +27,23 @@ export class CreateInvites1625936877597 implements MigrationInterface {
             default: false,
           },
           {
-            name: "usage_amount",
+            name: "max_usage_amount",
             type: "integer",
             default: 1,
+          },
+          {
+            name: "usage_amount",
+            type: "integer",
+            default: 0,
           },
           {
             name: "expire_in",
             type: "timestamp",
             isNullable: true,
+          },
+          {
+            name: "expire_timezone",
+            type: "varchar"
           },
           {
             name: "group_id",

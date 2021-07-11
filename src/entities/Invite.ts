@@ -35,11 +35,17 @@ class Invite {
   @Column({ default: false })
   is_unlimited_usage: boolean;
 
+  @Column({ default: 0 })
+  max_usage_amount: number;
+
   @Column({ default: 1 })
   usage_amount: number;
 
   @Column({ nullable: true })
   expire_in: Date;
+
+  @Column()
+  expire_timezone: string;
 
   @CreateDateColumn()
   created_at: Date;

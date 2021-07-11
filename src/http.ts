@@ -11,6 +11,8 @@ import cors from "cors";
 import { userRoutes } from "./routes/user";
 import { groupRoutes } from "./routes/group";
 import { messageRoutes } from "./routes/message";
+import { authRoutes } from "./routes/auth";
+import { inviteRoutes } from "./routes/invite";
 
 createConnection();
 const app = express();
@@ -30,8 +32,10 @@ app.use(express.json());
 app.use("/uploads",
   express.static(path.join(__dirname, "..", "uploads", "files"))
 );
+app.use(authRoutes)
 app.use(userRoutes);
-app.use(groupRoutes);
+app.use(groupRoutes)
+app.use(inviteRoutes)
 app.use(messageRoutes);
 app.use(handlerError);
 
