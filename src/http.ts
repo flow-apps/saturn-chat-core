@@ -13,8 +13,11 @@ import { groupRoutes } from "./routes/group";
 import { messageRoutes } from "./routes/message";
 import { authRoutes } from "./routes/auth";
 import { inviteRoutes } from "./routes/invite";
+import { startTasks } from "./cronjobs";
 
-createConnection();
+createConnection()
+startTasks()
+
 const app = express();
 const http = createServer(app);
 
@@ -29,13 +32,14 @@ app.use(fakePoweredBy);
 app.use(compression({ level: 9 }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use("/uploads",
+app.use(
+  "/uploads",
   express.static(path.join(__dirname, "..", "uploads", "files"))
 );
-app.use(authRoutes)
+app.use(authRoutes);
 app.use(userRoutes);
-app.use(groupRoutes)
-app.use(inviteRoutes)
+app.use(groupRoutes);
+app.use(inviteRoutes);
 app.use(messageRoutes);
 app.use(handlerError);
 
