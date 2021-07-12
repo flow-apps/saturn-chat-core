@@ -7,10 +7,10 @@ export default async (): Promise<Connection> => {
     Object.assign(defaultOptions, {
       database:
         process.env.NODE_ENV === "test"
-          ? "saturn_chat_test"
+          ? "flow_chat_test"
           : process.env.POSTGRES_DATABASE,
     })
-  );
+  )
 
   await connection.runMigrations()
   return connection
