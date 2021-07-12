@@ -71,7 +71,7 @@ class InvitesController {
     }
 
     const inviteCode = crypto.randomBytes(4).toString("hex");
-    const expireDate = dayjs().add(Number(body.expireIn), "seconds").toDate();
+    const expireDate = dayjs().add(Number(body.expireIn), "days").toDate();
     const isPermanent = body.isPermanent === "true";
     const isUnlimitedUsage = body.isUnlimitedUsage === "true";
     const usageAmount = Number(body.usageAmount);
