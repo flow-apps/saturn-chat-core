@@ -1,3 +1,9 @@
-## O que é o Flow Chat?
+O *Saturn Chat Core* é o **núcleo** do app [Saturn Chat](https://github.com/flow-apps/saturn-chat-mobile), onde toda a regra de negócio fica.
 
-Essa é a API de um app mobile chamado Flow Chat, um app baseado em salas de bate-papo, onde os usuários pode criar seus próprios grupos, adicionar usuários a eles, conversar, enviar arquivos, e muito mais.
+Aqui é o local onde é feito **todo o cadastro de novo usuários, grupos, onde são criados feitos convites para grupos, e tudo mais que o app mobile faz hoje.**
+
+## 👨‍🏭 Como posso contribuir com projeto?
+
+**Que bom que você quer ajudar!!** Caso encontre qualquer bug ou queira simplesmente dar um sugestão, basta **abrir um issue**.
+
+Agora caso você seja uma pessoa que gosta de por a **mão na massa** basta fazer um *PR* (Pull Request) aplicando sua solução. Nós analisaremos e se tudo estiver certo aplicaremos sua solução no projeto.
