@@ -102,10 +102,6 @@ class InvitesController {
       cache: 10000,
     });
 
-    if (invites[0].group.owner_id !== userID) {
-      throw new AppError("Request invalid");
-    }
-
     return res.json(invites);
   }
 

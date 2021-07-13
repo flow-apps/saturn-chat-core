@@ -31,7 +31,7 @@ const removeExpiredInvitesTask = cron.schedule("1 * * * * *", async () => {
     const expired = dayjs.tz(date, invite.expire_timezone).isAfter(expireDate);
     const reachedLimitUsage = invite.usage_amount >= invite.max_usage_amount
 
-    if (expired || reachedLimitUsage) {
+    if (expired || (reachedLimitUsage && !invite.is_unlimited_usage) ) {
       deletedAmount += 1
       return await invitesRepository.delete(invite.id)
     }
