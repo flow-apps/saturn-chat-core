@@ -3,6 +3,7 @@ import { getCustomRepository, ILike, Not, Raw } from "typeorm";
 import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
+import { GroupsAvatarsRepository } from "../repositories/GroupsAvatarsRepository";
 import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { ParticipantsService } from "../services/ParticipantsService";
@@ -35,6 +36,9 @@ class GroupsController {
 
     const groupAvatar = req.file;
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const groupsAvatarsRepository = getCustomRepository(
+      GroupsAvatarsRepository
+    );
     const participants = new ParticipantsService();
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
@@ -72,16 +76,19 @@ class GroupsController {
       });
       groupAvatar.buffer = processedImage;
       const storage = new StorageManager();
-      const uploadedAvatar = (await storage.uploadFile({
+      const uploadedAvatar = await storage.uploadFile({
         file: groupAvatar,
-        path: "groups/avatars",
-      })) as UploadedFile;
+        path: "files/groups/avatars",
+      });
 
-      data.group_avatar = {
-        url: uploadedAvatar.url,
+      const newGroupAvatar = groupsAvatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-      };
+        url: uploadedAvatar.url,
+      });
+
+      await groupsAvatarsRepository.save(newGroupAvatar);
+      data.group_avatar = newGroupAvatar;
     }
 
     const group = groupsRepository.create(data);
@@ -178,6 +185,97 @@ class GroupsController {
       cache: 10000,
     });
     return res.status(200).json(groups);
+  }
+
+  async update(req: RequestAuthenticated, res: Response) {
+    const body = req.body as Body;
+    const userID = req.userId;
+    const groupID = req.params.groupID;
+    const groupsRepository = getCustomRepository(GroupsRepository);
+    const schema = Yup.object().shape({
+      name: Yup.string().max(100).required(),
+      description: Yup.string().max(500).required(),
+      privacy: Yup.string().uppercase().required(),
+      tags: Yup.string(),
+    });
+
+    let dataValidated;
+
+    try {
+      dataValidated = await schema.validate(body, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
+    } catch (error) {
+      throw new AppError(error.errors);
+    }
+
+    const group = await groupsRepository.findOne({
+      where: [{ id: groupID, owner_id: userID }],
+    });
+
+    if (!group) {
+      throw new AppError("Invalid group");
+    }
+
+    dataValidated.tags = dataValidated.tags
+      .trim()
+      .toLowerCase()
+      .split(",")
+      .map((tag: string) => tag.trim());
+
+    const updatedGroupData = Object.assign(group, dataValidated);
+    const mergedGroup = groupsRepository.merge(group, updatedGroupData);
+    await groupsRepository.save(mergedGroup);
+
+    return res.sendStatus(200);
+  }
+
+  async updateAvatar(req: RequestAuthenticated, res: Response) {
+    const { groupID } = req.params;
+    const avatar = req.file;
+    const storage = new StorageManager();
+    const imageProcessor = new ImageProcessor();
+
+    const groupsAvatarsRepository = getCustomRepository(
+      GroupsAvatarsRepository
+    );
+    const groupsRepository = getCustomRepository(GroupsRepository);
+    let processedImage: Buffer;
+
+    const group = await groupsRepository.findOne({
+      where: { id: groupID, owner_id: req.userId },
+      relations: ["group_avatar"],
+    });
+
+    if (!group || !avatar) {
+      throw new AppError("Invalid Group or Avatar not provided");
+    }
+
+    const groupAvatar = await groupsAvatarsRepository.findOne(
+      group.group_avatar.id
+    );
+    await storage.deleteFile(groupAvatar.path);
+
+    processedImage = await imageProcessor.avatar({
+      avatar: req.file.buffer,
+      quality: 60,
+    });
+
+    req.file.buffer = processedImage;
+
+    const uploadedAvatar = await storage.uploadFile({
+      file: req.file,
+      path: "files/groups/avatars",
+    });
+
+    await groupsAvatarsRepository.update(groupAvatar.id, {
+      name: uploadedAvatar.name,
+      path: uploadedAvatar.path,
+      url: uploadedAvatar.url,
+    });
+
+    res.sendStatus(204);
   }
 }
 

@@ -11,8 +11,9 @@ const participantsController = new ParticipantsController();
 
 routes.use(authProvider);
 
-routes.post("/groups",
-  multer(configMulter()).single("group_avatar"),
+routes.post(
+  "/groups",
+  multer(configMulter(5)).single("group_avatar"),
   groupsController.create
 );
 routes.get("/group/:id", groupsController.index);
@@ -22,5 +23,11 @@ routes.get("/group/participant/:group_id", participantsController.index);
 routes.get("/groups/list", groupsController.list);
 routes.get("/groups/search", groupsController.search);
 routes.delete("/group/:id", groupsController.delete);
+routes.patch("/group/:groupID", groupsController.update);
+routes.patch(
+  "/group/avatar/:groupID",
+  multer(configMulter(5)).single("group_avatar"),
+  groupsController.updateAvatar
+);
 
 export { routes as groupRoutes };

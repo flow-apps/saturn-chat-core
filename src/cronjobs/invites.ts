@@ -8,8 +8,8 @@ import { InvitesRepository } from "../repositories/InvitesRepository"
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const removeExpiredInvitesTask = cron.schedule("1 * * * * *", async () => {
-  console.log(">> Cleaning all expired invites <<");
+const removeExpiredInvitesTask = cron.schedule("5 * * * * *", async () => {
+  console.log(">> Cleaning all expired invites");
   
   let deletedAmount = 0
   const invitesRepository = getCustomRepository(InvitesRepository)
@@ -18,10 +18,12 @@ const removeExpiredInvitesTask = cron.schedule("1 * * * * *", async () => {
       { is_permanent: false },
       { is_unlimited_usage: false },
     ],
-    take: 1000,
+    take: 10000,
     cache: 1900000,
-    order: { expire_in: 'DESC' }
+    order: { expire_in: 'ASC' }
   })
+
+  if (allInvites.length <= 0) return
 
   Promise.all(allInvites.map(async invite => {
     if (!invite.expire_in || !invite.expire_timezone) return false;
@@ -37,7 +39,7 @@ const removeExpiredInvitesTask = cron.schedule("1 * * * * *", async () => {
     }
   }))
 
-  console.log(`>> ${deletedAmount} invites expired removed <<`);
+  console.log(`>> ${deletedAmount} invites expired removed`);
   
 })
 
