@@ -1,6 +1,6 @@
+import fs from "fs";
 import { storage } from "../configs/storage";
 import { join } from "path";
-import fs from "fs";
 import { Bucket } from "@google-cloud/storage";
 import { randomBytes } from "crypto";
 import { clearFilename } from "../utils/clear";

@@ -22,7 +22,7 @@ class ImageProcessor {
       })
       .toBuffer();
 
-    return newImage;
+    return newImage
   }
 
   async image({ image, quality }: ImageProcessorProps) {

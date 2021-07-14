@@ -8,7 +8,7 @@ const routes = Router();
 const usersController = new UsersController();
 
 routes.post("/users",
-  multer(configMulter()).single("avatar"),
+  multer(configMulter(5)).single("avatar"),
   usersController.create
 );
 routes.get("/users", authProvider, usersController.index);

@@ -23,13 +23,8 @@ class Group {
 
   @Column()
   owner_id: string;
-
-  @OneToOne(() => GroupAvatar, {
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-    cascade: true,
-    eager: true,
-  })
+  
+  @OneToOne(() => GroupAvatar, { nullable: true })
   @JoinColumn()
   group_avatar: GroupAvatar;
 
