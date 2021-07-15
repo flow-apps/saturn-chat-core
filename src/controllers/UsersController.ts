@@ -64,7 +64,7 @@ class UsersController {
       const storage = new StorageManager();
       const uploadedAvatar = (await storage.uploadFile({
         file: avatar,
-        path: "avatars",
+        path: "files/users/avatars",
       })) as UploadedFile;
 
       data.avatar = {
@@ -82,12 +82,26 @@ class UsersController {
     return res.status(200).json({ user, token });
   }
 
+  async me(req: RequestAuthenticated, res: Response) {
+    const usersRepository = getCustomRepository(UsersRepository);
+
+    const user = await usersRepository.findOne(req.userId, {
+      loadEagerRelations: true,
+    });
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    return res.json(user);
+  }
+
   async index(req: RequestAuthenticated, res: Response) {
     const id = req.query.user_id || req.userId;
 
     const usersRepository = getCustomRepository(UsersRepository);
     const user = await usersRepository.findOne(String(id), {
-      relations: ["avatar", "groups", "participating"],
+      relations: ["avatar", "users", "participating"],
     });
 
     if (!user) {
@@ -119,6 +133,81 @@ class UsersController {
     await usersRepository.delete(user.id);
 
     return res.status(204).send();
+  }
+
+  async update(req: RequestAuthenticated, res: Response) {
+    const body = req.body;
+    const userID = req.userId;
+    const usersRepository = getCustomRepository(UsersRepository);
+    const schema = Yup.object().shape({
+      name: Yup.string().max(100).required(),
+    });
+
+    let dataValidated;
+
+    try {
+      dataValidated = await schema.validate(body, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
+    } catch (error) {
+      throw new AppError(error.errors);
+    }
+
+    const user = await usersRepository.findOne({
+      where: [{ id: userID }],
+    });
+
+    if (!user) {
+      throw new AppError("Invalid user");
+    }
+
+    const updatedUserData = Object.assign(user, dataValidated);
+    const mergedUser = usersRepository.merge(user, updatedUserData);
+    const savedFile = await usersRepository.save(mergedUser);
+
+    return res.json({ user: savedFile })
+  }
+
+  async updateAvatar(req: RequestAuthenticated, res: Response) {
+    const avatar = req.file;
+    const storage = new StorageManager();
+    const imageProcessor = new ImageProcessor();
+
+    const avatarsRepository = getCustomRepository(AvatarsRepository);
+    const usersRepository = getCustomRepository(UsersRepository);
+    let processedImage: Buffer;
+
+    const user = await usersRepository.findOne({
+      where: { id: req.userId },
+    });
+
+    if (!user || !avatar) {
+      throw new AppError("Invalid user or avatar not provided");
+    }
+
+    const userAvatar = await avatarsRepository.findOne(user.avatar.id);
+    await storage.deleteFile(userAvatar.path);
+
+    processedImage = await imageProcessor.avatar({
+      avatar: req.file.buffer,
+      quality: 60,
+    });
+
+    req.file.buffer = processedImage;
+
+    const uploadedAvatar = await storage.uploadFile({
+      file: req.file,
+      path: "files/users/avatars",
+    });
+
+    await avatarsRepository.update(userAvatar.id, {
+      name: uploadedAvatar.name,
+      path: uploadedAvatar.path,
+      url: uploadedAvatar.url,
+    });
+
+    res.sendStatus(204);
   }
 }
 
