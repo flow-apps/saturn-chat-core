@@ -24,7 +24,7 @@ class Group {
   @Column()
   owner_id: string;
   
-  @OneToOne(() => GroupAvatar, { nullable: true })
+  @OneToOne(() => GroupAvatar, { nullable: true, eager: true })
   @JoinColumn()
   group_avatar: GroupAvatar;
 
