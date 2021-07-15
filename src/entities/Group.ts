@@ -23,18 +23,6 @@ class Group {
 
   @Column()
   owner_id: string;
-  
-  @OneToOne(() => GroupAvatar, { nullable: true })
-  @JoinColumn()
-  group_avatar: GroupAvatar;
-
-  @OneToMany(() => Message, (message) => message.id)
-  @JoinColumn()
-  messages: Message[];
-
-  @OneToMany(() => Participant, (participant) => participant.group)
-  @JoinColumn()
-  participants: Participant[];
 
   @Column({ length: 100 })
   name: string;
@@ -47,6 +35,18 @@ class Group {
 
   @Column("varchar", { array: true, nullable: true, default: [] })
   tags: string[];
+
+  @OneToOne(() => GroupAvatar, { nullable: true, eager: true })
+  @JoinColumn()
+  group_avatar: GroupAvatar;
+
+  @OneToMany(() => Message, (message) => message.id)
+  @JoinColumn()
+  messages: Message[];
+
+  @OneToMany(() => Participant, (participant) => participant.group)
+  @JoinColumn()
+  participants: Participant[];
 
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: "CASCADE",
