@@ -14,6 +14,7 @@ import { Group } from "./Group";
 import { User } from "./User";
 import { Audio } from "./Audio";
 import { File } from "./File";
+import { ReadMessage } from "./ReadMessage";
 
 @Entity({ name: "messages" })
 class Message {
@@ -26,6 +27,7 @@ class Message {
   @Column()
   author_id: string;
 
+
   @ManyToOne(() => Group, (group) => group.id)
   @JoinColumn({ name: "group_id" })
   group: Group;
@@ -36,6 +38,10 @@ class Message {
 
   @Column({ length: 500 })
   message: string;
+
+  @OneToMany(() => ReadMessage, rm => rm.message)
+  @JoinColumn()
+  read_messages: ReadMessage[]
 
   @Column({ nullable: true })
   voice_message_id: string;

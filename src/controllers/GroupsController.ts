@@ -5,7 +5,9 @@ import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { GroupsAvatarsRepository } from "../repositories/GroupsAvatarsRepository";
 import { GroupsRepository } from "../repositories/GroupsRepository";
+import { MessagesRepository } from "../repositories/MessagesRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
@@ -112,11 +114,20 @@ class GroupsController {
       loadEagerRelations: true,
     });
 
+    
     if (!group) {
       throw new AppError("Group not found", 404);
     }
 
-    return res.status(200).json(group);
+    const participantsAmount = await participantsRepository.count({
+      where: { group_id: group.id }
+    })
+
+    const groupWithParticipantsAmount = Object.assign(group, {
+      participantsAmount
+    })
+
+    return res.status(200).json(groupWithParticipantsAmount);
   }
 
   async delete(req: RequestAuthenticated, res: Response) {
@@ -149,13 +160,32 @@ class GroupsController {
 
   async list(req: RequestAuthenticated, res: Response) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const messagesRepository = getCustomRepository(MessagesRepository)
+    const readMessagesRepository = getCustomRepository(ReadMessagesRepository)
 
     const groups = await participantsRepository.find({
       where: { user_id: req.userId },
       loadEagerRelations: true,
     });
 
-    return res.status(200).json(groups);
+    const groupsWithUnreadMessages = await Promise.all(groups.map(async group => {
+      const totalMessages = await messagesRepository.count({
+        where: { group_id: group.group.id }
+      })
+      const allReadMessages = await readMessagesRepository.count({
+        where: { user_id: req.userId, group_id: group.group.id }
+      })
+
+      const totalUnreadMessages = totalMessages - allReadMessages 
+      const groupWithUnreadMessages = Object.assign(group.group, {
+        unreadMessagesAmount: totalUnreadMessages
+      })
+
+      return groupWithUnreadMessages
+
+    }))
+
+    return res.status(200).json(groupsWithUnreadMessages);
   }
 
   async search(req: RequestAuthenticated, res: Response) {

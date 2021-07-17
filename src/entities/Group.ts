@@ -15,6 +15,7 @@ import { GroupAvatar } from "./GroupAvatar";
 import { Message } from "./Message";
 import { Participant } from "./Participant";
 import { Invite } from "./Invite";
+import { ReadMessage } from "./ReadMessage";
 
 @Entity({ name: "groups" })
 class Group {
@@ -39,6 +40,10 @@ class Group {
   @OneToOne(() => GroupAvatar, { nullable: true, eager: true })
   @JoinColumn()
   group_avatar: GroupAvatar;
+
+  @OneToMany(() => ReadMessage, rm => rm.group)
+  @JoinColumn()
+  read_messages: ReadMessage[]
 
   @OneToMany(() => Message, (message) => message.id)
   @JoinColumn()

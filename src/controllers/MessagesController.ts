@@ -7,6 +7,7 @@ import { StorageManager } from "../services/StorageManager";
 import { AudiosRepository } from "../repositories/AudiosRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { FilesRepository } from "../repositories/FilesRepository";
+import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 
 class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
@@ -15,6 +16,7 @@ class MessagesController {
 
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
+    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
 
     const participant = await participantsRepository.findOne({
       where: { group_id: groupID, user_id: req.userId },
@@ -36,6 +38,23 @@ class MessagesController {
       skip: Number(_page) * Number(_limit),
       order: { created_at: "DESC" },
     });
+
+    await Promise.all(
+      messages.map(async (message) => {
+        const isRead = await readMessagesRepository.findOne({
+          where: { message_id: message.id, user_id: req.userId },
+        });
+
+        if (!isRead) {
+          const newMessageRead = readMessagesRepository.create({
+            message_id: message.id,
+            user_id: req.userId,
+            group_id: groupID
+          })
+          await readMessagesRepository.save(newMessageRead)
+        }
+      })
+    );
 
     return res.status(200).json({ messages });
   }
