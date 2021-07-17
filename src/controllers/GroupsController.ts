@@ -114,18 +114,17 @@ class GroupsController {
       loadEagerRelations: true,
     });
 
-    
     if (!group) {
       throw new AppError("Group not found", 404);
     }
 
     const participantsAmount = await participantsRepository.count({
-      where: { group_id: group.id }
-    })
+      where: { group_id: group.id },
+    });
 
     const groupWithParticipantsAmount = Object.assign(group, {
-      participantsAmount
-    })
+      participantsAmount,
+    });
 
     return res.status(200).json(groupWithParticipantsAmount);
   }
@@ -160,30 +159,31 @@ class GroupsController {
 
   async list(req: RequestAuthenticated, res: Response) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
-    const messagesRepository = getCustomRepository(MessagesRepository)
-    const readMessagesRepository = getCustomRepository(ReadMessagesRepository)
+    const messagesRepository = getCustomRepository(MessagesRepository);
+    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
 
     const groups = await participantsRepository.find({
       where: { user_id: req.userId },
       loadEagerRelations: true,
     });
 
-    const groupsWithUnreadMessages = await Promise.all(groups.map(async group => {
-      const totalMessages = await messagesRepository.count({
-        where: { group_id: group.group.id }
-      })
-      const allReadMessages = await readMessagesRepository.count({
-        where: { user_id: req.userId, group_id: group.group.id }
-      })
+    const groupsWithUnreadMessages = await Promise.all(
+      groups.map(async (group) => {
+        const totalMessages = await messagesRepository.count({
+          where: { group_id: group.group.id },
+        });
+        const allReadMessages = await readMessagesRepository.count({
+          where: { user_id: req.userId, group_id: group.group.id },
+        });
 
-      const totalUnreadMessages = totalMessages - allReadMessages 
-      const groupWithUnreadMessages = Object.assign(group.group, {
-        unreadMessagesAmount: totalUnreadMessages
+        const totalUnreadMessages = totalMessages - allReadMessages;
+        const groupWithUnreadMessages = Object.assign(group.group, {
+          unreadMessagesAmount: totalUnreadMessages,
+        });
+
+        return groupWithUnreadMessages;
       })
-
-      return groupWithUnreadMessages
-
-    }))
+    );
 
     return res.status(200).json(groupsWithUnreadMessages);
   }
@@ -191,6 +191,7 @@ class GroupsController {
   async search(req: RequestAuthenticated, res: Response) {
     const { q, _limit, _page } = req.query;
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!q) {
       throw new AppError("Query not provided");
@@ -214,7 +215,19 @@ class GroupsController {
 
       cache: 10000,
     });
-    return res.status(200).json(groups);
+
+    const groupsWithParticipantsAmount = await Promise.all(
+      groups.map(async (group) => {
+        const participantsAmount = await participantsRepository.count({
+          where: { group_id: group.id },
+        });
+        return Object.assign(group, {
+          participantsAmount,
+        });
+      })
+    );
+
+    return res.status(200).json(groupsWithParticipantsAmount);
   }
 
   async update(req: RequestAuthenticated, res: Response) {
