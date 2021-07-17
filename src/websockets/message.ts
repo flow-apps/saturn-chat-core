@@ -18,6 +18,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       group_id: groupID,
       message: data.message,
     });
+
     socket.emit("sended_user_message", createdMessage);
     socket.in(groupID).emit("new_user_message", createdMessage);
   });
@@ -45,6 +46,10 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     socket.emit("sended_user_message", newMessageWithFiles);
     socket.in(groupID).emit("new_user_message", newMessageWithFiles);
   });
+
+  socket.on("set_read_message", async (messageID: string) => {
+    await messagesService.readMessage(userID, messageID, groupID)
+  })
 
   socket.on("delete_user_message", async (messageID: string) => {
     await messagesService.delete(messageID, userID);
