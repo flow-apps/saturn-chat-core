@@ -78,7 +78,7 @@ class MessagesController {
 
     if (!participant) {
       throw new AppError("Participant not found", 404);
-    }
+    }    
 
     if (attachType === "voice_message") {
       const file = req.files[0] as Express.Multer.File;
@@ -99,6 +99,7 @@ class MessagesController {
 
       await audiosRepository.save(audio);
       return res.json(audio);
+
     } else if (attachType === "files") {
       const createdMessage = messageRepository.create({
         author_id: req.userId,

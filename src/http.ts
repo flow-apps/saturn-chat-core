@@ -21,12 +21,7 @@ startTasks()
 const app = express();
 const http = createServer(app);
 
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE"],
-  })
-);
+app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(fakePoweredBy);
 app.use(compression({ level: 9 }));
