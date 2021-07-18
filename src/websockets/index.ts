@@ -15,6 +15,7 @@ io.use((socket: ISocketAuthenticated, _next) => {
     validateJWT(String(token), (err, decoded: any) => {
       if (err) {
         socket.disconnect();
+        console.log("WS >> Authenticate error")
         return _next(new Error("Authentication error"));
       }
       socket.userID = decoded.id;
@@ -22,6 +23,7 @@ io.use((socket: ISocketAuthenticated, _next) => {
     });
   } else {
     socket.disconnect();
+    console.log("WS >> Authenticate failed")
     return _next(new Error("Authentication error"));
   }
 });
