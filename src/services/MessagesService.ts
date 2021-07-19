@@ -1,9 +1,13 @@
-import { getCustomRepository, In } from "typeorm";
+import { getCustomRepository, In, Not } from "typeorm";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import * as Yup from "yup";
 import { Audio } from "../entities/Audio";
 import { ParticipantsService } from "./ParticipantsService";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
+import { GroupsRepository } from "../repositories/GroupsRepository";
+import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
+import { Time } from "../utils/time";
 
 interface ICreateMessageProps {
   message: string;
@@ -26,6 +30,31 @@ interface IGetMessageWithFilesProps {
 }
 
 class MessagesService {
+
+  async getNotificationsTokens(groupID: string, userID: string) {
+    const participantsRepository = getCustomRepository(ParticipantsRepository)
+    const userNotificationsRepository = getCustomRepository(UserNotificationsRepository)
+    const time = new Time()
+
+    const participants = await participantsRepository.find({
+      where: {group_id: groupID, user_id: Not(userID)},
+      select: ["user_id"]
+    })
+
+    const [ tokens ] = await Promise.all(participants.map(async participant => {
+      const validTokens = await userNotificationsRepository.find({
+        where: { user_id: participant.user_id },
+        cache: time.timeToMS(1, "hour"),
+        select: ["notification_token"]
+      }).then(t => t.map(t => t.notification_token))
+
+      return validTokens
+    }))
+
+    return tokens
+
+  }
+
   async create(msgData: ICreateMessageProps) {
     const messageRepository = getCustomRepository(MessagesRepository);
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository)

@@ -12,6 +12,7 @@ import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
 import { Group } from "./Group";
 import { Participant } from "./Participant";
+import { UserNotification } from "./UserNotification";
 
 @Entity({ name: "users" })
 class User {
@@ -26,6 +27,13 @@ class User {
 
   @Column({ select: false })
   password: string;
+
+  @OneToOne(() => UserNotification, {
+    nullable: true,
+    cascade: true
+  })
+  @JoinColumn()
+  user_notifications: UserNotification
 
   @OneToMany(() => Group, (group) => group.owner)
   @JoinColumn()
