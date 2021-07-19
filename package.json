@@ -17,6 +17,7 @@
     "cors": "^2.8.5",
     "dayjs": "^1.10.6",
     "dotenv": "^9.0.1",
+    "expo-server-sdk": "^3.6.0",
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
     "helmet": "^4.6.0",

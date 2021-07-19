@@ -1,17 +1,20 @@
 import { Router } from "express";
 import multer from "multer";
 import { configMulter } from "../configs/multer";
+import { NotificationsController } from "../controllers/NotificationsController";
 import { UsersController } from "../controllers/UsersController";
 import { authProvider } from "../middlewares/authProvider";
 
 const routes = Router();
 const usersController = new UsersController();
+const notificationsController = new NotificationsController()
 
 routes.post(
   "/users",
   multer(configMulter(5)).single("avatar"),
   usersController.create
 );
+routes.post("/users/notify/register", authProvider, notificationsController.register)
 routes.get("/users/@me", authProvider, usersController.me);
 routes.get("/users", authProvider, usersController.index);
 routes.patch("/users/update", authProvider, usersController.update);
