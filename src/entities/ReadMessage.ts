@@ -29,7 +29,11 @@ class ReadMessage {
   @JoinColumn({ name: "user_id" })
   user: User
 
-  @ManyToOne(() => Message, message => message.read_messages)
+  @ManyToOne(() => Message, message => message.read_messages, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+    cascade: true,
+  })
   @JoinColumn({ name: "message_id" })
   message: Message
 
