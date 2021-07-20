@@ -9,6 +9,7 @@ import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
+import { StorageManager } from "./StorageManager";
 
 interface ICreateMessageProps {
   message: string;
@@ -179,15 +180,26 @@ class MessagesService {
   }
 
   async delete(messageID: string, userID: string) {
+    const storage = new StorageManager()
     const messageRepository = getCustomRepository(MessagesRepository);
-    const message = await messageRepository.findOne(messageID);
+    const message = await messageRepository.findOne(messageID, {
+      relations: ["files", "voice_message"]
+    });    
 
     if (userID !== message.author_id) {
       throw new Error("Error on delete this message");
     }
 
     try {
-      return await messageRepository.delete(message.id);
+      await messageRepository.delete(message.id).then(async () => {
+        if (message.voice_message) await storage.deleteFile(message.voice_message.path)
+  
+        if (message.files.length > 0) {
+          await Promise.all(message.files.map(async file => {
+            await storage.deleteFile(file.path)
+          }))
+        }
+      })
     } catch (error) {
       throw new Error(error);
     }

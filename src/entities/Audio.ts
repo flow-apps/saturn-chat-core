@@ -31,7 +31,7 @@ class Audio {
   @Column()
   group_id: string;
 
-  @Column({ select: false })
+  @Column()
   path: string;
 
   @CreateDateColumn()
