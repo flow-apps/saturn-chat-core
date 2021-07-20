@@ -54,7 +54,7 @@ class MessagesController {
           await readMessagesRepository.save(newMessageRead)
         }
       })
-    );
+    );    
 
     return res.status(200).json({ messages });
   }

@@ -28,6 +28,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       tokens: await messagesService.getNotificationsTokens(groupID, userID),
       data: createdMessage,
       channelId: "messages",
+      categoryId: "message",
       message: {
         content: {
           title: `${createdMessage.group.name}`,

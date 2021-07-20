@@ -6,6 +6,7 @@ type SendNotificationProps = {
   data?: object
   priority?: "default" | "normal" | "high"
   channelId?: string
+  categoryId?: string;
 }
 
 type NotificationsBody = {
@@ -32,11 +33,13 @@ class NotificationsService {
 
       preparedMessages.push({
         to: token,
+        ttl: 604800,
         title: data.message.content.title,
         body: data.message.content.body,
         data: data.data || {},
         priority: data.priority || "default",
-        channelId: data.channelId || "default"
+        channelId: data.channelId || "default",
+        categoryId: data.categoryId || undefined
       })
     })
 
@@ -57,7 +60,7 @@ class NotificationsService {
       if (ticket.status === "ok") return
       
       if (ticket.details.error === "DeviceNotRegistered") {
-        console.log(ticket);  
+        console.log(ticket);
       }
     })
   }
