@@ -15,6 +15,9 @@ class UserNotification {
   @Column()
   platform: string
 
+  @Column({ default: false })
+  is_revoked: boolean;
+
   constructor() {
     if (!this.id) {
       this.id = uuid();

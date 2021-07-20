@@ -26,6 +26,11 @@ export class CreateUserNotifications1626654074040
             name: "platform",
             type: "varchar",
           },
+          {
+            name: "is_revoked",
+            type: "boolean",
+            default: false
+          },
         ],
         foreignKeys: [
           {

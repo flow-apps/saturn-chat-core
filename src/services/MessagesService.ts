@@ -8,6 +8,7 @@ import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { Time } from "../utils/time";
+import { NotificationsService } from "./NotificationsService";
 
 interface ICreateMessageProps {
   message: string;
@@ -32,27 +33,18 @@ interface IGetMessageWithFilesProps {
 class MessagesService {
 
   async getNotificationsTokens(groupID: string, userID: string) {
+    const notificationsService = new NotificationsService()
     const participantsRepository = getCustomRepository(ParticipantsRepository)
-    const userNotificationsRepository = getCustomRepository(UserNotificationsRepository)
-    const time = new Time()
 
-    const participants = await participantsRepository.find({
+    const participantsID = await participantsRepository.find({
       where: {group_id: groupID, user_id: Not(userID)},
       select: ["user_id"]
-    })
-
-    const [ tokens ] = await Promise.all(participants.map(async participant => {
-      const validTokens = await userNotificationsRepository.find({
-        where: { user_id: participant.user_id },
-        cache: time.timeToMS(1, "hour"),
-        select: ["notification_token"]
-      }).then(t => t.map(t => t.notification_token))
-
-      return validTokens
-    }))
-
+    }).then(part => part.map(p => p.user_id))
+    
+    const tokens = await notificationsService
+    .getNotificationsTokens({ usersID: participantsID })    
+    
     return tokens
-
   }
 
   async create(msgData: ICreateMessageProps) {
