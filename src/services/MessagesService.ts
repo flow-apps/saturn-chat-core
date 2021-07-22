@@ -32,25 +32,32 @@ interface IGetMessageWithFilesProps {
 }
 
 class MessagesService {
-
   async getNotificationsTokens(groupID: string, userID: string) {
-    const notificationsService = new NotificationsService()
-    const participantsRepository = getCustomRepository(ParticipantsRepository)
+    const notificationsService = new NotificationsService();
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
 
-    const participantsID = await participantsRepository.find({
-      where: {group_id: groupID, user_id: Not(userID)},
-      select: ["user_id"]
-    }).then(part => part.map(p => p.user_id))
-    
-    const tokens = await notificationsService
-    .getNotificationsTokens({ usersID: participantsID })    
-    
-    return tokens
+    const participantsID = await participantsRepository
+      .find({
+        where: {
+          group_id: groupID,
+          user_id: Not(
+            process.env.NODE_ENV === "development" ? userID : undefined
+          ),
+        },
+        select: ["user_id"],
+      })
+      .then((part) => part.map((p) => p.user_id));
+
+    const tokens = await notificationsService.getNotificationsTokens({
+      usersID: participantsID,
+    });
+
+    return tokens;
   }
 
   async create(msgData: ICreateMessageProps) {
     const messageRepository = getCustomRepository(MessagesRepository);
-    const readMessagesRepository = getCustomRepository(ReadMessagesRepository)
+    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const participantsService = new ParticipantsService();
 
     const participant = await participantsService.index(
@@ -79,10 +86,10 @@ class MessagesService {
     const newReadMessage = readMessagesRepository.create({
       message_id: savedMessage.id,
       user_id: savedMessage.author_id,
-      group_id: msgData.group_id
-    })
+      group_id: msgData.group_id,
+    });
 
-    await readMessagesRepository.save(newReadMessage)
+    await readMessagesRepository.save(newReadMessage);
     const message = await messageRepository.findOne(savedMessage.id, {
       where: { group_id: savedMessage.group_id },
       relations: ["author", "author.avatar", "group"],
@@ -127,7 +134,7 @@ class MessagesService {
 
   async getMessageWithFiles(msgData: IGetMessageWithFilesProps) {
     const messagesRepository = getCustomRepository(MessagesRepository);
-    const readMessagesRepository = getCustomRepository(ReadMessagesRepository)
+    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const participantsService = new ParticipantsService();
 
     const participant = await participantsService.index(
@@ -146,10 +153,10 @@ class MessagesService {
     const newReadMessage = readMessagesRepository.create({
       message_id: msgData.message_id,
       user_id: msgData.author_id,
-      group_id: msgData.group_id
-    })
+      group_id: msgData.group_id,
+    });
 
-    await readMessagesRepository.save(newReadMessage)
+    await readMessagesRepository.save(newReadMessage);
 
     const completedMessage = await messagesRepository.findOne(
       msgData.message_id,
@@ -163,28 +170,28 @@ class MessagesService {
   }
 
   async readMessage(messageID: string, userID: string, groupID: string) {
-    const readMessagesRepository = getCustomRepository(ReadMessagesRepository)
+    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const isRead = await readMessagesRepository.findOne({
-      where: { user_id: userID, message_id: messageID }
-    })
+      where: { user_id: userID, message_id: messageID },
+    });
 
     if (!isRead) {
       const newReadMessage = readMessagesRepository.create({
         message_id: messageID,
         user_id: userID,
-        group_id: groupID
-      })
+        group_id: groupID,
+      });
 
-      await readMessagesRepository.save(newReadMessage)
+      await readMessagesRepository.save(newReadMessage);
     }
   }
 
   async delete(messageID: string, userID: string) {
-    const storage = new StorageManager()
+    const storage = new StorageManager();
     const messageRepository = getCustomRepository(MessagesRepository);
     const message = await messageRepository.findOne(messageID, {
-      relations: ["files", "voice_message"]
-    });    
+      relations: ["files", "voice_message"],
+    });
 
     if (userID !== message.author_id) {
       throw new Error("Error on delete this message");
@@ -192,14 +199,17 @@ class MessagesService {
 
     try {
       await messageRepository.delete(message.id).then(async () => {
-        if (message.voice_message) await storage.deleteFile(message.voice_message.path)
-  
+        if (message.voice_message)
+          await storage.deleteFile(message.voice_message.path);
+
         if (message.files.length > 0) {
-          await Promise.all(message.files.map(async file => {
-            await storage.deleteFile(file.path)
-          }))
+          await Promise.all(
+            message.files.map(async (file) => {
+              await storage.deleteFile(file.path);
+            })
+          );
         }
-      })
+      });
     } catch (error) {
       throw new Error(error);
     }
