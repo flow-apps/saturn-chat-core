@@ -1,6 +1,7 @@
-import { getCustomRepository } from "typeorm";
+import { getCustomRepository, Not } from "typeorm";
 import { AppError } from "../errors/AppError";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { NotificationsService } from "./NotificationsService";
 
 interface INewParticipant {
   user_id: string;
@@ -30,6 +31,7 @@ class ParticipantsService {
 
   async new({ group_id, user_id }: INewParticipant) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const notificationsService = new NotificationsService()
 
     if (!group_id) {
       throw new AppError("Group ID not provided");
@@ -53,9 +55,29 @@ class ParticipantsService {
     const participant = await participantsRepository.findOne(
       createdParticipant.id,
       {
-        relations: ["group"],
+        relations: ["group", "user"],
       }
     );
+
+    const owner = await participantsRepository.find({
+      where: { group_id, user_id: participant.group.owner_id }
+    })
+    const notificationsTokens = await notificationsService.getNotificationsTokens({
+      usersID: owner.map(data => data.user_id)
+    })
+
+    await notificationsService.send({
+      tokens: notificationsTokens,
+      message: {
+        content: {
+          title: participant.group.name,
+          body: `🆕 ${participant.user.name} entrou no grupo.`
+        }
+      },
+      channelId: "default",
+      data: participant,
+      priority: "high",
+    })
 
     return participant;
   }
