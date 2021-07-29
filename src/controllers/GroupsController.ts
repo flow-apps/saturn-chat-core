@@ -296,9 +296,9 @@ class GroupsController {
     }
 
     const groupAvatar = await groupsAvatarsRepository.findOne(
-      group.group_avatar.id
+      group.group_avatar ? group.group_avatar.id : ""
     );
-    await storage.deleteFile(groupAvatar.path);
+
 
     processedImage = await imageProcessor.avatar({
       avatar: req.file.buffer,
@@ -306,11 +306,27 @@ class GroupsController {
     });
 
     req.file.buffer = processedImage;
-
     const uploadedAvatar = await storage.uploadFile({
       file: req.file,
       path: "files/groups/avatars",
     });
+
+    if (!groupAvatar) {
+      const createdAvatar = groupsAvatarsRepository.create({
+        name: uploadedAvatar.name,
+        path: uploadedAvatar.path,
+        url: uploadedAvatar.url,
+      })
+
+      await groupsAvatarsRepository.save(createdAvatar)
+      await groupsRepository.update(group.id, {
+        group_avatar: createdAvatar
+      })
+
+      return res.sendStatus(204);
+    }
+
+    await storage.deleteFile(groupAvatar.path);
 
     await groupsAvatarsRepository.update(groupAvatar.id, {
       name: uploadedAvatar.name,
@@ -318,7 +334,7 @@ class GroupsController {
       url: uploadedAvatar.url,
     });
 
-    res.sendStatus(204);
+    return res.sendStatus(204);
   }
 }
 
