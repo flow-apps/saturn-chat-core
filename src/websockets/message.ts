@@ -1,4 +1,6 @@
+import { getCustomRepository } from "typeorm";
 import { io, ISocketAuthenticated } from ".";
+import { UsersRepository } from "../repositories/UsersRepository";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 
@@ -85,6 +87,17 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       },
     })
   });
+
+  socket.on("add_user_typing", async ({ typing }) => {
+    const usersRepository = getCustomRepository(UsersRepository)
+    const user = await usersRepository.findOne(userID)
+
+    socket.emit("new_user_typing", user)
+  })
+
+  socket.on("remove_user_typing", async ({ typing, user_id }) => {
+    socket.emit("deleted_user_typing", userID)
+  })
 
   socket.on("set_read_message", async (messageID: string) => {
     await messagesService.readMessage(userID, messageID, groupID)
