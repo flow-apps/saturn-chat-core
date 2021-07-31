@@ -28,6 +28,7 @@ export class CreateGroups1621046651260 implements MigrationInterface {
             name: "description",
             type: "varchar",
             length: "500",
+            isNullable: true
           },
           {
             name: "privacy",

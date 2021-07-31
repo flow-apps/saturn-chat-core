@@ -11,6 +11,8 @@ import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
+import { v4 as uuid } from "uuid";
+import { GroupAvatar } from "../entities/GroupAvatar";
 
 interface Body {
   name: string;
@@ -20,6 +22,7 @@ interface Body {
 }
 
 interface Data {
+  id: string;
   name: string;
   owner_id: string;
   description: string;
@@ -44,10 +47,11 @@ class GroupsController {
     const participants = new ParticipantsService();
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
-      description: Yup.string().max(500).required(),
+      description: Yup.string().max(500),
       privacy: Yup.string().uppercase().required(),
       tags: Yup.string(),
     });
+    const groupID = uuid()
 
     try {
       await schema.validate(body, { abortEarly: false });
@@ -56,6 +60,7 @@ class GroupsController {
     }
 
     const data: Data = {
+      id: groupID,
       name: body.name,
       description: body.description,
       privacy: String(body.privacy).toUpperCase(),
@@ -70,6 +75,7 @@ class GroupsController {
     };
 
     let processedImage: Buffer;
+    let createdAvatar: GroupAvatar
 
     if (groupAvatar) {
       processedImage = await imageProcessor.avatar({
@@ -83,18 +89,24 @@ class GroupsController {
         path: "files/groups/avatars",
       });
 
-      const newGroupAvatar = groupsAvatarsRepository.create({
+      createdAvatar = groupsAvatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
         url: uploadedAvatar.url,
+        group_id: groupID
       });
 
-      await groupsAvatarsRepository.save(newGroupAvatar);
-      data.group_avatar = newGroupAvatar;
     }
 
-    const group = groupsRepository.create(data);
+    const group = groupsRepository.create(data)
     await groupsRepository.save(group);
+
+    if (createdAvatar) {
+      await groupsAvatarsRepository.save(createdAvatar);
+      await groupsRepository.update(group.id, {
+        group_avatar: createdAvatar
+      })
+    }
 
     await participants.new({ group_id: group.id, user_id: req.userId });
     return res.status(200).json(group);
@@ -132,7 +144,6 @@ class GroupsController {
   async delete(req: RequestAuthenticated, res: Response) {
     const { id } = req.params;
     const groupsRepository = getCustomRepository(GroupsRepository);
-    const storage = new StorageManager();
 
     if (!id) {
       throw new AppError("Group ID not provided!");
@@ -151,8 +162,7 @@ class GroupsController {
       throw new AppError("User not authorized for this action!", 403);
     }
 
-    await storage.deleteFile(group.group_avatar.path);
-    await groupsRepository.delete(group.id);
+    await groupsRepository.remove(group)
 
     return res.sendStatus(204);
   }
@@ -316,6 +326,7 @@ class GroupsController {
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
         url: uploadedAvatar.url,
+        group_id: groupID
       })
 
       await groupsAvatarsRepository.save(createdAvatar)

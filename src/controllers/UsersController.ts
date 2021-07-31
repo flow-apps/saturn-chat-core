@@ -166,7 +166,7 @@ class UsersController {
     const mergedUser = usersRepository.merge(user, updatedUserData);
     const savedFile = await usersRepository.save(mergedUser);
 
-    return res.json({ user: savedFile })
+    return res.json({ user: savedFile });
   }
 
   async updateAvatar(req: RequestAuthenticated, res: Response) {
@@ -176,19 +176,8 @@ class UsersController {
 
     const avatarsRepository = getCustomRepository(AvatarsRepository);
     const usersRepository = getCustomRepository(UsersRepository);
+    const user = await usersRepository.findOne(req.userId);
     let processedImage: Buffer;
-
-    const user = await usersRepository.findOne({
-      where: { id: req.userId },
-    });
-
-    if (!user || !avatar) {
-      throw new AppError("Invalid user or avatar not provided");
-    }
-
-    const userAvatar = await avatarsRepository.findOne(user.avatar.id);
-    await storage.deleteFile(userAvatar.path);
-
     processedImage = await imageProcessor.avatar({
       avatar: req.file.buffer,
       quality: 60,
@@ -196,18 +185,41 @@ class UsersController {
 
     req.file.buffer = processedImage;
 
+    if (!user || !avatar) {
+      throw new AppError("Invalid user or avatar not provided");
+    }
+
+    const userAvatar = await avatarsRepository.findOne(
+      user.avatar ? user.avatar.id : ""
+    );
     const uploadedAvatar = await storage.uploadFile({
       file: req.file,
       path: "files/users/avatars",
     });
 
+    if (!userAvatar) {
+      const createdAvatar = avatarsRepository.create({
+        name: uploadedAvatar.name,
+        path: uploadedAvatar.path,
+        url: uploadedAvatar.url,
+      });
+
+      await avatarsRepository.save(createdAvatar);
+      await usersRepository.update(user.id, {
+        avatar: createdAvatar,
+      });
+
+      return res.sendStatus(204);
+    }
+
+    await storage.deleteFile(userAvatar.path);
     await avatarsRepository.update(userAvatar.id, {
       name: uploadedAvatar.name,
       path: uploadedAvatar.path,
       url: uploadedAvatar.url,
     });
 
-    res.sendStatus(204);
+    return res.sendStatus(204);
   }
 }
 

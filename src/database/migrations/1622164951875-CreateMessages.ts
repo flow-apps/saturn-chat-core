@@ -23,6 +23,7 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             name: "message",
             type: "varchar",
             length: "500",
+            isNullable: true
           },
           {
             name: "voice_message_id",

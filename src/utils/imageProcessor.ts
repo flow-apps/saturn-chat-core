@@ -11,14 +11,15 @@ interface ImageProcessorProps {
 }
 
 class ImageProcessor {
-  async avatar({ avatar, quality }: AvatarProcessorProps) {
+  async avatar({ avatar, quality = 90 }: AvatarProcessorProps) {
     const newImage = await sharp(avatar)
       .resize(600, 600, { fastShrinkOnLoad: true })
       .jpeg({
-        force: false,
         mozjpeg: true,
-        quality: quality || 90,
+        force: true,
+        chromaSubsampling: "4:4:4",
         progressive: true,
+        quality: quality,
       })
       .toBuffer();
 

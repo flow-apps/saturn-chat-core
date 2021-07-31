@@ -12,6 +12,10 @@ export class CreateGroupsAvatars1621131873442 implements MigrationInterface {
             isPrimary: true,
           },
           {
+            name: "group_id",
+            type: "varchar"
+          },
+          {
             name: "name",
             type: "varchar",
           },
@@ -30,6 +34,16 @@ export class CreateGroupsAvatars1621131873442 implements MigrationInterface {
             default: "now()",
           },
         ],
+        foreignKeys: [
+          {
+            name: "FKGroupID",
+            referencedTableName: "groups",
+            referencedColumnNames: ["id"],
+            columnNames: ["group_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE"
+          }
+        ]
       }),
       true
     );

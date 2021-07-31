@@ -42,7 +42,7 @@ export class CreateUserNotifications1626654074040
             onUpdate: "CASCADE",
           },
         ],
-      })
+      }), true
     );
   }
 

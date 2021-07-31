@@ -1,10 +1,10 @@
 import {
+  BeforeRemove,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
@@ -12,6 +12,7 @@ import { Message } from "./Message";
 
 @Entity({ name: "files" })
 class File {
+
   @PrimaryColumn()
   readonly id: string;
 
@@ -48,7 +49,7 @@ class File {
   @JoinColumn({ name: "message_id" })
   message: Message;
 
-  @Column({ select: false })
+  @Column()
   path: string;
 
   @CreateDateColumn()

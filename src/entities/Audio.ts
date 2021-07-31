@@ -2,14 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  OneToOne,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 
 @Entity({ name: "audios" })
 class Audio {
+
   @PrimaryColumn()
   readonly id: string;
 

@@ -12,7 +12,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
 
   socket.on("connect_in_chat", async (id: string) => {
     socket.join(id);
-    groupID = id;
+    groupID = id;    
     console.log(`Socket ${socket.id} conectado no grupo ${id}`);
   });
 

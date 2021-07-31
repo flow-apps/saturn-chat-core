@@ -25,7 +25,11 @@ class ReadMessage {
   @Column()
   group_id: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+    cascade: true,
+  })
   @JoinColumn({ name: "user_id" })
   user: User
 
@@ -37,7 +41,11 @@ class ReadMessage {
   @JoinColumn({ name: "message_id" })
   message: Message
 
-  @ManyToOne(() => Group, group => group.read_messages)
+  @ManyToOne(() => Group, group => group.read_messages, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+    cascade: true,
+  })
   @JoinColumn({ name: "group_id" })
   group: Group
  
