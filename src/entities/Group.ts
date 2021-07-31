@@ -1,8 +1,10 @@
 import { v4 as uuid } from "uuid";
 import {
+  BeforeRemove,
   Column,
   CreateDateColumn,
   Entity,
+  getCustomRepository,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -16,9 +18,48 @@ import { Message } from "./Message";
 import { Participant } from "./Participant";
 import { Invite } from "./Invite";
 import { ReadMessage } from "./ReadMessage";
+import { StorageManager } from "../services/StorageManager";
+import { MessagesRepository } from "../repositories/MessagesRepository";
+import { AvatarsRepository } from "../repositories/AvatarsRepository";
+import { GroupsAvatarsRepository } from "../repositories/GroupsAvatarsRepository";
 
 @Entity({ name: "groups" })
 class Group {
+  @BeforeRemove()
+  async deleteAllFiles() {
+    const storage = new StorageManager();
+    const messagesRepository = getCustomRepository(MessagesRepository);
+    const messages = await messagesRepository.find({
+      where: { group_id: this.id },
+      loadEagerRelations: true,
+    });
+
+    if (this.group_avatar) {
+      await storage.deleteFile(this.group_avatar.path);
+    }
+
+    if (messages.length <= 0) return;
+
+    Promise.all(
+      messages.map(async (message) => {
+        const files = message.files;
+        const voiceMessage = message.voice_message;
+
+        if (voiceMessage) {
+          await storage.deleteFile(voiceMessage.path);
+        }
+
+        if (files.length > 0) {
+          await Promise.all(
+            files.map(async (file) => {
+              await storage.deleteFile(file.path);
+            })
+          );
+        }
+      })
+    );
+  }
+
   @PrimaryColumn()
   readonly id: string;
 
@@ -28,7 +69,7 @@ class Group {
   @Column({ length: 100 })
   name: string;
 
-  @Column({ length: 500 })
+  @Column({ length: 500, default: "" })
   description: string;
 
   @Column()
@@ -37,13 +78,16 @@ class Group {
   @Column("varchar", { array: true, nullable: true, default: [] })
   tags: string[];
 
-  @OneToOne(() => GroupAvatar, { nullable: true, eager: true })
+  @OneToOne(() => GroupAvatar, {
+    nullable: true,
+    eager: true,
+  })
   @JoinColumn()
   group_avatar: GroupAvatar;
 
-  @OneToMany(() => ReadMessage, rm => rm.group)
+  @OneToMany(() => ReadMessage, (rm) => rm.group)
   @JoinColumn()
-  read_messages: ReadMessage[]
+  read_messages: ReadMessage[];
 
   @OneToMany(() => Message, (message) => message.id)
   @JoinColumn()

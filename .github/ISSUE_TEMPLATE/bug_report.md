@@ -8,11 +8,12 @@ assignees: ''
 ---
 
 # Bug Report
+
 Report a bug in the Core
 
 ## Platform
 
-- [ ] Android 
+- [ ] Android
 - [ ] IOS
 
 ## Android or IOS version

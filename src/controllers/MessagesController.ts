@@ -39,8 +39,7 @@ class MessagesController {
       order: { created_at: "DESC" },
     });
 
-    await Promise.all(
-      messages.map(async (message) => {
+    Promise.all(messages.map(async (message) => {
         const isRead = await readMessagesRepository.findOne({
           where: { message_id: message.id, user_id: req.userId },
         });
@@ -53,8 +52,7 @@ class MessagesController {
           })
           await readMessagesRepository.save(newMessageRead)
         }
-      })
-    );    
+    }));    
 
     return res.status(200).json({ messages });
   }
@@ -104,7 +102,6 @@ class MessagesController {
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
-        message: "",
       });
 
       await messageRepository.save(createdMessage);

@@ -1,8 +1,10 @@
 import { v4 as uuid } from "uuid";
 import {
+  BeforeRemove,
   Column,
   CreateDateColumn,
   Entity,
+  getCustomRepository,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -18,6 +20,7 @@ import { ReadMessage } from "./ReadMessage";
 
 @Entity({ name: "messages" })
 class Message {
+
   @PrimaryColumn()
   readonly id: string;
 
@@ -27,8 +30,11 @@ class Message {
   @Column()
   author_id: string;
 
-
-  @ManyToOne(() => Group, (group) => group.id)
+  @ManyToOne(() => Group, (group) => group.id, {
+    cascade: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
   @JoinColumn({ name: "group_id" })
   group: Group;
 
@@ -36,12 +42,12 @@ class Message {
   @JoinColumn({ name: "author_id" })
   author: User;
 
-  @Column({ length: 500 })
+  @Column({ length: 500, default: "" })
   message: string;
 
-  @OneToMany(() => ReadMessage, rm => rm.message)
+  @OneToMany(() => ReadMessage, (rm) => rm.message)
   @JoinColumn()
-  read_messages: ReadMessage[]
+  read_messages: ReadMessage[];
 
   @Column({ nullable: true })
   voice_message_id: string;

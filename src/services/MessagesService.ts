@@ -70,7 +70,7 @@ class MessagesService {
     }
 
     const schema = Yup.object().shape({
-      message: Yup.string().max(500).required(),
+      message: Yup.string().max(500),
       group_id: Yup.string().required(),
       author_id: Yup.string().required(),
     });
@@ -113,7 +113,7 @@ class MessagesService {
       }
 
       const data = {
-        message: audioData.message ? audioData.message : "",
+        message: audioData.message,
         author_id: audioData.author_id,
         group_id: audioData.group_id,
         voice_message_id: audioData.audio.id,
