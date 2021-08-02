@@ -139,16 +139,16 @@ class MessagesService {
 
     const participant = await participantsService.index(
       msgData.author_id,
-      msgData.group_id
+      msgData.group_id,
     );
 
     if (!participant) {
       throw new Error("Error on create a message for this group!");
     }
 
-    await messagesRepository.update(msgData.message_id, {
-      message: msgData.message,
-    });
+    const message = await messagesRepository.findOne(msgData.message_id)
+    const mergedMessage = messagesRepository.merge(message, { message: msgData.message })
+    await messagesRepository.save(mergedMessage);
 
     const newReadMessage = readMessagesRepository.create({
       message_id: msgData.message_id,
