@@ -46,7 +46,9 @@ class NotificationsService {
       })
       .then((tokens) => tokens.map((t) => t.notification_token));
 
-    return tokens;
+    const uniqueTokens = [...new Set(tokens)]
+
+    return uniqueTokens;
   }
 
   async send(data: SendNotificationProps) {

@@ -15,6 +15,7 @@ import { authRoutes } from "./routes/auth";
 import { inviteRoutes } from "./routes/invite";
 import { startTasks } from "./cronjobs";
 
+process.on("unhandledRejection", console.error)
 createConnection()
 startTasks()
 

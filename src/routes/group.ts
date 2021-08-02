@@ -20,6 +20,7 @@ routes.get("/group/:id", groupsController.index);
 routes.get("/group/participants/new/:group_id", participantsController.new);
 routes.get("/group/participants/list", participantsController.list);
 routes.get("/group/participant/:group_id", participantsController.index);
+routes.delete("/group/participant/exit/:id", participantsController.delete)
 routes.get("/groups/list", groupsController.list);
 routes.get("/groups/search", groupsController.search);
 routes.delete("/group/:id", groupsController.delete);
