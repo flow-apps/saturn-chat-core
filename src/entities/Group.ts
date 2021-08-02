@@ -20,8 +20,7 @@ import { Invite } from "./Invite";
 import { ReadMessage } from "./ReadMessage";
 import { StorageManager } from "../services/StorageManager";
 import { MessagesRepository } from "../repositories/MessagesRepository";
-import { AvatarsRepository } from "../repositories/AvatarsRepository";
-import { GroupsAvatarsRepository } from "../repositories/GroupsAvatarsRepository";
+import { io } from "../websockets";
 
 @Entity({ name: "groups" })
 class Group {
@@ -40,8 +39,7 @@ class Group {
 
     if (messages.length <= 0) return;
 
-    Promise.all(
-      messages.map(async (message) => {
+    Promise.all(messages.map(async (message) => {
         const files = message.files;
         const voiceMessage = message.voice_message;
 
@@ -50,14 +48,14 @@ class Group {
         }
 
         if (files.length > 0) {
-          await Promise.all(
-            files.map(async (file) => {
+          await Promise.all(files.map(async (file) => {
               await storage.deleteFile(file.path);
-            })
-          );
+          }))
         }
-      })
-    );
+    }));
+
+    io.to(this.id).emit("deleted_group", this.id)
+    io.socketsLeave(this.id)
   }
 
   @PrimaryColumn()
