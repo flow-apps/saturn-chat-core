@@ -5,6 +5,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { User } from "./User";
@@ -33,7 +34,7 @@ class ReadMessage {
   @JoinColumn({ name: "user_id" })
   user: User
 
-  @ManyToOne(() => Message, message => message.read_messages, {
+  @OneToMany(() => Message, message => message.read_messages, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,

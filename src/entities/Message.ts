@@ -45,7 +45,7 @@ class Message {
   @Column({ length: 500, default: "" })
   message: string;
 
-  @OneToMany(() => ReadMessage, (rm) => rm.message)
+  @ManyToOne(() => ReadMessage, (rm) => rm.message)
   @JoinColumn()
   read_messages: ReadMessage[];
 

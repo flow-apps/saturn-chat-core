@@ -1,6 +1,7 @@
 import { getCustomRepository, Not } from "typeorm";
 import { AppError } from "../errors/AppError";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
 
 interface INewParticipant {
@@ -16,7 +17,7 @@ class ParticipantsService {
       );
       const participant = await participantsRepository.findOne({
         where: [{ user_id: userID, group_id: groupID }],
-        cache: 5000,
+        cache: new Time().timeToMS(1, "hour"),
       });
 
       if (!participant) {

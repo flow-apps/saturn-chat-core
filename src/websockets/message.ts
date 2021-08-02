@@ -38,6 +38,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
         },
       },
     })
+
   });
 
   socket.on("new_voice_message", async (data) => {

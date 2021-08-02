@@ -93,6 +93,7 @@ class MessagesService {
     const message = await messageRepository.findOne(savedMessage.id, {
       where: { group_id: savedMessage.group_id },
       relations: ["author", "author.avatar", "group"],
+      cache: new Time().timeToMS(1, "hour")
     });
 
     return message;

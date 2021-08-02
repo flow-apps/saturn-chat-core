@@ -2,7 +2,10 @@ import { Response } from "express";
 import { getCustomRepository } from "typeorm";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
+import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
+import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
 
 class ParticipantsController {
@@ -55,6 +58,46 @@ class ParticipantsController {
 
     const participants = await participantsService.list(groupID, page, limit);
     return res.status(200).json(participants);
+  }
+
+  async delete(req: RequestAuthenticated, res: Response) {
+    const { id } = req.params
+    const notificationsService = new NotificationsService()
+    const participantsRepository = getCustomRepository(ParticipantsRepository)
+    const groupsRepository = getCustomRepository(GroupsRepository)
+    const usersNotificationsRepository = getCustomRepository(UserNotificationsRepository)
+
+    const group = await groupsRepository.findOne(id)
+    const hasParticipant = await participantsRepository.findOne({
+      where: { user_id: req.userId, group_id: id },
+      relations: ["user"]
+    })
+
+    if (!hasParticipant) {
+      throw new AppError("Participant not found", 404)
+    }
+
+
+    if (hasParticipant.user_id === group.owner_id) {
+      throw new AppError("Participant not found", 404)
+    }
+
+    const notification = await usersNotificationsRepository.findOne({
+      where: { user_id: group.owner_id, is_revoked: false },
+      select: ["notification_token"]
+    })
+    await participantsRepository.remove(hasParticipant)
+    await notificationsService.send({
+      tokens: [notification.notification_token],
+      message: {
+        content: {
+          title: group.name,
+          body: `😥 ${hasParticipant.user.name} saiu do grupo!`
+        }
+      },
+    })
+
+    return res.sendStatus(204)
   }
 }
 
