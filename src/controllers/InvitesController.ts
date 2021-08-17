@@ -12,6 +12,7 @@ import utc from "dayjs/plugin/utc";
 import crypto from "crypto";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { Invite } from "../entities/Invite";
+import { Participant } from "../entities/Participant";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -93,7 +94,6 @@ class InvitesController {
 
   async list(req: RequestAuthenticated, res: Response) {
     const { groupID } = req.params;
-    const userID = req.userId;
     const invitesRepository = getCustomRepository(InvitesRepository);
 
     const invites = await invitesRepository.find({
@@ -107,9 +107,12 @@ class InvitesController {
 
   async get(req: RequestAuthenticated, res: Response) {
     const { inviteID } = req.params;
+    const { user_id } = req.query;
+    const participantsService = new ParticipantsService();
     const invitesRepository = getCustomRepository(InvitesRepository);
-    const invite = await invitesRepository.findOne(inviteID, {
-      relations: ["group"],
+    const invite = await invitesRepository.findOne({
+      where: [{ invite_code: inviteID }, { id: inviteID }],
+      relations: ["group", "group.group_avatar"],
     });
 
     if (!invite) throw new AppError("Invite not found", 404);
@@ -118,7 +121,19 @@ class InvitesController {
 
     if (!isValid) throw new AppError("Invite invalid");
 
-    return res.json(invite);
+    let participant: Participant;
+
+    if (user_id) {
+      participant = await participantsService.index(
+        String(user_id),
+        invite.group_id
+      );
+    }
+
+    return res.json({
+      invite,
+      participant,
+    });
   }
 
   async join(req: RequestAuthenticated, res: Response) {
@@ -126,7 +141,9 @@ class InvitesController {
     const userID = req.userId;
     const invitesRepository = getCustomRepository(InvitesRepository);
     const participantsService = new ParticipantsService();
-    const invite = await invitesRepository.findOne(inviteID);
+    const invite = await invitesRepository.findOne({
+      where: [{ invite_code: inviteID }, { id: inviteID }],
+    });
 
     if (!invite) throw new AppError("Invite invalid");
 

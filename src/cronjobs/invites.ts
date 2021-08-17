@@ -8,7 +8,7 @@ import { InvitesRepository } from "../repositories/InvitesRepository"
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const removeExpiredInvitesTask = cron.schedule("*/5 * * * *", async () => {
+const removeExpiredInvitesTask = cron.schedule("*/10 * * * *", async () => {
   console.log(">> Cleaning all expired invites");
   
   let deletedAmount = 0
