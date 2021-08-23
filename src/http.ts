@@ -14,6 +14,7 @@ import { messageRoutes } from "./routes/message";
 import { authRoutes } from "./routes/auth";
 import { inviteRoutes } from "./routes/invite";
 import { startTasks } from "./cronjobs";
+import { appRoutes } from "./routes/app";
 
 process.on("unhandledRejection", console.error)
 createConnection()
@@ -32,6 +33,7 @@ app.use(
   "/uploads",
   express.static(path.join(__dirname, "..", "uploads", "files"))
 );
+app.use(appRoutes)
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(groupRoutes);
