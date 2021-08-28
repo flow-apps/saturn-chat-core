@@ -55,6 +55,26 @@ class NotificationsController {
     return res.sendStatus(201)
   }
 
+  async unregister(req: RequestAuthenticated, res: Response) {
+    const userNotificationsRepository = getCustomRepository(UserNotificationsRepository)
+    const { token } = req.params
+
+    if (!token || !Expo.isExpoPushToken(token)) {
+      throw new AppError("Invalid Expo Push Token")
+    }
+
+    const userNotificationsExists = await userNotificationsRepository.findOne({
+      where: [{ user_id: req.userId }, { notification_token: token }]
+    })
+
+    if (userNotificationsExists) {
+      await userNotificationsRepository.delete(userNotificationsExists)
+      return res.sendStatus(201)
+    } else {
+      throw new AppError("User Token not found", 404)
+    }
+  }
+
 }
 
 export { NotificationsController }
