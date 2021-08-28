@@ -15,6 +15,7 @@ routes.post(
   usersController.create
 );
 routes.post("/users/notify/register", authProvider, notificationsController.register)
+routes.post("/users/notify/unregister/:token", authProvider, notificationsController.unregister)
 routes.get("/users/@me", authProvider, usersController.me);
 routes.get("/users", authProvider, usersController.index);
 routes.patch("/users/update", authProvider, usersController.update);
