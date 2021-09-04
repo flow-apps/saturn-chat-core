@@ -71,7 +71,7 @@ class NotificationsController {
       await userNotificationsRepository.delete(userNotificationsExists)
       return res.sendStatus(201)
     } else {
-      throw new AppError("User Token not found", 404)
+      throw new AppError("User Token not found")
     }
   }
 
