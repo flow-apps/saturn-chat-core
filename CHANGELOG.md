@@ -2,6 +2,10 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.3
+
+- Enable/disable notifications added
+
 ## 0.0.2
 
 - Upgrade all libs for versions that not has vulnerabilities

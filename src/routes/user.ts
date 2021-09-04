@@ -9,22 +9,16 @@ const routes = Router();
 const usersController = new UsersController();
 const notificationsController = new NotificationsController()
 
-routes.post(
-  "/users",
-  multer(configMulter(5)).single("avatar"),
-  usersController.create
-);
-routes.post("/users/notify/register", authProvider, notificationsController.register)
-routes.delete("/users/notify/unregister/:token", authProvider, notificationsController.unregister)
-routes.get("/users/@me", authProvider, usersController.me);
+routes.post("/users", multer(configMulter(5)).single("avatar"), usersController.create);
 routes.get("/users", authProvider, usersController.index);
+routes.get("/users/@me", authProvider, usersController.me);
+routes.delete("/users", authProvider, usersController.delete);
 routes.patch("/users/update", authProvider, usersController.update);
-routes.patch(
-  "/users/update/avatar",
-  authProvider,
-  multer(configMulter(5)).single("avatar"),
+routes.patch("/users/update/avatar", authProvider, multer(configMulter(5)).single("avatar"),
   usersController.updateAvatar
 );
-routes.delete("/users", authProvider, usersController.delete);
+routes.post("/users/notify/register", authProvider, notificationsController.register)
+routes.patch("/users/notify/toggle/:token", authProvider, notificationsController.toggle)
+routes.delete("/users/notify/unregister/:token", authProvider, notificationsController.unregister)
 
 export { routes as userRoutes };

@@ -40,13 +40,17 @@ class NotificationsService {
 
     const tokens = await userNotificationsRepository
       .find({
-        where: { user_id: In(usersID), is_revoked: false },
+        where: {
+          user_id: In(usersID),
+          is_revoked: false,
+          send_notification: true,
+        },
         cache: time.timeToMS(1, "hour"),
         select: ["notification_token"],
       })
       .then((tokens) => tokens.map((t) => t.notification_token));
 
-    const uniqueTokens = [...new Set(tokens)]
+    const uniqueTokens = [...new Set(tokens)];
 
     return uniqueTokens;
   }

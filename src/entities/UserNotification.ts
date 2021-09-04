@@ -18,6 +18,9 @@ class UserNotification {
   @Column({ default: false })
   is_revoked: boolean;
 
+  @Column({ default: true })
+  send_notification: boolean;
+
   constructor() {
     if (!this.id) {
       this.id = uuid();

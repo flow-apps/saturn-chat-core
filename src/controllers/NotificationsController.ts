@@ -52,7 +52,7 @@ class NotificationsController {
       notification_token: validatedBody.notificationToken
     })
     await userNotificationsRepository.save(merged)
-    return res.sendStatus(201)
+    return res.json(merged)
   }
 
   async unregister(req: RequestAuthenticated, res: Response) {
@@ -73,6 +73,32 @@ class NotificationsController {
     } else {
       throw new AppError("User Token not found")
     }
+  }
+
+  async toggle(req: RequestAuthenticated, res: Response) {
+    const userID = req.userId
+    const { token } = req.params
+    const enable = req.query.enable as "yes" | "no"
+    const userNotificationsRepository = getCustomRepository(UserNotificationsRepository)
+
+    if (!token) {
+      throw new AppError("Notification token not provided")
+    }
+
+    const userNotification = await userNotificationsRepository.findOne({
+      where: { user_id: userID, notification_token: token },
+      cache: 10000
+    })
+
+    if (!userNotification) {
+      throw new AppError("Notification token not found", 404)
+    }
+
+    await userNotificationsRepository.update(userNotification.id, {
+      send_notification: enable === "yes"
+    })
+
+    return res.sendStatus(204)
   }
 
 }
