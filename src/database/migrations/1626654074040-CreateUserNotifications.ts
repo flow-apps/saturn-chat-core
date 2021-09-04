@@ -31,6 +31,11 @@ export class CreateUserNotifications1626654074040
             type: "boolean",
             default: false
           },
+          {
+            name: "send_notification",
+            type: "boolean",
+            default: true
+          },
         ],
         foreignKeys: [
           {
