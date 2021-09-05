@@ -1,4 +1,5 @@
 import { getCustomRepository, Not } from "typeorm";
+import { Participant } from "../entities/Participant";
 import { AppError } from "../errors/AppError";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { Time } from "../utils/time";

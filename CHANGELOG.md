@@ -2,6 +2,10 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.4
+
+- Add online/offline system
+
 ## 0.0.3
 
 - Enable/disable notifications added

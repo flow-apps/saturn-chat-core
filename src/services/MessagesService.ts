@@ -10,6 +10,7 @@ import { UserNotificationsRepository } from "../repositories/UserNotificationsRe
 import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
 import { StorageManager } from "./StorageManager";
+import { ParticipantStatus } from "../database/enums/participants";
 
 interface ICreateMessageProps {
   message: string;
@@ -31,8 +32,16 @@ interface IGetMessageWithFilesProps {
   group_id: string;
 }
 
+interface IGetNotificationsTokensOptions {
+  getOfflines?: boolean;
+}
+
 class MessagesService {
-  async getNotificationsTokens(groupID: string, userID: string) {
+  async getNotificationsTokens(
+    groupID: string,
+    userID: string,
+    options: IGetNotificationsTokensOptions
+  ) {
     const notificationsService = new NotificationsService();
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
@@ -40,6 +49,9 @@ class MessagesService {
       .find({
         where: {
           group_id: groupID,
+          status: options.getOfflines
+            ? In(["ONLINE", "OFFLINE"])
+            : Not(ParticipantStatus.OFFLINE),
           user_id: Not(
             process.env.NODE_ENV === "development" ? userID : undefined
           ),
@@ -93,7 +105,7 @@ class MessagesService {
     const message = await messageRepository.findOne(savedMessage.id, {
       where: { group_id: savedMessage.group_id },
       relations: ["author", "author.avatar", "group"],
-      cache: new Time().timeToMS(1, "hour")
+      cache: new Time().timeToMS(1, "hour"),
     });
 
     return message;
@@ -140,15 +152,17 @@ class MessagesService {
 
     const participant = await participantsService.index(
       msgData.author_id,
-      msgData.group_id,
+      msgData.group_id
     );
 
     if (!participant) {
       throw new Error("Error on create a message for this group!");
     }
 
-    const message = await messagesRepository.findOne(msgData.message_id)
-    const mergedMessage = messagesRepository.merge(message, { message: msgData.message })
+    const message = await messagesRepository.findOne(msgData.message_id);
+    const mergedMessage = messagesRepository.merge(message, {
+      message: msgData.message,
+    });
     await messagesRepository.save(mergedMessage);
 
     const newReadMessage = readMessagesRepository.create({
