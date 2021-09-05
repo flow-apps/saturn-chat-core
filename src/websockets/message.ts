@@ -1,20 +1,53 @@
 import { getCustomRepository } from "typeorm";
 import { io, ISocketAuthenticated } from ".";
+import { ParticipantStatus } from "../database/enums/participants";
+import { Participant } from "../entities/Participant";
+import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
+import { ParticipantsService } from "../services/ParticipantsService"
 
 io.on("connection", async (socket: ISocketAuthenticated) => {
-  const notificationsService = new NotificationsService()
+  const notificationsService = new NotificationsService();
+  const participantsService = new ParticipantsService()
   const messagesService = new MessagesService();
+  
   const userID = socket.userID;
+  let participant: Participant
   let groupID: string;
 
   socket.on("connect_in_chat", async (id: string) => {
-    socket.join(id);
-    groupID = id;    
+    groupID = id;   
+    await socket.join(id);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    participant = await participantsService.index(socket.userID, groupID)
+    
+    if (participant) {
+      await participantsRepository.update(participant.id, {
+        status: ParticipantStatus.ONLINE
+      })
+    }
+
+    socket.in(groupID).emit("new_user_online", userID)
+
     console.log(`Socket ${socket.id} conectado no grupo ${id}`);
   });
+
+  socket.on("leave_chat", async () => {
+    await socket.leave(groupID)
+    groupID = ""
+
+    if (participant) {
+      const participantsRepository = getCustomRepository(ParticipantsRepository);
+
+      participantsRepository.update(participant.id, {
+        status: ParticipantStatus.OFFLINE
+      })
+    }
+
+    socket.in(groupID).emit("new_user_offline", userID)
+  })
 
   socket.on("new_user_message", async (data: { message: string }) => {
     const createdMessage = await messagesService.create({
