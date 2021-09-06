@@ -40,7 +40,7 @@ class MessagesService {
   async getNotificationsTokens(
     groupID: string,
     userID: string,
-    options: IGetNotificationsTokensOptions
+    options: IGetNotificationsTokensOptions = {}
   ) {
     const notificationsService = new NotificationsService();
     const participantsRepository = getCustomRepository(ParticipantsRepository);

@@ -83,7 +83,7 @@ class ParticipantsController {
     }
 
     const notification = await usersNotificationsRepository.findOne({
-      where: { user_id: group.owner_id, is_revoked: false },
+      where: { user_id: group.owner_id, is_revoked: false, send_notification: true },
       select: ["notification_token"]
     })
     await participantsRepository.remove(hasParticipant)
