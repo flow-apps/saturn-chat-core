@@ -3,4 +3,10 @@ enum ParticipantStatus {
   OFFLINE = "OFFLINE"
 }
 
-export { ParticipantStatus }
+enum ParticipantRole {
+  PARTICIPANT = "PARTICIPANT",
+  MODERATOR = "MOD",
+  ADMIN = "ADMIN"
+}
+
+export { ParticipantStatus, ParticipantRole }
