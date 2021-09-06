@@ -21,6 +21,7 @@ import { ReadMessage } from "./ReadMessage";
 import { StorageManager } from "../services/StorageManager";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import { io } from "../websockets";
+import { GroupType } from "../database/enums/groups";
 
 @Entity({ name: "groups" })
 class Group {
@@ -109,6 +110,13 @@ class Group {
   })
   @JoinColumn()
   invites: Invite[];
+
+  @Column({
+    type: "enum",
+    enum: GroupType,
+    default: GroupType.GROUP
+  })
+  type: string;
 
   @CreateDateColumn()
   created_at: Date;
