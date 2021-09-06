@@ -40,6 +40,11 @@ export class CreateGroups1621046651260 implements MigrationInterface {
             isNullable: true,
           },
           {
+            name: "type",
+            type: "varchar",
+            default: "GROUP"
+          },
+          {
             name: "created_at",
             type: "timestamp",
             default: "now()",
