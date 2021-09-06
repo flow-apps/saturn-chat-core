@@ -10,7 +10,7 @@ import { Group } from "./Group";
 import { User } from "./User";
 
 import { v4 as uuid } from "uuid";
-import { ParticipantStatus } from "../database/enums/participants";
+import { ParticipantRole, ParticipantStatus } from "../database/enums/participants";
 
 @Entity({ name: "participants" })
 class Participant {
@@ -47,6 +47,13 @@ class Participant {
     default: ParticipantStatus.OFFLINE
   })
   status: string;
+
+  @Column({
+    type: "enum",
+    enum: ParticipantRole,
+    default: ParticipantRole.PARTICIPANT
+  })
+  role: string;
 
   @CreateDateColumn()
   participating_since: Date;
