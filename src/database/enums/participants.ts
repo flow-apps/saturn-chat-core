@@ -6,7 +6,9 @@ enum ParticipantStatus {
 enum ParticipantRole {
   PARTICIPANT = "PARTICIPANT",
   MODERATOR = "MOD",
-  ADMIN = "ADMIN"
+  MANAGER = "MANAGER",
+  ADMIN = "ADMIN",
+  OWNER = "OWNER"
 }
 
 export { ParticipantStatus, ParticipantRole }

@@ -10,7 +10,7 @@ import { UserNotificationsRepository } from "../repositories/UserNotificationsRe
 import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
 import { StorageManager } from "./StorageManager";
-import { ParticipantStatus } from "../database/enums/participants";
+import { ParticipantRole, ParticipantStatus } from "../database/enums/participants";
 
 interface ICreateMessageProps {
   message: string;
@@ -201,15 +201,25 @@ class MessagesService {
     }
   }
 
-  async delete(messageID: string, userID: string) {
+  async delete(messageID: string, userID: string, groupID: string) {
     const storage = new StorageManager();
+    const participantsRepository = getCustomRepository(ParticipantsRepository)
     const messageRepository = getCustomRepository(MessagesRepository);
     const message = await messageRepository.findOne(messageID, {
       relations: ["files", "voice_message"],
     });
+    const participant = await participantsRepository.findOne({
+      where: { group_id: groupID, user_id: userID }
+    })
 
-    if (userID !== message.author_id) {
-      throw new Error("Error on delete this message");
+    const authorizedRoles = [
+      ParticipantRole.MODERATOR,
+      ParticipantRole.OWNER,
+      ParticipantRole.ADMIN
+    ]
+
+    if (userID !== message.author_id || !authorizedRoles.includes(participant.role)) {
+      throw new Error("Unauthorized user/role for delete message");
     }
 
     try {
