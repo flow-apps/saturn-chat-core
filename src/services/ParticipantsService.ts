@@ -1,4 +1,5 @@
 import { getCustomRepository, Not } from "typeorm";
+import { ParticipantRole } from "../database/enums/participants";
 import { Participant } from "../entities/Participant";
 import { AppError } from "../errors/AppError";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
@@ -8,6 +9,7 @@ import { NotificationsService } from "./NotificationsService";
 interface INewParticipant {
   user_id: string;
   group_id: string;
+  role?: ParticipantRole;
 }
 
 class ParticipantsService {
@@ -31,7 +33,7 @@ class ParticipantsService {
     }
   }
 
-  async new({ group_id, user_id }: INewParticipant) {
+  async new({ group_id, user_id, role }: INewParticipant) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const notificationsService = new NotificationsService()
 
@@ -51,6 +53,7 @@ class ParticipantsService {
     const createdParticipant = participantsRepository.create({
       user_id,
       group_id,
+      role: role || ParticipantRole.PARTICIPANT
     });
 
     await participantsRepository.save(createdParticipant);

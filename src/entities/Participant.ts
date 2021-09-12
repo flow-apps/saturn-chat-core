@@ -46,14 +46,14 @@ class Participant {
     enum: ParticipantStatus,
     default: ParticipantStatus.OFFLINE
   })
-  status: string;
+  status: ParticipantStatus;
 
   @Column({
     type: "enum",
     enum: ParticipantRole,
     default: ParticipantRole.PARTICIPANT
   })
-  role: string;
+  role: ParticipantRole;
 
   @CreateDateColumn()
   participating_since: Date;
