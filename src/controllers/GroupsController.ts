@@ -13,6 +13,7 @@ import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
 import { v4 as uuid } from "uuid";
 import { GroupAvatar } from "../entities/GroupAvatar";
+import { ParticipantRole } from "../database/enums/participants";
 
 interface Body {
   name: string;
@@ -51,7 +52,7 @@ class GroupsController {
       privacy: Yup.string().uppercase().required(),
       tags: Yup.string(),
     });
-    const groupID = uuid()
+    const groupID = uuid();
 
     try {
       await schema.validate(body, { abortEarly: false });
@@ -75,7 +76,7 @@ class GroupsController {
     };
 
     let processedImage: Buffer;
-    let createdAvatar: GroupAvatar
+    let createdAvatar: GroupAvatar;
 
     if (groupAvatar) {
       processedImage = await imageProcessor.avatar({
@@ -93,22 +94,25 @@ class GroupsController {
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
         url: uploadedAvatar.url,
-        group_id: groupID
+        group_id: groupID,
       });
-
     }
 
-    const group = groupsRepository.create(data)
+    const group = groupsRepository.create(data);
     await groupsRepository.save(group);
 
     if (createdAvatar) {
       await groupsAvatarsRepository.save(createdAvatar);
       await groupsRepository.update(group.id, {
-        group_avatar: createdAvatar
-      })
+        group_avatar: createdAvatar,
+      });
     }
 
-    await participants.new({ group_id: group.id, user_id: req.userId });
+    await participants.new({
+      group_id: group.id,
+      user_id: req.userId,
+      role: ParticipantRole.OWNER,
+    });
     return res.status(200).json(group);
   }
 
@@ -162,7 +166,7 @@ class GroupsController {
       throw new AppError("User not authorized for this action!", 403);
     }
 
-    await groupsRepository.remove(group)
+    await groupsRepository.remove(group);
 
     return res.sendStatus(204);
   }
@@ -172,22 +176,22 @@ class GroupsController {
     const messagesRepository = getCustomRepository(MessagesRepository);
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
 
-    const groups = await participantsRepository.find({
+    const participating = await participantsRepository.find({
       where: { user_id: req.userId },
       loadEagerRelations: true,
     });
 
     const groupsWithUnreadMessages = await Promise.all(
-      groups.map(async (group) => {
+      participating.map(async (participant) => {
         const totalMessages = await messagesRepository.count({
-          where: { group_id: group.group.id },
+          where: { group_id: participant.group.id },
         });
         const allReadMessages = await readMessagesRepository.count({
-          where: { user_id: req.userId, group_id: group.group.id },
+          where: { user_id: req.userId, group_id: participant.group.id },
         });
 
         const totalUnreadMessages = totalMessages - allReadMessages;
-        const groupWithUnreadMessages = Object.assign(group.group, {
+        const groupWithUnreadMessages = Object.assign(participant.group, {
           unreadMessagesAmount: totalUnreadMessages,
         });
 
@@ -195,7 +199,9 @@ class GroupsController {
       })
     );
 
-    return res.status(200).json(groupsWithUnreadMessages);
+    return res
+      .status(200)
+      .json(groupsWithUnreadMessages);
   }
 
   async search(req: RequestAuthenticated, res: Response) {
@@ -309,7 +315,6 @@ class GroupsController {
       group.group_avatar ? group.group_avatar.id : ""
     );
 
-
     processedImage = await imageProcessor.avatar({
       avatar: req.file.buffer,
       quality: 60,
@@ -326,13 +331,13 @@ class GroupsController {
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
         url: uploadedAvatar.url,
-        group_id: groupID
-      })
+        group_id: groupID,
+      });
 
-      await groupsAvatarsRepository.save(createdAvatar)
+      await groupsAvatarsRepository.save(createdAvatar);
       await groupsRepository.update(group.id, {
-        group_avatar: createdAvatar
-      })
+        group_avatar: createdAvatar,
+      });
 
       return res.sendStatus(204);
     }
