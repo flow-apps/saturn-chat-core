@@ -35,9 +35,6 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
   });
 
   socket.on("leave_chat", async () => {
-    await socket.leave(groupID)
-    groupID = ""
-
     if (participant) {
       const participantsRepository = getCustomRepository(ParticipantsRepository);
 
@@ -138,7 +135,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
   })
 
   socket.on("delete_user_message", async (messageID: string) => {
-    await messagesService.delete(messageID, userID);
+    await messagesService.delete(messageID, userID, groupID);
     socket.in(groupID).emit("delete_user_message", messageID);
     socket.emit("delete_user_message", messageID);
   });

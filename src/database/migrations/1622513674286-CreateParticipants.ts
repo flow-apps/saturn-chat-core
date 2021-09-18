@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
-import { ParticipantStatus } from "../enums/participants";
+import { ParticipantRole, ParticipantStatus } from "../enums/participants";
 
 export class CreateParticipants1622513674286 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -24,6 +24,11 @@ export class CreateParticipants1622513674286 implements MigrationInterface {
             name: "status",
             type: "varchar",
             default: "OFFLINE"
+          },
+          {
+            name: "role",
+            type: "varchar",
+            default: ParticipantRole.PARTICIPANT
           },
           {
             name: "participating_since",
