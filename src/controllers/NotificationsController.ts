@@ -76,19 +76,17 @@ class NotificationsController {
   }
 
   async toggle(req: RequestAuthenticated, res: Response) {
-    const userID = req.userId
     const { token } = req.params
-    const enable = req.query.enable as "yes" | "no"
-    const userNotificationsRepository = getCustomRepository(UserNotificationsRepository)
+    const enable = req.query.enabled as "yes" | "no"
+    const userNotificationsRepository = getCustomRepository(UserNotificationsRepository)    
 
-    if (!token) {
+    if (!token || !Expo.isExpoPushToken(token)) {
       throw new AppError("Notification token not provided")
     }
 
     const userNotification = await userNotificationsRepository.findOne({
-      where: { user_id: userID, notification_token: token },
-      cache: 10000
-    })
+      where: { notification_token: token },
+    })    
 
     if (!userNotification) {
       throw new AppError("Notification token not found", 404)
