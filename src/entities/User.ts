@@ -22,6 +22,9 @@ class User {
   @Column()
   name: string;
 
+  @Column({ nullable: true })
+  bio: string;
+
   @Column()
   email: string;
 

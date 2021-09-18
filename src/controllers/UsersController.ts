@@ -141,6 +141,7 @@ class UsersController {
     const usersRepository = getCustomRepository(UsersRepository);
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
+      bio: Yup.string().max(100)
     });
 
     let dataValidated;

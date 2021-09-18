@@ -2,6 +2,10 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.6
+
+- Add bio for user
+
 ## 0.0.5
 
 - Add roles and configure
