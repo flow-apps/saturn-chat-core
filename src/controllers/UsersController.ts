@@ -87,11 +87,12 @@ class UsersController {
 
     const user = await usersRepository.findOne(req.userId, {
       loadEagerRelations: true,
+      relations: ["groups"]
     });
 
     if (!user) {
       throw new AppError("User not found", 404);
-    }
+    }    
 
     return res.json(user);
   }
