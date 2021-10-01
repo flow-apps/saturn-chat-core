@@ -147,7 +147,6 @@ class MessagesService {
 
   async getMessageWithFiles(msgData: IGetMessageWithFilesProps) {
     const messagesRepository = getCustomRepository(MessagesRepository);
-    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const participantsService = new ParticipantsService();
 
     const participant = await participantsService.index(
@@ -158,20 +157,6 @@ class MessagesService {
     if (!participant) {
       throw new Error("Error on create a message for this group!");
     }
-
-    const message = await messagesRepository.findOne(msgData.message_id);
-    const mergedMessage = messagesRepository.merge(message, {
-      message: msgData.message,
-    });
-    await messagesRepository.save(mergedMessage);
-
-    const newReadMessage = readMessagesRepository.create({
-      message_id: msgData.message_id,
-      user_id: msgData.author_id,
-      group_id: msgData.group_id,
-    });
-
-    await readMessagesRepository.save(newReadMessage);
 
     const completedMessage = await messagesRepository.findOne(
       msgData.message_id,

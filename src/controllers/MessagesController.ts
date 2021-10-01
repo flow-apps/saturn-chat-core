@@ -102,6 +102,7 @@ class MessagesController {
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
+        message: req.body.message
       });
 
       await messageRepository.save(createdMessage);

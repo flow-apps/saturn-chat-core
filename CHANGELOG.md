@@ -2,6 +2,11 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.7
+
+- Add indicator for sending/sended message
+- Better performance in save messages
+
 ## 0.0.6
 
 - Add bio for user
