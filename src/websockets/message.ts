@@ -46,14 +46,14 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     socket.in(groupID).emit("new_user_offline", userID)
   })
 
-  socket.on("new_user_message", async (data: { message: string }) => {
+  socket.on("new_user_message", async (data: { message: string, localReference: string }) => {
     const createdMessage = await messagesService.create({
-      author_id: userID,
+      author_id: socket.userID,
       group_id: groupID,
       message: data.message,
     });
 
-    socket.emit("sended_user_message", createdMessage);
+    socket.emit("sended_user_message", { msg: createdMessage, localReference: data.localReference });
     socket.in(groupID).emit("new_user_message", createdMessage);
 
     await notificationsService.send({
@@ -79,7 +79,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       message: data.message,
     });
 
-    socket.emit("sended_user_message", newVoiceMessage);
+    socket.emit("sended_user_message", { msg: newVoiceMessage, localReference: data.localReference });
     socket.in(groupID).emit("new_user_message", newVoiceMessage);
 
     await notificationsService.send({
@@ -103,7 +103,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       message: data.message,
     });
 
-    socket.emit("sended_user_message", newMessageWithFiles);
+    socket.emit("sended_user_message", {msg: newMessageWithFiles, localReference: data.localReference});
     socket.in(groupID).emit("new_user_message", newMessageWithFiles);
 
     await notificationsService.send({
