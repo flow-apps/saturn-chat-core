@@ -28,6 +28,7 @@ class ParticipantsController {
 
   async index(req: RequestAuthenticated, res: Response) {
     const { group_id } = req.params;
+    const { participant_id } = req.query
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!group_id) {
@@ -35,7 +36,7 @@ class ParticipantsController {
     }
 
     const participant = await participantsRepository.findOne({
-      where: { group_id, user_id: req.userId },
+      where: [{ id: participant_id }, { group_id, user_id: req.userId }],
       cache: 50000,
     });
 
