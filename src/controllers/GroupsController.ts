@@ -148,6 +148,8 @@ class GroupsController {
   async delete(req: RequestAuthenticated, res: Response) {
     const { id } = req.params;
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const authorizedRoles = [ParticipantRole.ADMIN, ParticipantRole.OWNER];
 
     if (!id) {
       throw new AppError("Group ID not provided!");
@@ -157,17 +159,20 @@ class GroupsController {
       relations: ["group_avatar"],
       cache: 5000,
     });
+    const requestedBy = await participantsRepository.findOne({
+      where: { user_id: req.userId, group_id: id },
+    });
+    const isAuthorized = authorizedRoles.includes(requestedBy.role);
 
     if (!group) {
       throw new AppError("Group not found!", 404);
     }
 
-    if (group.owner_id !== req.userId) {
+    if (!isAuthorized) {
       throw new AppError("User not authorized for this action!", 403);
     }
 
     await groupsRepository.remove(group);
-
     return res.sendStatus(204);
   }
 
@@ -199,9 +204,7 @@ class GroupsController {
       })
     );
 
-    return res
-      .status(200)
-      .json(groupsWithUnreadMessages);
+    return res.status(200).json(groupsWithUnreadMessages);
   }
 
   async search(req: RequestAuthenticated, res: Response) {
@@ -248,15 +251,20 @@ class GroupsController {
 
   async update(req: RequestAuthenticated, res: Response) {
     const body = req.body as Body;
-    const userID = req.userId;
     const groupID = req.params.groupID;
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository)
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
       description: Yup.string().max(500).required(),
       privacy: Yup.string().uppercase().required(),
       tags: Yup.string(),
     });
+    const authorizedRoles = [
+      ParticipantRole.ADMIN,
+      ParticipantRole.MANAGER,
+      ParticipantRole.OWNER,
+    ];
 
     let dataValidated;
 
@@ -270,11 +278,18 @@ class GroupsController {
     }
 
     const group = await groupsRepository.findOne({
-      where: [{ id: groupID, owner_id: userID }],
+      where: [{ id: groupID }],
     });
+    const requestedBy = await participantsRepository.findOne({
+      where: { user_id: req.userId, group_id: group.id }
+    })
 
     if (!group) {
       throw new AppError("Invalid group");
+    }
+
+    if (!authorizedRoles.includes(requestedBy.role)) {
+      throw new AppError("User not authorized for this action", 403)
     }
 
     dataValidated.tags = dataValidated.tags
@@ -295,20 +310,33 @@ class GroupsController {
     const avatar = req.file;
     const storage = new StorageManager();
     const imageProcessor = new ImageProcessor();
+    const authorizedRoles = [
+      ParticipantRole.ADMIN,
+      ParticipantRole.MANAGER,
+      ParticipantRole.OWNER,
+    ];
 
     const groupsAvatarsRepository = getCustomRepository(
       GroupsAvatarsRepository
     );
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository)
     let processedImage: Buffer;
 
     const group = await groupsRepository.findOne({
-      where: { id: groupID, owner_id: req.userId },
+      where: { id: groupID },
       relations: ["group_avatar"],
     });
+    const requestedBy = await participantsRepository.findOne({
+      where: { user_id: req.userId, group_id: group.id }
+    })
 
     if (!group || !avatar) {
-      throw new AppError("Invalid Group or Avatar not provided");
+      throw new AppError("Invalid Group or Avatar provided");
+    }
+
+    if (!authorizedRoles.includes(requestedBy.role)) {
+      throw new AppError("User not authorized for this action", 403)
     }
 
     const groupAvatar = await groupsAvatarsRepository.findOne(

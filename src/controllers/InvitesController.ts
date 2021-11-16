@@ -13,6 +13,8 @@ import crypto from "crypto";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { Invite } from "../entities/Invite";
 import { Participant } from "../entities/Participant";
+import { ParticipantRole } from "../database/enums/participants";
+import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -45,10 +47,16 @@ async function isValidInvite(invite: Invite) {
 
 class InvitesController {
   async create(req: RequestAuthenticated, res: Response) {
-    const userID = req.userId;
     const body = req.body;
     const invitesRepository = getCustomRepository(InvitesRepository);
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+
+    const authorizedRoles = [
+      ParticipantRole.OWNER,
+      ParticipantRole.ADMIN,
+      ParticipantRole.MANAGER,
+    ];
 
     const schema = Yup.object().shape({
       groupId: Yup.string().required(),
@@ -66,9 +74,16 @@ class InvitesController {
     }
 
     const group = await groupsRepository.findOne(body.groupId);
+    const requestedBy = await participantsRepository.findOne({
+      where: { user_id: req.userId, group_id: group.id },
+    });
 
-    if (!group || group.owner_id !== userID) {
+    if (!group) {
       throw new AppError("Group error");
+    }
+
+    if (!authorizedRoles.includes(requestedBy.role)) {
+      throw new AppError("User not authorized for this action", 403);
     }
 
     const inviteCode = crypto.randomBytes(4).toString("hex");
@@ -174,16 +189,31 @@ class InvitesController {
 
   async delete(req: RequestAuthenticated, res: Response) {
     const { inviteID } = req.params;
-    const userID = req.userId;
 
     const invitesRepository = getCustomRepository(InvitesRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+
+    const authorizedRoles = [
+      ParticipantRole.OWNER,
+      ParticipantRole.ADMIN,
+      ParticipantRole.MANAGER,
+    ];
+
     const invite = await invitesRepository.findOne(inviteID, {
       relations: ["group"],
       order: { expire_in: "ASC" },
     });
 
-    if (!invite || invite.group.owner_id !== userID) {
+    const requestedBy = await participantsRepository.findOne({
+      where: { user_id: req.userId, group_id: invite.group.id },
+    });
+
+    if (!invite) {
       throw new AppError("Invite delete error");
+    }
+
+    if (!authorizedRoles.includes(requestedBy.role)) {
+      throw new AppError("User not authorized for this action", 403);
     }
 
     await invitesRepository.delete(invite.id);
