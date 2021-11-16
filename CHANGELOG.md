@@ -2,6 +2,11 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.8
+
+- Add authorized roles in groups actions
+- Fix typing users sockets
+
 ## 0.0.7
 
 - Add indicator for sending/sended message

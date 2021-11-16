@@ -123,11 +123,11 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     const usersRepository = getCustomRepository(UsersRepository)
     const user = await usersRepository.findOne(userID)
 
-    socket.emit("new_user_typing", user)
+    socket.in(groupID).emit("new_user_typing", user)
   })
 
   socket.on("remove_user_typing", async ({ typing, user_id }) => {
-    socket.emit("deleted_user_typing", userID)
+    socket.in(groupID).emit("deleted_user_typing", userID)
   })
 
   socket.on("set_read_message", async (messageID: string) => {
