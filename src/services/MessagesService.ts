@@ -198,12 +198,12 @@ class MessagesService {
     })
 
     const authorizedRoles = [
-      ParticipantRole.MODERATOR,
       ParticipantRole.OWNER,
-      ParticipantRole.ADMIN
+      ParticipantRole.ADMIN,
+      ParticipantRole.MODERATOR,
     ]
 
-    if (userID !== message.author_id || !authorizedRoles.includes(participant.role)) {
+    if (userID !== message.author_id && !authorizedRoles.includes(participant.role)) {
       throw new Error("Unauthorized user/role for delete message");
     }
 
