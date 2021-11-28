@@ -34,7 +34,7 @@ class NotificationsController {
     }
 
     const userNotificationsExists = await userNotificationsRepository.findOne({
-      where: [{ user_id: req.userId }, { notification_token: validatedBody.notificationToken }]
+      where: [{ notification_token: validatedBody.notificationToken }]
     })
 
     if (!userNotificationsExists) {

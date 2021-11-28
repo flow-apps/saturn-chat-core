@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { getCustomRepository } from "typeorm";
 import { UsersRepository } from "../repositories/UsersRepository";
+import { Avatar } from "../entities/Avatar";
 
 class AuthController {
   async authenticate(req: Request, res: Response) {
@@ -36,11 +37,14 @@ class AuthController {
       throw new AppError("Failed on authenticate!");
     }
 
-    user.password = undefined;
+    const userWithAvatar = await userRepository.findOne(user.id, {
+      relations: ["avatar"]
+    })
+
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY);
 
-    return res.status(200).send({ user, token });
+    return res.status(200).send({ user: userWithAvatar, token });
   }
 }
 
