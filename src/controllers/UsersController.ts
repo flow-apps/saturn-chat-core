@@ -209,9 +209,13 @@ class UsersController {
       await avatarsRepository.save(createdAvatar);
       await usersRepository.update(user.id, {
         avatar: createdAvatar,
-      });
+      })
 
-      return res.sendStatus(204);
+      const updatedUser = await usersRepository.findOne(user.id, {
+        relations: ["avatar"]
+      })
+
+      return res.json({ user: updatedUser });
     }
 
     await storage.deleteFile(userAvatar.path);
@@ -221,7 +225,11 @@ class UsersController {
       url: uploadedAvatar.url,
     });
 
-    return res.sendStatus(204);
+    const updatedUser = await usersRepository.findOne(user.id, {
+      relations: ["avatar"]
+    })
+
+    return res.json({ user: updatedUser });
   }
 }
 
