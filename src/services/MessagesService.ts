@@ -93,7 +93,7 @@ class MessagesService {
       throw new Error(error);
     }
 
-    const newMessage = messageRepository.create(msgData);
+    const newMessage = messageRepository.create({...msgData, participant_id: participant.id});
     const savedMessage = await messageRepository.save(newMessage);
     const newReadMessage = readMessagesRepository.create({
       message_id: savedMessage.id,
@@ -130,6 +130,7 @@ class MessagesService {
         author_id: audioData.author_id,
         group_id: audioData.group_id,
         voice_message_id: audioData.audio.id,
+        participant_id: participant.id
       };
 
       const newMessage = messagesRepository.create(data);

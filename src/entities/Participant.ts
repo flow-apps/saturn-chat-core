@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { Group } from "./Group";
@@ -11,6 +12,7 @@ import { User } from "./User";
 
 import { v4 as uuid } from "uuid";
 import { ParticipantRole, ParticipantStatus } from "../database/enums/participants";
+import { Message } from "./Message";
 
 @Entity({ name: "participants" })
 class Participant {
@@ -40,6 +42,10 @@ class Participant {
   })
   @JoinColumn({ name: "group_id" })
   group: Group;
+
+  @OneToMany(() => Message, message => message.participant)
+  @JoinColumn()
+  messages: Message[]
 
   @Column({
     type: "enum",
