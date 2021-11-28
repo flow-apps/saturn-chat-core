@@ -17,6 +17,7 @@ import { User } from "./User";
 import { Audio } from "./Audio";
 import { File } from "./File";
 import { ReadMessage } from "./ReadMessage";
+import { Participant } from "./Participant";
 
 @Entity({ name: "messages" })
 class Message {
@@ -30,6 +31,9 @@ class Message {
   @Column()
   author_id: string;
 
+  @Column({ nullable: true })
+  participant_id: string;
+
   @ManyToOne(() => Group, (group) => group.id, {
     cascade: true,
     onDelete: "CASCADE",
@@ -42,7 +46,11 @@ class Message {
   @JoinColumn({ name: "author_id" })
   author: User;
 
-  @Column({ length: 500, default: "" })
+  @ManyToOne(() => Participant, (participant) => participant.id, { eager: true })
+  @JoinColumn({ name: "participant_id" })
+  participant: Participant;
+
+  @Column({ length: 5000, default: "" })
   message: string;
 
   @ManyToOne(() => ReadMessage, (rm) => rm.message)

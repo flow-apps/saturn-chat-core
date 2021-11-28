@@ -16,13 +16,18 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             type: "uuid",
           },
           {
+            name: "participant_id",
+            type: "uuid",
+            isNullable: true
+          },
+          {
             name: "group_id",
             type: "uuid",
           },
           {
             name: "message",
             type: "varchar",
-            length: "500",
+            length: "5000",
             isNullable: true
           },
           {
@@ -47,6 +52,14 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             referencedTableName: "users",
             referencedColumnNames: ["id"],
             columnNames: ["author_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+          },
+          {
+            name: "FKParticipantID",
+            referencedTableName: "participants",
+            referencedColumnNames: ["id"],
+            columnNames: ["participant_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },
