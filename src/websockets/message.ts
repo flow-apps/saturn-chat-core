@@ -6,70 +6,83 @@ import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
-import { ParticipantsService } from "../services/ParticipantsService"
+import { ParticipantsService } from "../services/ParticipantsService";
 
 io.on("connection", async (socket: ISocketAuthenticated) => {
   const notificationsService = new NotificationsService();
-  const participantsService = new ParticipantsService()
+  const participantsService = new ParticipantsService();
   const messagesService = new MessagesService();
-  
+
   const userID = socket.userID;
-  let participant: Participant
+  let participant: Participant;
   let groupID: string;
 
   socket.on("connect_in_chat", async (id: string) => {
-    groupID = id;   
+    groupID = id;
     await socket.join(id);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
-    participant = await participantsService.index(socket.userID, groupID)
-    
+    participant = await participantsService.index(socket.userID, groupID);
+
     if (participant) {
       await participantsRepository.update(participant.id, {
-        status: ParticipantStatus.ONLINE
-      })
+        status: ParticipantStatus.ONLINE,
+      });
     }
 
-    socket.in(groupID).emit("new_user_online", userID)
+    socket.in(groupID).emit("new_user_online", userID);
 
     console.log(`Socket ${socket.id} conectado no grupo ${id}`);
   });
 
   socket.on("leave_chat", async () => {
     if (participant) {
-      const participantsRepository = getCustomRepository(ParticipantsRepository);
+      const participantsRepository = getCustomRepository(
+        ParticipantsRepository
+      );
 
       participantsRepository.update(participant.id, {
-        status: ParticipantStatus.OFFLINE
-      })
+        status: ParticipantStatus.OFFLINE,
+      });
     }
 
-    socket.in(groupID).emit("new_user_offline", userID)
-  })
-
-  socket.on("new_user_message", async (data: { message: string, localReference: string }) => {
-    const createdMessage = await messagesService.create({
-      author_id: socket.userID,
-      group_id: groupID,
-      message: data.message,
-    });
-
-    socket.emit("sended_user_message", { msg: createdMessage, localReference: data.localReference });
-    socket.in(groupID).emit("new_user_message", createdMessage);
-
-    await notificationsService.send({
-      tokens: await messagesService.getNotificationsTokens(groupID, userID),
-      data: createdMessage,
-      channelId: "messages",
-      categoryId: "message",
-      message: {
-        content: {
-          title: `${createdMessage.group.name}`,
-          body: `💬 ${createdMessage.author.name}: ${createdMessage.message}`
-        },
-      },
-    })
-
+    socket.in(groupID).emit("new_user_offline", userID);
   });
+
+  socket.on(
+    "new_user_message",
+    async (data: { message: string; localReference: string }) => {
+      const createdMessage = await messagesService.create({
+        author_id: socket.userID,
+        group_id: groupID,
+        message: data.message,
+      });
+
+      socket.emit("sended_user_message", {
+        msg: createdMessage,
+        localReference: data.localReference,
+      });
+      socket.in(groupID).emit("new_user_message", createdMessage);
+
+      await notificationsService.send({
+        tokens: await messagesService.getNotificationsTokens(groupID, userID),
+        data: {
+          id: createdMessage.id,
+          message: createdMessage.message,
+          author: createdMessage.author,
+          group: createdMessage.group,
+          created_at: createdMessage.created_at,
+        },
+        channelId: "messages",
+        categoryId: "message",
+        message: {
+          content: {
+            title: `${createdMessage.group.name}`,
+            body: `💬 ${createdMessage.author.name}: ${createdMessage.message}`,
+          },
+        },
+      });
+    }
+  );
 
   socket.on("new_voice_message", async (data) => {
     const newVoiceMessage = await messagesService.createAudio({
@@ -79,20 +92,30 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       message: data.message,
     });
 
-    socket.emit("sended_user_message", { msg: newVoiceMessage, localReference: data.localReference });
+    socket.emit("sended_user_message", {
+      msg: newVoiceMessage,
+      localReference: data.localReference,
+    });
     socket.in(groupID).emit("new_user_message", newVoiceMessage);
 
     await notificationsService.send({
       tokens: await messagesService.getNotificationsTokens(groupID, userID),
-      data: newVoiceMessage,
+      data: {
+        id: newVoiceMessage.id,
+        message: newVoiceMessage.message,
+        voice_message: newVoiceMessage.voice_message,
+        author: newVoiceMessage.author,
+        group: newVoiceMessage.group,
+        created_at: newVoiceMessage.created_at,
+      },
       channelId: "messages",
       message: {
         content: {
           title: `${newVoiceMessage.group.name}`,
-          body: `🗣 ${newVoiceMessage.author.name}: 🎤`
+          body: `🗣 ${newVoiceMessage.author.name}: 🎤`,
         },
       },
-    })
+    });
   });
 
   socket.on("new_message_with_files", async (data) => {
@@ -103,36 +126,48 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       message: data.message,
     });
 
-    socket.emit("sended_user_message", {msg: newMessageWithFiles, localReference: data.localReference});
+    socket.emit("sended_user_message", {
+      msg: newMessageWithFiles,
+      localReference: data.localReference,
+    });
     socket.in(groupID).emit("new_user_message", newMessageWithFiles);
 
     await notificationsService.send({
-      tokens: await messagesService.getNotificationsTokens(groupID, userID),
-      data: newMessageWithFiles,
+      tokens: await messagesService.getNotificationsTokens(groupID, userID, {
+        getOnlines: false,
+      }),
+      data: {
+        id: newMessageWithFiles.id,
+        message: newMessageWithFiles.message,
+        files: newMessageWithFiles.files,
+        author: newMessageWithFiles.author,
+        group: newMessageWithFiles.group,
+        created_at: newMessageWithFiles.created_at,
+      },
       channelId: "messages",
       message: {
         content: {
           title: `${newMessageWithFiles.group.name}`,
-          body: `📂 ${newMessageWithFiles.author.name}: ${newMessageWithFiles.message}`
+          body: `📂 ${newMessageWithFiles.author.name}: ${newMessageWithFiles.message}`,
         },
       },
-    })
+    });
   });
 
   socket.on("add_user_typing", async ({ typing }) => {
-    const usersRepository = getCustomRepository(UsersRepository)
-    const user = await usersRepository.findOne(userID)
+    const usersRepository = getCustomRepository(UsersRepository);
+    const user = await usersRepository.findOne(userID);
 
-    socket.in(groupID).emit("new_user_typing", user)
-  })
+    socket.in(groupID).emit("new_user_typing", user);
+  });
 
   socket.on("remove_user_typing", async ({ typing, user_id }) => {
-    socket.in(groupID).emit("deleted_user_typing", userID)
-  })
+    socket.in(groupID).emit("deleted_user_typing", userID);
+  });
 
   socket.on("set_read_message", async (messageID: string) => {
-    await messagesService.readMessage(userID, messageID, groupID)
-  })
+    await messagesService.readMessage(messageID, userID, groupID);
+  });
 
   socket.on("delete_user_message", async (messageID: string) => {
     await messagesService.delete(messageID, userID, groupID);
