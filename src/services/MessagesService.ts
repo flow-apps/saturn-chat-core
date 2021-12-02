@@ -33,7 +33,7 @@ interface IGetMessageWithFilesProps {
 }
 
 interface IGetNotificationsTokensOptions {
-  getOfflines?: boolean;
+  getOnlines?: boolean;
 }
 
 class MessagesService {
@@ -49,9 +49,9 @@ class MessagesService {
       .find({
         where: {
           group_id: groupID,
-          status: options.getOfflines
-            ? In(["ONLINE", "OFFLINE"])
-            : Not(ParticipantStatus.OFFLINE),
+          status: options.getOnlines
+            ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
+            : Not(ParticipantStatus.ONLINE),
           user_id: Not(
             process.env.NODE_ENV === "development" ? userID : undefined
           ),
