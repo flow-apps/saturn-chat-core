@@ -6,6 +6,7 @@ import {
   Entity,
   getCustomRepository,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -21,7 +22,6 @@ import { Participant } from "./Participant";
 
 @Entity({ name: "messages" })
 class Message {
-
   @PrimaryColumn()
   readonly id: string;
 
@@ -46,7 +46,9 @@ class Message {
   @JoinColumn({ name: "author_id" })
   author: User;
 
-  @ManyToOne(() => Participant, (participant) => participant.id, { eager: true })
+  @ManyToOne(() => Participant, (participant) => participant.id, {
+    eager: true,
+  })
   @JoinColumn({ name: "participant_id" })
   participant: Participant;
 
