@@ -13,15 +13,15 @@ export class CreateReadMessages1626483767475 implements MigrationInterface {
           },
           {
             name: "message_id",
-            type: "varchar",
+            type: "uuid",
           },
           {
             name: "user_id",
-            type: "varchar",
+            type: "uuid",
           },
           {
             name: "group_id",
-            type: "varchar"
+            type: "uuid"
           },
           {
             name: "read_at",

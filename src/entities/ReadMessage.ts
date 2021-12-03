@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
@@ -32,24 +33,24 @@ class ReadMessage {
     cascade: true,
   })
   @JoinColumn({ name: "user_id" })
-  user: User
+  user: User;
 
-  @OneToMany(() => Message, message => message.read_messages, {
+  @ManyToOne(() => Message, (message) => message.read_messages, {
+    cascade: true,
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
-    cascade: true,
   })
   @JoinColumn({ name: "message_id" })
-  message: Message
+  message: Message;
 
-  @ManyToOne(() => Group, group => group.read_messages, {
+  @ManyToOne(() => Group, (group) => group.read_messages, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
   })
   @JoinColumn({ name: "group_id" })
-  group: Group
- 
+  group: Group;
+
   @CreateDateColumn()
   read_at: Date;
 
