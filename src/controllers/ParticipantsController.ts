@@ -28,7 +28,7 @@ class ParticipantsController {
 
   async index(req: RequestAuthenticated, res: Response) {
     const { group_id } = req.params;
-    const { participant_id } = req.query
+    const { participant_id } = req.query;
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!group_id) {
@@ -167,7 +167,10 @@ class ParticipantsController {
       });
     }
 
-    io.to(kickedUser.user_id).emit("kicked_group", { group_id: group.id });
+    io.to(kickedUser.user_id).emit("kicked_group", {
+      group_id: group.id,
+      user_id: kickedUser.id,
+    });
     io.socketsLeave(group.id);
 
     return res.sendStatus(204);
@@ -223,7 +226,7 @@ class ParticipantsController {
         });
         return res.sendStatus(204);
       default:
-        throw new AppError("Invalid role provided")
+        throw new AppError("Invalid role provided");
     }
   }
 }
