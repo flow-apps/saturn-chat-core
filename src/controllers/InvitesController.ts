@@ -86,7 +86,7 @@ class InvitesController {
       throw new AppError("User not authorized for this action", 403);
     }
 
-    const inviteCode = crypto.randomBytes(4).toString("hex");
+    const inviteCode = crypto.randomBytes(6).toString("hex");
     const expireDate = dayjs().add(Number(body.expireIn), "days").toDate();
     const isPermanent = body.isPermanent === "true";
     const isUnlimitedUsage = body.isUnlimitedUsage === "true";
@@ -122,6 +122,9 @@ class InvitesController {
 
   async get(req: RequestAuthenticated, res: Response) {
     const { inviteID } = req.params;
+
+    console.log("INVITE CODE: ", inviteID);
+
     const { user_id } = req.query;
     const participantsService = new ParticipantsService();
     const invitesRepository = getCustomRepository(InvitesRepository);
@@ -152,7 +155,7 @@ class InvitesController {
   }
 
   async join(req: RequestAuthenticated, res: Response) {
-    const { inviteID } = req.params;
+    const { inviteID } = req.params;    
     const userID = req.userId;
     const invitesRepository = getCustomRepository(InvitesRepository);
     const participantsService = new ParticipantsService();

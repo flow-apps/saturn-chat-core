@@ -48,6 +48,10 @@ class Message {
 
   @ManyToOne(() => Participant, (participant) => participant.id, {
     eager: true,
+    nullable: true,
+    cascade: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
   })
   @JoinColumn({ name: "participant_id" })
   participant: Participant;
