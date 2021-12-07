@@ -1,5 +1,5 @@
-import { getCustomRepository, Not } from "typeorm";
-import { ParticipantRole } from "../database/enums/participants";
+import { getCustomRepository, In, Not } from "typeorm";
+import { ParticipantRole, ParticipantState } from "../database/enums/participants";
 import { Participant } from "../entities/Participant";
 import { AppError } from "../errors/AppError";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
@@ -47,13 +47,24 @@ class ParticipantsService {
     });
 
     if (existsParticipant) {
+
+      if (existsParticipant.state === ParticipantState.BANNED) {
+        return new Error("Participant banned")
+      }
+
+      await participantsRepository.update(existsParticipant, {
+        state: ParticipantState.JOINED
+      })
+
+      existsParticipant.state = ParticipantState.JOINED
       return existsParticipant;
     }
 
     const createdParticipant = participantsRepository.create({
       user_id,
       group_id,
-      role: role || ParticipantRole.PARTICIPANT
+      role: role || ParticipantRole.PARTICIPANT,
+      state: ParticipantState.JOINED
     });
 
     await participantsRepository.save(createdParticipant);
@@ -87,18 +98,28 @@ class ParticipantsService {
     return participant;
   }
 
-  async exit(participantID: string) {
+  async exit(participantID: string, state?: ParticipantState) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     if (!participantID) return new Error("Participant ID not provided");
 
-    return await participantsRepository.delete(participantID);
+    const participant = await participantsRepository.findOne({
+      where: { id: participantID, state: ParticipantState.JOINED }
+    })
+
+    if (!participant) return new Error("Participant not found")
+
+    await participantsRepository.update(participant, {
+      state: state || ParticipantState.EXITED
+    })
+
+    return
   }
 
   async list(groupID: string, _page: number, _limit: number) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const participants = await participantsRepository.find({
-      where: [{ group_id: groupID }],
+      where: [{ group_id: groupID, state: ParticipantState.JOINED }],
       loadEagerRelations: true,
       take: _limit,
       skip: _page * _limit,

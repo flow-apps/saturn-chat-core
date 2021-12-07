@@ -22,7 +22,6 @@ import { StorageManager } from "../services/StorageManager";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import { io } from "../websockets";
 import { GroupType } from "../database/enums/groups";
-import { BanParticipant } from "./BanParticipant";
 
 @Entity({ name: "groups" })
 class Group {
@@ -88,10 +87,6 @@ class Group {
   @OneToMany(() => ReadMessage, (rm) => rm.group)
   @JoinColumn()
   read_messages: ReadMessage[];
-
-  @OneToMany(() => BanParticipant, (bp) => bp.group)
-  @JoinColumn()
-  ban_participants: BanParticipant[];
 
   @OneToMany(() => Message, (message) => message.id)
   @JoinColumn()

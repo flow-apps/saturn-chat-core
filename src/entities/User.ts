@@ -10,7 +10,6 @@ import {
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
-import { BanParticipant } from "./BanParticipant";
 import { Group } from "./Group";
 import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
@@ -55,14 +54,6 @@ class User {
   @OneToMany(() => Participant, (participant) => participant.user)
   @JoinColumn()
   participating: Participant[];
-
-  @OneToMany(() => BanParticipant, bp => bp.requested_by_user)
-  @JoinColumn()
-  requested_bans: BanParticipant[];
-
-  @OneToMany(() => BanParticipant, bp => bp.banned_user)
-  @JoinColumn()
-  bans: BanParticipant[];
 
   @CreateDateColumn()
   created_at: Date;
