@@ -11,4 +11,11 @@ enum ParticipantRole {
   OWNER = "OWNER"
 }
 
-export { ParticipantStatus, ParticipantRole }
+enum ParticipantState {
+  JOINED = "JOINED",
+  EXITED = "EXITED",
+  BANNED = "BANNED",
+  KICKED = "KICKED"
+}
+
+export { ParticipantStatus, ParticipantRole, ParticipantState }

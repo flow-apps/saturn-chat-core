@@ -13,7 +13,7 @@ import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
 import { v4 as uuid } from "uuid";
 import { GroupAvatar } from "../entities/GroupAvatar";
-import { ParticipantRole } from "../database/enums/participants";
+import { ParticipantRole, ParticipantState } from "../database/enums/participants";
 
 interface Body {
   name: string;
@@ -182,7 +182,7 @@ class GroupsController {
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
 
     const participating = await participantsRepository.find({
-      where: { user_id: req.userId },
+      where: { user_id: req.userId, state: ParticipantState.JOINED },
       loadEagerRelations: true,
     });
 

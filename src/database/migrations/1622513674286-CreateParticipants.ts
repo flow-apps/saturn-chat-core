@@ -26,6 +26,11 @@ export class CreateParticipants1622513674286 implements MigrationInterface {
             default: "OFFLINE"
           },
           {
+            name: "state",
+            type: "varchar",
+            isNullable: true
+          },
+          {
             name: "role",
             type: "varchar",
             default: ParticipantRole.PARTICIPANT
