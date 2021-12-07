@@ -34,10 +34,10 @@ app.use(
   express.static(path.join(__dirname, "..", "uploads", "files"))
 );
 app.use(appRoutes)
+app.use(inviteRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(groupRoutes);
-app.use(inviteRoutes);
 app.use(messageRoutes);
 app.use(handlerError);
 

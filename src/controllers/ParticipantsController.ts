@@ -3,6 +3,7 @@ import { getCustomRepository, In } from "typeorm";
 import { ParticipantRole } from "../database/enums/participants";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
+import { BanParticipantsRepository } from "../repositories/BanParticiapantsRepository";
 import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
@@ -140,19 +141,19 @@ class ParticipantsController {
       throw new AppError("Action not authorized for this user", 403);
     }
 
-    const kickedUser = await participantsRepository.findOne(participant_id, {
+    const bannedUser = await participantsRepository.findOne(participant_id, {
       relations: ["user"],
     });
 
-    if (!kickedUser) {
+    if (!bannedUser) {
       throw new AppError("Participant not found for kick");
     }
 
-    await participantsRepository.remove(kickedUser);
+    await participantsRepository.remove(bannedUser);
 
     if (query.notify === "yes") {
       const notifyToken = await notificationsService.getNotificationsTokens({
-        usersID: [kickedUser.user_id],
+        usersID: [bannedUser.user_id],
       });
 
       await notificationsService.send({
@@ -167,9 +168,85 @@ class ParticipantsController {
       });
     }
 
-    io.to(kickedUser.user_id).emit("kicked_group", {
+    io.to(bannedUser.user_id).emit("kicked_group", {
       group_id: group.id,
-      user_id: kickedUser.id,
+      user_id: bannedUser.id,
+    });
+    io.socketsLeave(group.id);
+
+    return res.sendStatus(204);
+  }
+
+  async ban(req: RequestAuthenticated, res: Response) {
+    const banParticipantsRepository = getCustomRepository(BanParticipantsRepository)
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const groupsRepository = getCustomRepository(GroupsRepository);
+    const notificationsService = new NotificationsService();
+    const { participant_id } = req.params;
+    const query = req.query as { [key: string]: string };
+    const userID = req.userId;
+
+    const authorizedRoles = [
+      ParticipantRole.MODERATOR,
+      ParticipantRole.ADMIN,
+      ParticipantRole.OWNER,
+    ];
+
+    if (!participant_id) {
+      throw new AppError("Participant ID not provided");
+    }
+
+    const group = await groupsRepository.findOne(query.group_id);
+
+    if (!group) {
+      throw new AppError("Group ID not provided");
+    }
+
+    const requestedBy = await participantsRepository.findOne({
+      where: { user_id: userID, group_id: group.id },
+    });
+
+    if (!requestedBy || !authorizedRoles.includes(requestedBy.role)) {
+      throw new AppError("Action not authorized for this user", 403);
+    }
+
+    const bannedUser = await participantsRepository.findOne(participant_id, {
+      relations: ["user"],
+    });
+
+    if (!bannedUser) {
+      throw new AppError("Participant not found for ban");
+    }
+
+    const createdBannedParticipant = banParticipantsRepository.create({
+      group_id: bannedUser.group_id,
+      banned_user_id: bannedUser.user_id,
+      requested_by_user_id: requestedBy.user_id,
+    })
+
+    await banParticipantsRepository.save(createdBannedParticipant)
+    await participantsRepository.remove(bannedUser);
+
+    if (query.notify === "yes") {
+      const notifyToken = await notificationsService.getNotificationsTokens({
+        usersID: [bannedUser.user_id],
+      });
+
+      await notificationsService.send({
+        tokens: notifyToken,
+        message: {
+          content: {
+            title: group.name,
+            body: `👮‍♂️ Você foi banido do grupo!`,
+          },
+        },
+        priority: "high",
+      });
+    }
+
+    io.to(bannedUser.user_id).emit("banned_group", {
+      group_id: group.id,
+      user_id: bannedUser.id,
     });
     io.socketsLeave(group.id);
 
