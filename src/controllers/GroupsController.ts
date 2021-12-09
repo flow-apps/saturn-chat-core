@@ -135,7 +135,7 @@ class GroupsController {
     }
 
     const participantsAmount = await participantsRepository.count({
-      where: { group_id: group.id },
+      where: { group_id: group.id, state: ParticipantState.JOINED },
     });
 
     const groupWithParticipantsAmount = Object.assign(group, {

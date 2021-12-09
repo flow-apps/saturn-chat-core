@@ -52,7 +52,7 @@ class ParticipantsService {
         return new Error("Participant banned")
       }
 
-      await participantsRepository.update(existsParticipant, {
+      await participantsRepository.update(existsParticipant.id, {
         state: ParticipantState.JOINED
       })
 
@@ -109,7 +109,7 @@ class ParticipantsService {
 
     if (!participant) return new Error("Participant not found")
 
-    await participantsRepository.update(participant, {
+    await participantsRepository.update(participant.id, {
       state: state || ParticipantState.EXITED
     })
 
