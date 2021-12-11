@@ -1,12 +1,10 @@
 import { v4 as uuid } from "uuid";
 import {
-  BeforeRemove,
+  Tree,
   Column,
   CreateDateColumn,
   Entity,
-  getCustomRepository,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -34,6 +32,18 @@ class Message {
   @Column({ nullable: true })
   participant_id: string;
 
+  @Column({ nullable: true })
+  reply_to_id: string;
+
+  @OneToOne(() => Message, {
+    nullable: true,
+    onDelete: "SET NULL",
+    onUpdate: "CASCADE",
+    cascade: true,
+  })
+  @JoinColumn({ name: "reply_to_id" })
+  reply_to: Message;
+
   @ManyToOne(() => Group, (group) => group.id, {
     cascade: true,
     onDelete: "CASCADE",
@@ -51,7 +61,7 @@ class Message {
     nullable: true,
     cascade: true,
     onDelete: "CASCADE",
-    onUpdate: "CASCADE"
+    onUpdate: "CASCADE",
   })
   @JoinColumn({ name: "participant_id" })
   participant: Participant;

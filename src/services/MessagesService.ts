@@ -10,12 +10,16 @@ import { UserNotificationsRepository } from "../repositories/UserNotificationsRe
 import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
 import { StorageManager } from "./StorageManager";
-import { ParticipantRole, ParticipantStatus } from "../database/enums/participants";
+import {
+  ParticipantRole,
+  ParticipantStatus,
+} from "../database/enums/participants";
 
 interface ICreateMessageProps {
   message: string;
   group_id: string;
   author_id: string;
+  reply_to_id?: string;
 }
 
 interface ICreateAudioProps {
@@ -23,6 +27,7 @@ interface ICreateAudioProps {
   message?: string;
   group_id: string;
   author_id: string;
+  reply_to_id?: string;
 }
 
 interface IGetMessageWithFilesProps {
@@ -85,6 +90,7 @@ class MessagesService {
       message: Yup.string().max(500),
       group_id: Yup.string().required(),
       author_id: Yup.string().required(),
+      reply_to_id: Yup.string(),
     });
 
     try {
@@ -93,7 +99,10 @@ class MessagesService {
       throw new Error(error);
     }
 
-    const newMessage = messageRepository.create({...msgData, participant_id: participant.id});
+    const newMessage = messageRepository.create({
+      ...msgData,
+      participant_id: participant.id,
+    });
     const savedMessage = await messageRepository.save(newMessage);
     const newReadMessage = readMessagesRepository.create({
       message_id: savedMessage.id,
@@ -104,7 +113,14 @@ class MessagesService {
     await readMessagesRepository.save(newReadMessage);
     const message = await messageRepository.findOne(savedMessage.id, {
       where: { group_id: savedMessage.group_id },
-      relations: ["author", "author.avatar", "group"],
+      relations: [
+        "author",
+        "author.avatar",
+        "group",
+        "reply_to",
+        "reply_to.author",
+        "reply_to.group",
+      ],
       cache: new Time().timeToMS(1, "hour"),
     });
 
@@ -130,14 +146,22 @@ class MessagesService {
         author_id: audioData.author_id,
         group_id: audioData.group_id,
         voice_message_id: audioData.audio.id,
-        participant_id: participant.id
+        participant_id: participant.id,
+        reply_to_id: audioData.reply_to_id
       };
 
       const newMessage = messagesRepository.create(data);
       await messagesRepository.save(newMessage);
       const completedMessage = await messagesRepository.findOne(newMessage.id, {
         loadEagerRelations: true,
-        relations: ["author", "author.avatar", "group"],
+        relations: [
+          "author",
+          "author.avatar",
+          "group",
+          "reply_to",
+          "reply_to.author",
+          "reply_to.group",
+        ],
       });
 
       return completedMessage;
@@ -163,7 +187,14 @@ class MessagesService {
       msgData.message_id,
       {
         loadEagerRelations: true,
-        relations: ["author", "author.avatar", "group"],
+        relations: [
+          "author",
+          "author.avatar",
+          "group",
+          "reply_to",
+          "reply_to.author",
+          "reply_to.group",
+        ],
       }
     );
 
@@ -189,22 +220,25 @@ class MessagesService {
 
   async delete(messageID: string, userID: string, groupID: string) {
     const storage = new StorageManager();
-    const participantsRepository = getCustomRepository(ParticipantsRepository)
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
     const message = await messageRepository.findOne(messageID, {
       relations: ["files", "voice_message"],
     });
     const participant = await participantsRepository.findOne({
-      where: { group_id: groupID, user_id: userID }
-    })
+      where: { group_id: groupID, user_id: userID },
+    });
 
     const authorizedRoles = [
       ParticipantRole.OWNER,
       ParticipantRole.ADMIN,
       ParticipantRole.MODERATOR,
-    ]
+    ];
 
-    if (userID !== message.author_id && !authorizedRoles.includes(participant.role)) {
+    if (
+      userID !== message.author_id &&
+      !authorizedRoles.includes(participant.role)
+    ) {
       throw new Error("Unauthorized user/role for delete message");
     }
 

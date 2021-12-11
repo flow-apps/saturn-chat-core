@@ -33,13 +33,21 @@ class MessagesController {
 
     const messages = await messageRepository.find({
       where: { group_id: groupID },
-      relations: ["author", "author.avatar", "group"],
+      relations: [
+        "author",
+        "author.avatar",
+        "group",
+        "reply_to",
+        "reply_to.author",
+        "reply_to.group",
+      ],
       take: Number(_limit),
       skip: Number(_page) * Number(_limit),
       order: { created_at: "DESC" },
     });
 
-    Promise.all(messages.map(async (message) => {
+    Promise.all(
+      messages.map(async (message) => {
         const isRead = await readMessagesRepository.findOne({
           where: { message_id: message.id, user_id: req.userId },
         });
@@ -48,11 +56,12 @@ class MessagesController {
           const newMessageRead = readMessagesRepository.create({
             message_id: message.id,
             user_id: req.userId,
-            group_id: groupID
-          })
-          await readMessagesRepository.save(newMessageRead)
+            group_id: groupID,
+          });
+          await readMessagesRepository.save(newMessageRead);
         }
-    }));    
+      })
+    );
 
     return res.status(200).json({ messages });
   }
@@ -76,7 +85,7 @@ class MessagesController {
 
     if (!participant) {
       throw new AppError("Participant not found", 404);
-    }    
+    }
 
     if (attachType === "voice_message") {
       const file = req.files[0] as Express.Multer.File;
@@ -97,13 +106,13 @@ class MessagesController {
 
       await audiosRepository.save(audio);
       return res.json(audio);
-
     } else if (attachType === "files") {
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
-        message: req.body.message,
-        participant_id: participant.id
+        message: body.message,
+        participant_id: participant.id,
+        reply_to_id: body.reply_to_id
       });
 
       await messageRepository.save(createdMessage);
