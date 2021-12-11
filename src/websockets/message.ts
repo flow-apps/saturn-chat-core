@@ -50,11 +50,12 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
 
   socket.on(
     "new_user_message",
-    async (data: { message: string; localReference: string }) => {
+    async (data: { message: string; reply_to_id: string; localReference: string }) => {
       const createdMessage = await messagesService.create({
         author_id: socket.userID,
         group_id: groupID,
         message: data.message,
+        reply_to_id: data.reply_to_id
       });
 
       socket.emit("sended_user_message", {
@@ -90,6 +91,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       author_id: userID,
       group_id: groupID,
       message: data.message,
+      reply_to_id: data.reply_to_id
     });
 
     socket.emit("sended_user_message", {

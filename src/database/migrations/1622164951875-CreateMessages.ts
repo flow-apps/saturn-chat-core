@@ -25,6 +25,11 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             type: "uuid",
           },
           {
+            name: "reply_to_id",
+            type: "uuid",
+            isNullable: true
+          },
+          {
             name: "message",
             type: "varchar",
             length: "5000",
@@ -52,6 +57,14 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             referencedTableName: "users",
             referencedColumnNames: ["id"],
             columnNames: ["author_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+          },
+          {
+            name: "FKReplyToID",
+            referencedTableName: "messages",
+            referencedColumnNames: ["id"],
+            columnNames: ["reply_to_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },
