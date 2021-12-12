@@ -259,7 +259,7 @@ class GroupsController {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
-      description: Yup.string().max(500).required(),
+      description: Yup.string().max(500),
       privacy: Yup.string().uppercase().required(),
       tags: Yup.string(),
     });
