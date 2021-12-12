@@ -13,7 +13,10 @@ import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
 import { v4 as uuid } from "uuid";
 import { GroupAvatar } from "../entities/GroupAvatar";
-import { ParticipantRole, ParticipantState } from "../database/enums/participants";
+import {
+  ParticipantRole,
+  ParticipantState,
+} from "../database/enums/participants";
 
 interface Body {
   name: string;
@@ -253,7 +256,7 @@ class GroupsController {
     const body = req.body as Body;
     const groupID = req.params.groupID;
     const groupsRepository = getCustomRepository(GroupsRepository);
-    const participantsRepository = getCustomRepository(ParticipantsRepository)
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
       description: Yup.string().max(500).required(),
@@ -281,23 +284,24 @@ class GroupsController {
       where: [{ id: groupID }],
     });
     const requestedBy = await participantsRepository.findOne({
-      where: { user_id: req.userId, group_id: group.id }
-    })
+      where: { user_id: req.userId, group_id: group.id },
+    });
 
     if (!group) {
       throw new AppError("Invalid group");
     }
 
     if (!authorizedRoles.includes(requestedBy.role)) {
-      throw new AppError("User not authorized for this action", 403)
+      throw new AppError("User not authorized for this action", 403);
     }
 
     dataValidated.tags = dataValidated.tags
-      .trim()
-      .toLowerCase()
-      .split(",")
-      .map((tag: string) => tag.trim());
-
+      ? dataValidated.tags
+          .trim()
+          .toLowerCase()
+          .split(",")
+          .map((tag) => tag.trim())
+      : [];
     const updatedGroupData = Object.assign(group, dataValidated);
     const mergedGroup = groupsRepository.merge(group, updatedGroupData);
     await groupsRepository.save(mergedGroup);
@@ -320,7 +324,7 @@ class GroupsController {
       GroupsAvatarsRepository
     );
     const groupsRepository = getCustomRepository(GroupsRepository);
-    const participantsRepository = getCustomRepository(ParticipantsRepository)
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
     let processedImage: Buffer;
 
     const group = await groupsRepository.findOne({
@@ -328,15 +332,15 @@ class GroupsController {
       relations: ["group_avatar"],
     });
     const requestedBy = await participantsRepository.findOne({
-      where: { user_id: req.userId, group_id: group.id }
-    })
+      where: { user_id: req.userId, group_id: group.id },
+    });
 
     if (!group || !avatar) {
       throw new AppError("Invalid Group or Avatar provided");
     }
 
     if (!authorizedRoles.includes(requestedBy.role)) {
-      throw new AppError("User not authorized for this action", 403)
+      throw new AppError("User not authorized for this action", 403);
     }
 
     const groupAvatar = await groupsAvatarsRepository.findOne(
