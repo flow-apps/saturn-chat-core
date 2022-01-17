@@ -147,7 +147,7 @@ class MessagesService {
         group_id: audioData.group_id,
         voice_message_id: audioData.audio.id,
         participant_id: participant.id,
-        reply_to_id: audioData.reply_to_id
+        reply_to_id: audioData.reply_to_id,
       };
 
       const newMessage = messagesRepository.create(data);
@@ -255,6 +255,26 @@ class MessagesService {
           );
         }
       });
+
+      const deletedMessageData = {
+        id: message.id,
+        type: message.voice_message ? "audio" : "message",
+        files: !message.files.length
+          ? null
+          : message.files.map((f) => ({
+              id: f.id,
+              name: f.name,
+              type: f.type,
+            })),
+        voice_message: !message.voice_message
+          ? null
+          : {
+              id: message.voice_message.id,
+              name: message.voice_message.name,
+            },
+      };
+
+      return deletedMessageData;
     } catch (error) {
       throw new Error(error);
     }
