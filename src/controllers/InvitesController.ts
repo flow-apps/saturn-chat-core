@@ -122,9 +122,6 @@ class InvitesController {
 
   async get(req: RequestAuthenticated, res: Response) {
     const { inviteID } = req.params;
-
-    console.log("INVITE CODE: ", inviteID);
-
     const { user_id } = req.query;
     const participantsService = new ParticipantsService();
     const invitesRepository = getCustomRepository(InvitesRepository);
