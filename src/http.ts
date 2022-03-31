@@ -15,6 +15,7 @@ import { authRoutes } from "./routes/auth";
 import { inviteRoutes } from "./routes/invite";
 import { startTasks } from "./cronjobs";
 import { appRoutes } from "./routes/app";
+import { friendRoutes } from "./routes/friend";
 
 process.on("unhandledRejection", console.error)
 createConnection()
@@ -39,6 +40,7 @@ app.use(authRoutes);
 app.use(userRoutes);
 app.use(groupRoutes);
 app.use(messageRoutes);
+app.use(friendRoutes)
 app.use(handlerError);
 
 export { http };
