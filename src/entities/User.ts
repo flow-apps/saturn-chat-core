@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
+import { Friend } from "./Friend";
 import { Group } from "./Group";
 import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
@@ -41,6 +42,14 @@ class User {
   @OneToMany(() => Group, (group) => group.owner)
   @JoinColumn()
   groups: Group[];
+
+  @OneToMany(() => Friend, friend => friend.requested_by)
+  @JoinColumn()
+  friends_requested: Friend[];
+
+  @OneToMany(() => Friend, friend => friend.received_by)
+  @JoinColumn()
+  friends_received: Friend[];
 
   @OneToOne(() => Avatar, {
     onDelete: "CASCADE",
