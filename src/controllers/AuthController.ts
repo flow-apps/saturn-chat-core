@@ -19,7 +19,6 @@ class AuthController {
     try {
       await schema.validate(req.body, { abortEarly: false });
     } catch (error) {
-      console.log(error);
       throw new AppError(error);
     }
     const user = await userRepository
@@ -33,7 +32,6 @@ class AuthController {
     }
 
     if (!(await bcrypt.compare(body.password, user.password))) {
-      console.log("Auth >> Password incorrect");
       throw new AppError("Failed on authenticate!");
     }
 
