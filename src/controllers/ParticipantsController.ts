@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { getCustomRepository, In } from "typeorm";
+import { GroupType } from "../database/enums/groups";
 import { ParticipantRole, ParticipantState } from "../database/enums/participants";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
@@ -128,10 +129,12 @@ class ParticipantsController {
       throw new AppError("Participant ID not provided");
     }
 
-    const group = await groupsRepository.findOne(query.group_id);
+    const group = await groupsRepository.findOne({
+      where: { id: query.group_id, type: GroupType.DIRECT },
+    });
 
     if (!group) {
-      throw new AppError("Group ID not provided");
+      throw new AppError("Invalid Group provided");
     }
 
     const requestedBy = await participantsRepository.findOne({
@@ -197,10 +200,12 @@ class ParticipantsController {
       throw new AppError("Participant ID not provided");
     }
 
-    const group = await groupsRepository.findOne(query.group_id);
+    const group = await groupsRepository.findOne({
+      where: { id: query.group_id, type: GroupType.DIRECT },
+    });
 
     if (!group) {
-      throw new AppError("Group ID not provided");
+      throw new AppError("Invalid Group provided");
     }
 
     const requestedBy = await participantsRepository.findOne({
@@ -263,7 +268,12 @@ class ParticipantsController {
         group_id: query.group_id,
         role: In(authorizedRoles),
       },
+      relations: ["group"]
     });
+
+    if (requestedByParticipant.group.type === GroupType.DIRECT) { 
+      throw new AppError("Group not is valid for this action", 403);
+    }
 
     if (!requestedByParticipant) {
       throw new AppError("Requested by invalid participant");

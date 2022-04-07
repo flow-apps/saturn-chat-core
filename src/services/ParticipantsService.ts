@@ -1,4 +1,5 @@
 import { getCustomRepository, In, Not } from "typeorm";
+import { GroupType } from "../database/enums/groups";
 import { ParticipantRole, ParticipantState } from "../database/enums/participants";
 import { Participant } from "../entities/Participant";
 import { AppError } from "../errors/AppError";
@@ -46,10 +47,11 @@ class ParticipantsService {
       relations: ["group"],
     });
 
+
     if (existsParticipant) {
 
       if (existsParticipant.state === ParticipantState.BANNED) {
-        return new Error("Participant banned")
+        throw new AppError("Participant banned")
       }
 
       await participantsRepository.update(existsParticipant.id, {
