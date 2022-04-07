@@ -160,7 +160,8 @@ class GroupsController {
       throw new AppError("Group ID not provided!");
     }
 
-    const group = await groupsRepository.findOne(id, {
+    const group = await groupsRepository.findOne({
+      where: { id, type: Not(GroupType.DIRECT) },
       relations: ["group_avatar"],
       cache: 5000,
     });
@@ -287,7 +288,7 @@ class GroupsController {
     }
 
     const group = await groupsRepository.findOne({
-      where: [{ id: groupID }],
+      where: [{ id: groupID, type: Not(GroupType.DIRECT) }],
     });
     const requestedBy = await participantsRepository.findOne({
       where: { user_id: req.userId, group_id: group.id },
@@ -334,7 +335,7 @@ class GroupsController {
     let processedImage: Buffer;
 
     const group = await groupsRepository.findOne({
-      where: { id: groupID },
+      where: { id: groupID, type: Not(GroupType.DIRECT) },
       relations: ["group_avatar"],
     });
     const requestedBy = await participantsRepository.findOne({
