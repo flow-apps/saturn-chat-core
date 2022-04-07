@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   JoinColumn,
   ManyToOne,
+  OneToOne,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { FriendsState } from "../database/enums/friends";
+import { Group } from "./Group";
 import { User } from "./User";
 
 @Entity({ name: "friends" })
@@ -21,20 +23,33 @@ class Friend {
   @Column()
   received_by_id: string;
 
-  @ManyToOne(() => User, user => user.id, {
+  @Column({ nullable: true })
+  chat_id: string;
+
+  @OneToOne(() => Group, {
+    cascade: true,
+    eager: true,
+    nullable: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({ name: "chat_id" })
+  chat: Group;
+
+  @ManyToOne(() => User, (user) => user.id, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
-    eager: true
+    eager: true,
   })
   @JoinColumn({ name: "requested_by_id" })
   requested_by: User;
 
-  @ManyToOne(() => User, user => user.id, {
+  @ManyToOne(() => User, (user) => user.id, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
-    eager: true
+    eager: true,
   })
   @JoinColumn({ name: "received_by_id" })
   received_by: User;

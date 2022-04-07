@@ -9,6 +9,7 @@ import { UsersRepository } from "../repositories/UsersRepository";
 import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
 import { RequestAuthenticated } from "../middlewares/authProvider";
+import { FriendsRepository } from "../repositories/FriendsRepository";
 
 interface Data {
   name: string;
@@ -87,12 +88,12 @@ class UsersController {
 
     const user = await usersRepository.findOne(req.userId, {
       loadEagerRelations: true,
-      relations: ["groups"]
+      relations: ["groups"],
     });
 
     if (!user) {
       throw new AppError("User not found", 404);
-    }    
+    }
 
     return res.json(user);
   }
@@ -101,12 +102,35 @@ class UsersController {
     const id = req.query.user_id || req.userId;
 
     const usersRepository = getCustomRepository(UsersRepository);
-    const user = await usersRepository.findOne(String(id), {
+    const friendsRepository = getCustomRepository(FriendsRepository);
+    let user = await usersRepository.findOne(String(id), {
       relations: ["avatar", "participating"],
     });
 
     if (!user) {
       throw new AppError("User not found");
+    }
+
+    if (user.id !== req.userId) {
+      const existsFriendRequest = await friendsRepository.findOne({
+        where: [
+          {
+            requested_by_id: req.userId,
+            received_by_id: user.id,
+          },
+          {
+            requested_by_id: user.id,
+            received_by_id: req.userId,
+          },
+        ],
+        loadEagerRelations: true
+      });
+
+      if (existsFriendRequest) {
+        user = Object.assign(user, {
+          friend: existsFriendRequest
+        })
+      }
     }
 
     return res.status(200).json(user);
@@ -142,7 +166,7 @@ class UsersController {
     const usersRepository = getCustomRepository(UsersRepository);
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
-      bio: Yup.string().max(100)
+      bio: Yup.string().max(100),
     });
 
     let dataValidated;
@@ -209,11 +233,11 @@ class UsersController {
       await avatarsRepository.save(createdAvatar);
       await usersRepository.update(user.id, {
         avatar: createdAvatar,
-      })
+      });
 
       const updatedUser = await usersRepository.findOne(user.id, {
-        relations: ["avatar"]
-      })
+        relations: ["avatar"],
+      });
 
       return res.json({ user: updatedUser });
     }
@@ -226,8 +250,8 @@ class UsersController {
     });
 
     const updatedUser = await usersRepository.findOne(user.id, {
-      relations: ["avatar"]
-    })
+      relations: ["avatar"],
+    });
 
     return res.json({ user: updatedUser });
   }

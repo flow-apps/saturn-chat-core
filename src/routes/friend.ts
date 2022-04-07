@@ -7,6 +7,8 @@ const friendsController = new FriendsController()
 
 routes.use(authProvider)
 
-routes.post("/friends", friendsController.request)
+routes.get("/friends", friendsController.list)
+routes.post("/friends/request", friendsController.request)
+routes.put("/friends/response", friendsController.response)
 
 export { routes as friendRoutes }

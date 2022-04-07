@@ -9,7 +9,7 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { ParticipantsService } from "../services/ParticipantsService";
-import { StorageManager, UploadedFile } from "../services/StorageManager";
+import { StorageManager } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
 import { v4 as uuid } from "uuid";
 import { GroupAvatar } from "../entities/GroupAvatar";
@@ -17,6 +17,7 @@ import {
   ParticipantRole,
   ParticipantState,
 } from "../database/enums/participants";
+import { GroupType } from "../database/enums/groups";
 
 interface Body {
   name: string;
@@ -128,7 +129,8 @@ class GroupsController {
       throw new AppError("Group ID not provided!");
     }
 
-    const group = await groupsRepository.findOne(id, {
+    const group = await groupsRepository.findOne({
+      where: { id },
       relations: ["owner", "group_avatar", "participants"],
       loadEagerRelations: true,
     });
@@ -189,8 +191,10 @@ class GroupsController {
       loadEagerRelations: true,
     });
 
+    const filteredParticipating = participating.filter(part => part.group.type !== GroupType.DIRECT)
+
     const groupsWithUnreadMessages = await Promise.all(
-      participating.map(async (participant) => {
+      filteredParticipating.map(async (participant) => {
         const totalMessages = await messagesRepository.count({
           where: { group_id: participant.group.id },
         });
@@ -226,10 +230,12 @@ class GroupsController {
         {
           name: ILike(`%${query}%`),
           privacy: Not("PRIVATE"),
+          type: Not(GroupType.DIRECT)
         },
         {
           tags: Raw((alias) => `${alias} @> :tags`, { tags: [query] }),
           privacy: Not("PRIVATE"),
+          type: Not(GroupType.DIRECT)
         },
       ],
       skip: Number(_page) * Number(_limit),
