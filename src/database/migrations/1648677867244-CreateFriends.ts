@@ -20,6 +20,11 @@ export class CreateFriends1648677867244 implements MigrationInterface {
             type: "varchar",
           },
           {
+            name: "chat_id",
+            type: "varchar",
+            isNullable: true
+          },
+          {
             name: "state",
             type: "varchar",
           },
@@ -46,6 +51,14 @@ export class CreateFriends1648677867244 implements MigrationInterface {
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },
+          {
+            name: "FKChatID",
+            referencedTableName: "groups",
+            referencedColumnNames: ["id"],
+            columnNames: ["chat_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE"
+          }
         ],
       })
     );

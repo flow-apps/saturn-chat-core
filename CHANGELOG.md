@@ -2,6 +2,14 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.10
+
+- Add friends table in database
+- Add friends controller
+- Remove direct groups from search queries
+- Add friend requests
+- Add friend responses for requests
+
 ## 0.0.9
 
 - Add reply message
