@@ -10,6 +10,7 @@ import { StorageManager, UploadedFile } from "../services/StorageManager";
 import { ImageProcessor } from "../utils/imageProcessor";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { FriendsRepository } from "../repositories/FriendsRepository";
+import { FriendsState } from "../database/enums/friends";
 
 interface Data {
   name: string;
@@ -85,8 +86,9 @@ class UsersController {
 
   async me(req: RequestAuthenticated, res: Response) {
     const usersRepository = getCustomRepository(UsersRepository);
+    const friendsRepository = getCustomRepository(FriendsRepository);
 
-    const user = await usersRepository.findOne(req.userId, {
+    let user = await usersRepository.findOne(req.userId, {
       loadEagerRelations: true,
       relations: ["groups"],
     });
@@ -94,6 +96,16 @@ class UsersController {
     if (!user) {
       throw new AppError("User not found", 404);
     }
+
+    const friendsAmount = await friendsRepository.count({
+      where: [
+        { requested_by_id: user.id, state: FriendsState.FRIENDS },
+        { received_by_id: user.id, state: FriendsState.FRIENDS },
+      ],
+    });
+    user = Object.assign(user, {
+      friendsAmount,
+    });
 
     return res.json(user);
   }
@@ -123,14 +135,26 @@ class UsersController {
             received_by_id: req.userId,
           },
         ],
-        loadEagerRelations: true
+        loadEagerRelations: true,
       });
 
       if (existsFriendRequest) {
         user = Object.assign(user, {
-          friend: existsFriendRequest
-        })
+          friend: existsFriendRequest,
+        });
       }
+    }
+
+    if (user.id === req.userId) {
+      const friendsAmount = await friendsRepository.count({
+        where: [
+          { requested_by_id: user.id, state: FriendsState.FRIENDS },
+          { received_by_id: user.id, state: FriendsState.FRIENDS },
+        ],
+      });
+      user = Object.assign(user, {
+        friendsAmount,
+      });
     }
 
     return res.status(200).json(user);
