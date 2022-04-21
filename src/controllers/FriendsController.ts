@@ -7,20 +7,43 @@ import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { GroupsRepository } from "../repositories/GroupsRepository";
+import { MessagesRepository } from "../repositories/MessagesRepository";
+import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { ParticipantsService } from "../services/ParticipantsService";
 
 class FriendsController {
   async list(req: RequestAuthenticated, res: Response) {
     const friendsRepository = getCustomRepository(FriendsRepository);
+    const messagesRepository = getCustomRepository(MessagesRepository);
+    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
+
     const friends = await friendsRepository.find({
       where: [
         { state: FriendsState.FRIENDS, requested_by_id: req.userId },
         { state: FriendsState.FRIENDS, received_by_id: req.userId },
       ],
-      loadEagerRelations: true
+      loadEagerRelations: true,
     });
 
-    return res.json(friends)
+    const friendsWithUnreadMessages = await Promise.all(
+      friends.map(async (friend) => {
+        const totalMessages = await messagesRepository.count({
+          where: { group_id: friend.chat_id },
+        });
+        const allReadMessages = await readMessagesRepository.count({
+          where: { user_id: req.userId, group_id: friend.chat_id },
+        });
+
+        const totalUnreadMessages = totalMessages - allReadMessages;
+        const friendWithUnreadMessages = Object.assign(friend, {
+          unreadMessagesAmount: totalUnreadMessages,
+        });
+
+        return friendWithUnreadMessages;
+      })
+    );
+
+    return res.json(friendsWithUnreadMessages);
   }
 
   async request(req: RequestAuthenticated, res: Response) {
