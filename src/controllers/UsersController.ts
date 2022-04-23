@@ -11,6 +11,7 @@ import { ImageProcessor } from "../utils/imageProcessor";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
+import { GroupType } from "../database/enums/groups";
 
 interface Data {
   name: string;
@@ -103,6 +104,11 @@ class UsersController {
         { received_by_id: user.id, state: FriendsState.FRIENDS },
       ],
     });
+
+    if (user.groups) {
+      user.groups = user.groups.filter((group) => group.type !== GroupType.DIRECT);
+    }
+
     user = Object.assign(user, {
       friendsAmount,
     });
@@ -155,6 +161,10 @@ class UsersController {
       user = Object.assign(user, {
         friendsAmount,
       });
+    }
+
+    if (user.groups) {
+      user.groups = user.groups.filter((group) => group.type !== GroupType.DIRECT);
     }
 
     return res.status(200).json(user);

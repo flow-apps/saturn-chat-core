@@ -9,7 +9,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const removeExpiredInvitesTask = cron.schedule("*/10 * * * *", async () => {
-  console.log(">> Cleaning all expired invites");
+  console.log("[ Cleaning all expired invites ]");
   
   let deletedAmount = 0
   const invitesRepository = getCustomRepository(InvitesRepository)
@@ -39,7 +39,7 @@ const removeExpiredInvitesTask = cron.schedule("*/10 * * * *", async () => {
     }
   }))
 
-  console.log(`>> ${deletedAmount} invites expired removed`);
+  console.log(`[ ${deletedAmount} invites expired removed ]`);
   
 })
 

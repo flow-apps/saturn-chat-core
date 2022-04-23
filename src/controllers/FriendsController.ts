@@ -9,6 +9,9 @@ import { FriendsRepository } from "../repositories/FriendsRepository";
 import { GroupsRepository } from "../repositories/GroupsRepository";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
+import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
+import { UsersRepository } from "../repositories/UsersRepository";
+import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
 
 class FriendsController {
@@ -49,9 +52,7 @@ class FriendsController {
   async listRequests(req: RequestAuthenticated, res: Response) {
     const friendsRepository = getCustomRepository(FriendsRepository);
     const requests = await friendsRepository.find({
-      where: [
-        { state: FriendsState.REQUESTED, received_by_id: req.userId },
-      ],
+      where: [{ state: FriendsState.REQUESTED, received_by_id: req.userId }],
       loadEagerRelations: true,
     });
 
@@ -59,7 +60,12 @@ class FriendsController {
   }
 
   async request(req: RequestAuthenticated, res: Response) {
+    const usersRepository = getCustomRepository(UsersRepository);
     const friendsRepository = getCustomRepository(FriendsRepository);
+    const userNotificationsRepository = getCustomRepository(
+      UserNotificationsRepository
+    );
+    const notificationsService = new NotificationsService();
     const friendID = req.query.friend_id as string;
     const userID = req.userId;
 
@@ -89,6 +95,24 @@ class FriendsController {
     });
 
     await friendsRepository.save(createdFriendRequest);
+
+    const { notification_token } = await userNotificationsRepository.findOne({
+      where: { is_revoked: false, send_notification: true, user_id: friendID },
+    });
+
+    if (notification_token) {
+      const requestedBy = await usersRepository.findOne(userID);
+
+      await notificationsService.send({
+        tokens: [notification_token],
+        message: {
+          content: {
+            title: `👥 ${requestedBy.name} quer ser seu amigo`,
+            body: "Clique aqui para aceitar ou recusar",
+          },
+        },
+      });
+    }
 
     return res.json(createdFriendRequest);
   }
