@@ -46,6 +46,18 @@ class FriendsController {
     return res.json(friendsWithUnreadMessages);
   }
 
+  async listRequests(req: RequestAuthenticated, res: Response) {
+    const friendsRepository = getCustomRepository(FriendsRepository);
+    const requests = await friendsRepository.find({
+      where: [
+        { state: FriendsState.REQUESTED, received_by_id: req.userId },
+      ],
+      loadEagerRelations: true,
+    });
+
+    return res.json(requests);
+  }
+
   async request(req: RequestAuthenticated, res: Response) {
     const friendsRepository = getCustomRepository(FriendsRepository);
     const friendID = req.query.friend_id as string;
