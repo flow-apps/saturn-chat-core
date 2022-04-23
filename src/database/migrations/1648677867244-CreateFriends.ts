@@ -60,7 +60,7 @@ export class CreateFriends1648677867244 implements MigrationInterface {
             onUpdate: "CASCADE"
           }
         ],
-      })
+      }), true
     );
   }
 
