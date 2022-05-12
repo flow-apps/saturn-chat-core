@@ -71,22 +71,58 @@ class FriendsController {
 
     if (!friendID) throw new AppError("Friend ID not provided", 404);
 
+    const { notification_token } = await userNotificationsRepository.findOne({
+      where: { is_revoked: false, send_notification: true, user_id: friendID },
+    });
+
     const existsRequest = await friendsRepository.findOne({
       where: [
         {
           requested_by_id: userID,
           received_by_id: friendID,
-          state: In([FriendsState.REQUESTED, FriendsState.FRIENDS]),
+          state: In([
+            FriendsState.REQUESTED,
+            FriendsState.UNFRIENDS,
+            FriendsState.FRIENDS,
+          ]),
         },
         {
           requested_by_id: friendID,
           received_by_id: userID,
-          state: In([FriendsState.REQUESTED, FriendsState.FRIENDS]),
+          state: In([
+            FriendsState.REQUESTED,
+            FriendsState.UNFRIENDS,
+            FriendsState.FRIENDS,
+          ]),
         },
       ],
     });
 
-    if (existsRequest) throw new AppError("Friend request already exists");
+    if (existsRequest) {
+      if (existsRequest.state === FriendsState.UNFRIENDS) {
+        await friendsRepository.update(existsRequest.id, {
+          state: FriendsState.REQUESTED,
+        });
+
+        if (notification_token) {
+          const requestedBy = await usersRepository.findOne(userID);
+
+          await notificationsService.send({
+            tokens: [notification_token],
+            message: {
+              content: {
+                title: `👥 ${requestedBy.name} quer ser seu amigo`,
+                body: "Clique aqui para aceitar ou recusar",
+              },
+            },
+          });
+        }
+
+        return res.json({ ...existsRequest, state: FriendsState.REQUESTED });
+      }
+
+      throw new AppError("Friend request already exists");
+    }
 
     const createdFriendRequest = friendsRepository.create({
       requested_by_id: userID,
@@ -95,10 +131,6 @@ class FriendsController {
     });
 
     await friendsRepository.save(createdFriendRequest);
-
-    const { notification_token } = await userNotificationsRepository.findOne({
-      where: { is_revoked: false, send_notification: true, user_id: friendID },
-    });
 
     if (notification_token) {
       const requestedBy = await usersRepository.findOne(userID);
