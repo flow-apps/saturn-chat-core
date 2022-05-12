@@ -1,5 +1,6 @@
 export enum FriendsState {
   NONE = "NONE",
   REQUESTED = "REQUESTED",
-  FRIENDS = "FRIENDS"
+  FRIENDS = "FRIENDS",
+  UNFRIENDS = "UNFRIENDS",
 }
