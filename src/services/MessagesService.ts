@@ -1,19 +1,21 @@
+import * as Yup from "yup";
+import { Time } from "../utils/time";
+import { Audio } from "../entities/Audio";
+import { StorageManager } from "./StorageManager";
 import { getCustomRepository, In, Not } from "typeorm";
 import { MessagesRepository } from "../repositories/MessagesRepository";
-import * as Yup from "yup";
-import { Audio } from "../entities/Audio";
 import { ParticipantsService } from "./ParticipantsService";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
-import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
-import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
-import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
-import { StorageManager } from "./StorageManager";
 import {
   ParticipantRole,
+  ParticipantState,
   ParticipantStatus,
 } from "../database/enums/participants";
+import { GroupType } from "../database/enums/groups";
+import { FriendsRepository } from "../repositories/FriendsRepository";
+import { FriendsState } from "../database/enums/friends";
 
 interface ICreateMessageProps {
   message: string;
@@ -82,8 +84,23 @@ class MessagesService {
       msgData.group_id
     );
 
-    if (!participant) {
+    if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new Error("Error on create a message for this group!");
+    }
+
+    if (participant.group.type === GroupType.DIRECT) {
+      const friendsRepository = getCustomRepository(FriendsRepository);
+      const friend = await friendsRepository.findOne({
+        where: [
+          { received_by_id: msgData.author_id, chat_id: msgData.group_id },
+          { requested_by_id: msgData.author_id, chat_id: msgData.group_id },
+        ],
+        cache: true
+      });
+
+      if (!friend || friend.state !== FriendsState.FRIENDS) {
+        throw new Error("You are not friends with this user!");
+      }
     }
 
     const schema = Yup.object().shape({
@@ -137,8 +154,23 @@ class MessagesService {
         audioData.group_id
       );
 
-      if (!participant) {
+      if (!participant || participant.state !== ParticipantState.JOINED) {
         throw new Error("Error on create a message for this group!");
+      }
+
+      if (participant.group.type === GroupType.DIRECT) {
+        const friendsRepository = getCustomRepository(FriendsRepository);
+        const friend = await friendsRepository.findOne({
+          where: [
+            { received_by_id: audioData.author_id, chat_id: audioData.group_id },
+            { requested_by_id: audioData.author_id, chat_id: audioData.group_id },
+          ],
+          cache: true
+        });
+  
+        if (!friend || friend.state !== FriendsState.FRIENDS) {
+          throw new Error("You are not friends with this user!");
+        }
       }
 
       const data = {
@@ -179,8 +211,23 @@ class MessagesService {
       msgData.group_id
     );
 
-    if (!participant) {
+    if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new Error("Error on create a message for this group!");
+    }
+
+    if (participant.group.type === GroupType.DIRECT) {
+      const friendsRepository = getCustomRepository(FriendsRepository);
+      const friend = await friendsRepository.findOne({
+        where: [
+          { received_by_id: msgData.author_id, chat_id: msgData.group_id },
+          { requested_by_id: msgData.author_id, chat_id: msgData.group_id },
+        ],
+        cache: true
+      });
+
+      if (!friend || friend.state !== FriendsState.FRIENDS) {
+        throw new Error("You are not friends with this user!");
+      }
     }
 
     const completedMessage = await messagesRepository.findOne(

@@ -8,6 +8,10 @@ import { AudiosRepository } from "../repositories/AudiosRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { FilesRepository } from "../repositories/FilesRepository";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
+import { GroupType } from "../database/enums/groups";
+import { FriendsRepository } from "../repositories/FriendsRepository";
+import { FriendsState } from "../database/enums/friends";
+import { ParticipantState } from "../database/enums/participants";
 
 class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
@@ -83,8 +87,23 @@ class MessagesController {
       cache: 50000,
     });
 
-    if (!participant) {
+    if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new AppError("Participant not found", 404);
+    }
+
+    if (participant.group.type === GroupType.DIRECT) {
+      const friendsRepository = getCustomRepository(FriendsRepository);
+      const friend = await friendsRepository.findOne({
+        where: [
+          { received_by_id: req.userId, chat_id: groupID },
+          { requested_by_id: req.userId, chat_id: groupID },
+        ],
+        cache: true
+      });
+
+      if (!friend || friend.state !== FriendsState.FRIENDS) {
+        throw new AppError("You are not friends with this user!", 403);
+      }
     }
 
     if (attachType === "voice_message") {
