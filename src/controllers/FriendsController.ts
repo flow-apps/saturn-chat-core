@@ -200,6 +200,26 @@ class FriendsController {
       state: state === "ACCEPT" ? FriendsState.FRIENDS : FriendsState.NONE,
     });
   }
+
+  async remove(req: RequestAuthenticated, res: Response) {
+    const friendsRepository = getCustomRepository(FriendsRepository);
+    const { friend_id } = req.params;
+
+    const friend = await friendsRepository.findOne(friend_id);
+
+    if (!friend) throw new AppError("Friend not found", 404);
+
+    if (
+      friend.requested_by_id !== req.userId &&
+      friend.received_by_id !== req.userId
+    ) {
+      throw new AppError("User not authorized for this action", 403);
+    }
+
+    await friendsRepository.save({ ...friend, state: FriendsState.UNFRIENDS });
+
+    return res.sendStatus(200);
+  }
 }
 
 export { FriendsController };
