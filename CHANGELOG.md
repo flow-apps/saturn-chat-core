@@ -2,6 +2,10 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.11
+
+- Remove DM messages of unfriends
+
 ## 0.0.10
 
 - Add friends table in database
