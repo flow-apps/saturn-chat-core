@@ -11,6 +11,7 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
+import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
 
@@ -71,7 +72,7 @@ class FriendsController {
 
     if (!friendID) throw new AppError("Friend ID not provided", 404);
 
-    const { notification_token } = await userNotificationsRepository.findOne({
+    const notification = await userNotificationsRepository.findOne({
       where: { is_revoked: false, send_notification: true, user_id: friendID },
     });
 
@@ -104,11 +105,11 @@ class FriendsController {
           state: FriendsState.REQUESTED,
         });
 
-        if (notification_token) {
+        if (notification && notification.notification_token) {
           const requestedBy = await usersRepository.findOne(userID);
 
           await notificationsService.send({
-            tokens: [notification_token],
+            tokens: [notification.notification_token],
             message: {
               content: {
                 title: `👥 ${requestedBy.name} quer ser seu amigo`,
@@ -132,11 +133,11 @@ class FriendsController {
 
     await friendsRepository.save(createdFriendRequest);
 
-    if (notification_token) {
+    if (notification && notification.notification_token) {
       const requestedBy = await usersRepository.findOne(userID);
 
       await notificationsService.send({
-        tokens: [notification_token],
+        tokens: [notification.notification_token],
         message: {
           content: {
             title: `👥 ${requestedBy.name} quer ser seu amigo`,
@@ -203,9 +204,15 @@ class FriendsController {
 
   async remove(req: RequestAuthenticated, res: Response) {
     const friendsRepository = getCustomRepository(FriendsRepository);
+    const messagesRepository = getCustomRepository(MessagesRepository);
+    const messagesService = new MessagesService();
     const { friend_id } = req.params;
 
     const friend = await friendsRepository.findOne(friend_id);
+    const allMessages = await messagesRepository.find({
+      where: { group_id: friend.chat_id },
+      select: ["id"],
+    });
 
     if (!friend) throw new AppError("Friend not found", 404);
 
@@ -217,6 +224,10 @@ class FriendsController {
     }
 
     await friendsRepository.save({ ...friend, state: FriendsState.UNFRIENDS });
+
+    for (let message of allMessages) {
+      await messagesService.delete(message.id, req.userId, friend.chat_id);
+    }
 
     return res.sendStatus(200);
   }
