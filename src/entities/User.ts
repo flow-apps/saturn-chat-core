@@ -12,6 +12,7 @@ import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
 import { Friend } from "./Friend";
 import { Group } from "./Group";
+import { Invite } from "./Invite";
 import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
 
@@ -26,11 +27,15 @@ class User {
   @Column({ nullable: true })
   bio: string;
 
-  @Column()
+  @Column({ select: false })
   email: string;
 
   @Column({ select: false })
   password: string;
+
+  @OneToMany(() => Invite, (invite) => invite.sended_by)
+  @JoinColumn()
+  invites: Invite[];
 
   @OneToOne(() => UserNotification, {
     nullable: true,

@@ -12,6 +12,11 @@ export class CreateInvites1625936877597 implements MigrationInterface {
             isPrimary: true,
           },
           {
+            name: "type",
+            type: "varchar",
+            isNullable: true
+          },
+          {
             name: "invite_code",
             type: "varchar",
             isUnique: true,
@@ -50,6 +55,16 @@ export class CreateInvites1625936877597 implements MigrationInterface {
             type: "varchar",
           },
           {
+            name: "friend_id",
+            type: "varchar",
+            isNullable: true
+          },
+          {
+            name: "sended_by_id",
+            type: "varchar",
+            isNullable: true
+          },
+          {
             name: "created_at",
             type: "timestamp",
             default: "now()",
@@ -61,6 +76,22 @@ export class CreateInvites1625936877597 implements MigrationInterface {
             referencedColumnNames: ["id"],
             referencedTableName: "groups",
             columnNames: ["group_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+          },
+          {
+            name: "FKFriendID",
+            referencedColumnNames: ["id"],
+            referencedTableName: "friends",
+            columnNames: ["friend_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+          },
+          {
+            name: "FKSendedByID",
+            referencedColumnNames: ["id"],
+            referencedTableName: "users",
+            columnNames: ["sended_by_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },

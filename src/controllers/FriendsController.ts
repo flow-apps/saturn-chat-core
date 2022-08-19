@@ -2,15 +2,18 @@ import { Response } from "express";
 import { getCustomRepository, In, Not } from "typeorm";
 import { FriendsState } from "../database/enums/friends";
 import { GroupType } from "../database/enums/groups";
+import { InviteType } from "../database/enums/invites";
 import { ParticipantRole } from "../database/enums/participants";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { GroupsRepository } from "../repositories/GroupsRepository";
+import { InvitesRepository } from "../repositories/InvitesRepository";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
+import { InvitesService } from "../services/InvitesService";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
@@ -230,6 +233,59 @@ class FriendsController {
     }
 
     return res.sendStatus(200);
+  }
+
+  async friendsToInvite(req: RequestAuthenticated, res: Response) {
+    const friendsRepository = getCustomRepository(FriendsRepository);
+    const invitesRepository = getCustomRepository(InvitesRepository);
+    const participantsService = new ParticipantsService();
+    const userID = req.userId;
+    const group_id = req.query.group_id as string;
+
+    if (!group_id) throw new AppError("Group ID not provided", 404);
+
+    const friends = await friendsRepository.find({
+      where: [
+        { state: FriendsState.FRIENDS, received_by_id: userID },
+        { state: FriendsState.FRIENDS, requested_by_id: userID },
+      ],
+    });
+
+    const friendsNotInGroup = await Promise.all(
+      friends.map(async (friend) => {
+        const friendID =
+          userID === friend.received_by_id
+            ? friend.requested_by_id
+            : friend.received_by_id;
+        const inGroup = await participantsService.index(friendID, group_id);
+
+        if (!inGroup) {
+        
+          const hasInvite = await invitesRepository.findOne({
+            where: { type: InviteType.FRIEND, friend_id: friend.id },
+          });
+
+          return Object.assign(friend, { invited: !!hasInvite })
+        } 
+          
+      })
+    );
+
+    return res.json(friendsNotInGroup);
+  }
+
+  async sendGroupInviteToFriend(req: RequestAuthenticated, res: Response) {
+    const { group_id, user_id } = req.query as { [key: string]: string };
+    const invitesService = new InvitesService();
+
+    const invite = await invitesService.create({
+      type: InviteType.FRIEND,
+      creating_user_id: req.userId,
+      invited_user_id: user_id,
+      group_id,
+    });
+
+    return res.json(invite);
   }
 }
 

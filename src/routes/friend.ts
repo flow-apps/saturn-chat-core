@@ -12,5 +12,7 @@ routes.get("/friends/requests", friendsController.listRequests)
 routes.post("/friends/request", friendsController.request)
 routes.put("/friends/response", friendsController.response)
 routes.delete("/friends/remove/:friend_id", friendsController.remove)
+routes.get("/friends/groups/invite", friendsController.friendsToInvite)
+routes.post("/friends/groups/invite", friendsController.sendGroupInviteToFriend)
 
 export { routes as friendRoutes }

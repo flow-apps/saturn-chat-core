@@ -66,7 +66,7 @@ class GroupsController {
 
     const data: Data = {
       id: groupID,
-      name: body.name,
+      name: body.name.trim(),
       description: body.description,
       privacy: String(body.privacy).toUpperCase(),
       owner_id: req.userId,
@@ -276,16 +276,17 @@ class GroupsController {
       ParticipantRole.OWNER,
     ];
 
-    let dataValidated;
+    let dataValidated: { name: string; description: string; privacy: string; tags: string[] | string | any; }
 
     try {
-      dataValidated = await schema.validate(body, {
+      dataValidated = (await schema.validate(body, {
         abortEarly: false,
         stripUnknown: true,
-      });
+      }));
     } catch (error) {
       throw new AppError(error.errors);
     }
+
 
     const group = await groupsRepository.findOne({
       where: [{ id: groupID, type: Not(GroupType.DIRECT) }],
@@ -302,6 +303,7 @@ class GroupsController {
       throw new AppError("User not authorized for this action", 403);
     }
 
+    dataValidated.name = dataValidated.name.trim()
     dataValidated.tags = dataValidated.tags
       ? dataValidated.tags
           .trim()
