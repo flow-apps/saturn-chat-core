@@ -7,15 +7,41 @@ import {
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
+import { InviteType } from "../database/enums/invites";
+import { Friend } from "./Friend";
 import { Group } from "./Group";
+import { User } from "./User";
 
 @Entity({ name: "invites" })
 class Invite {
   @PrimaryColumn()
   readonly id: string;
 
+  @Column({
+    type: "enum",
+    enum: InviteType,
+    nullable: true
+  })
+  type: string;
+
   @Column()
   readonly group_id: string;
+
+  @Column({ nullable: true })
+  readonly friend_id: string;
+
+  @Column({ nullable: true })
+  readonly sended_by_id: string;
+
+  @ManyToOne(() => User, (user) => user.invites, {
+    cascade: true,
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({ name: "sended_by_id" })
+  sended_by: User;
 
   @ManyToOne(() => Group, (group) => group.invites, {
     cascade: true,
@@ -25,6 +51,16 @@ class Invite {
   })
   @JoinColumn({ name: "group_id" })
   group: Group;
+
+  @ManyToOne(() => Friend, (friend) => friend.invites, {
+    cascade: true,
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({ name: "friend_id" })
+  friend: Friend;
 
   @Column({ unique: true })
   invite_code: string;

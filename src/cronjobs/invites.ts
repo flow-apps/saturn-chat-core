@@ -3,6 +3,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import cron from "node-cron"
 import { getCustomRepository } from "typeorm"
+import { InviteType } from "../database/enums/invites";
 import { InvitesRepository } from "../repositories/InvitesRepository"
 
 dayjs.extend(utc);
@@ -15,6 +16,7 @@ const removeExpiredInvitesTask = cron.schedule("*/10 * * * *", async () => {
   const invitesRepository = getCustomRepository(InvitesRepository)
   const allInvites = await invitesRepository.find({
     where: [
+      { type: InviteType.LINK },
       { is_permanent: false },
       { is_unlimited_usage: false },
     ],

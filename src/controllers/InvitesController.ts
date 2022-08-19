@@ -15,6 +15,7 @@ import { Invite } from "../entities/Invite";
 import { Participant } from "../entities/Participant";
 import { ParticipantRole } from "../database/enums/participants";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
+import { InviteType } from "../database/enums/invites";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -86,7 +87,7 @@ class InvitesController {
       throw new AppError("User not authorized for this action", 403);
     }
 
-    const inviteCode = crypto.randomBytes(6).toString("hex");
+    const inviteCode = crypto.randomBytes(8).toString("hex");
     const expireDate = dayjs().add(Number(body.expireIn), "days").toDate();
     const isPermanent = body.isPermanent === "true";
     const isUnlimitedUsage = body.isUnlimitedUsage === "true";
@@ -94,6 +95,7 @@ class InvitesController {
 
     const invite = invitesRepository.create({
       group_id: body.groupId,
+      type: InviteType.LINK,
       invite_code: inviteCode,
       is_permanent: isPermanent,
       is_unlimited_usage: isUnlimitedUsage,
@@ -126,7 +128,7 @@ class InvitesController {
     const participantsService = new ParticipantsService();
     const invitesRepository = getCustomRepository(InvitesRepository);
     const invite = await invitesRepository.findOne({
-      where: [{ invite_code: inviteID }, { id: inviteID }],
+      where: [{ invite_code: inviteID }, { id: inviteID }, { type: InviteType.LINK }],
       relations: ["group", "group.group_avatar"],
     });
 

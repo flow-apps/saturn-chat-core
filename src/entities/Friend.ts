@@ -6,10 +6,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToOne,
+  OneToMany,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { FriendsState } from "../database/enums/friends";
 import { Group } from "./Group";
+import { Invite } from "./Invite";
 import { User } from "./User";
 
 @Entity({ name: "friends" })
@@ -25,6 +27,10 @@ class Friend {
 
   @Column({ nullable: true })
   chat_id: string;
+
+  @OneToMany(() => Invite, invite => invite.friend)
+  @JoinColumn()
+  invites: Invite[]
 
   @OneToOne(() => Group, {
     cascade: true,

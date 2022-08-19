@@ -31,7 +31,7 @@ class UsersController {
       password: Yup.string().required(),
     });
 
-    const { name, email, password } = req.body;
+    const { name, email, password } = req.body as Data;
     const avatar = req.file;
     const imageProcessor = new ImageProcessor();
     let processedImage: Buffer;
@@ -52,7 +52,7 @@ class UsersController {
     }
 
     const data: Data = {
-      name,
+      name: name.trim(),
       email,
       password: await bcrypt.hash(password, 12),
     };
@@ -203,7 +203,7 @@ class UsersController {
       bio: Yup.string().max(100),
     });
 
-    let dataValidated;
+    let dataValidated: { name: string; bio: string };
 
     try {
       dataValidated = await schema.validate(body, {
@@ -213,6 +213,8 @@ class UsersController {
     } catch (error) {
       throw new AppError(error.errors);
     }
+
+    dataValidated.name = dataValidated.name.trim()
 
     const user = await usersRepository.findOne({
       where: [{ id: userID }],
