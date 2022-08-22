@@ -65,6 +65,11 @@ export class CreateInvites1625936877597 implements MigrationInterface {
             isNullable: true
           },
           {
+            name: "received_by_id",
+            type: "varchar",
+            isNullable: true
+          },
+          {
             name: "created_at",
             type: "timestamp",
             default: "now()",
@@ -92,6 +97,14 @@ export class CreateInvites1625936877597 implements MigrationInterface {
             referencedColumnNames: ["id"],
             referencedTableName: "users",
             columnNames: ["sended_by_id"],
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+          },
+          {
+            name: "FKReceivedByID",
+            referencedColumnNames: ["id"],
+            referencedTableName: "users",
+            columnNames: ["received_by_id"],
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },

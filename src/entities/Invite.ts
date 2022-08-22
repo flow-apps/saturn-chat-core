@@ -33,7 +33,10 @@ class Invite {
   @Column({ nullable: true })
   readonly sended_by_id: string;
 
-  @ManyToOne(() => User, (user) => user.invites, {
+  @Column({ nullable: true })
+  readonly received_by_id: string;
+
+  @ManyToOne(() => User, (user) => user.sended_invites, {
     cascade: true,
     nullable: true,
     eager: true,
@@ -43,9 +46,20 @@ class Invite {
   @JoinColumn({ name: "sended_by_id" })
   sended_by: User;
 
+  @ManyToOne(() => User, (user) => user.received_invites, {
+    cascade: true,
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({ name: "received_by_id" })
+  received_by: User;
+
   @ManyToOne(() => Group, (group) => group.invites, {
     cascade: true,
     nullable: true,
+    eager: true,
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   })

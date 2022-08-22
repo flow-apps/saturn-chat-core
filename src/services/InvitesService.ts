@@ -5,7 +5,6 @@ import { GroupsRepository } from "../repositories/GroupsRepository";
 import { InvitesRepository } from "../repositories/InvitesRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import crypto from "crypto";
-import dayjs from "dayjs";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
 import { AppError } from "../errors/AppError";
@@ -68,11 +67,10 @@ class InvitesService {
       }
 
       const hasInvite = await invitesRepository.findOne({
-        where: { friend_id: areFriends.id }
-      })
-1
-      if (hasInvite) 
-        throw new AppError("Invite already exists")
+        where: { friend_id: areFriends.id, received_by_id: invited_user_id },
+      });
+
+      if (hasInvite) throw new AppError("Invite already exists");
 
       const invite_code = crypto.randomBytes(8).toString("hex");
       const invite = invitesRepository.create({
@@ -80,6 +78,7 @@ class InvitesService {
         type,
         invite_code,
         sended_by_id: creating_user_id,
+        received_by_id: invited_user_id,
         friend_id: areFriends.id,
         is_permanent: true,
         is_unlimited_usage: false,

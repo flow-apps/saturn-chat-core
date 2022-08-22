@@ -114,7 +114,7 @@ class InvitesController {
     const invitesRepository = getCustomRepository(InvitesRepository);
 
     const invites = await invitesRepository.find({
-      where: [{ group_id: groupID }],
+      where: [{ group_id: groupID, type: InviteType.LINK }],
       relations: ["group"],
       cache: 10000,
     });
@@ -128,7 +128,11 @@ class InvitesController {
     const participantsService = new ParticipantsService();
     const invitesRepository = getCustomRepository(InvitesRepository);
     const invite = await invitesRepository.findOne({
-      where: [{ invite_code: inviteID }, { id: inviteID }, { type: InviteType.LINK }],
+      where: [
+        { invite_code: inviteID },
+        { id: inviteID },
+        { type: InviteType.LINK },
+      ],
       relations: ["group", "group.group_avatar"],
     });
 
@@ -154,7 +158,7 @@ class InvitesController {
   }
 
   async join(req: RequestAuthenticated, res: Response) {
-    const { inviteID } = req.params;    
+    const { inviteID } = req.params;
     const userID = req.userId;
     const invitesRepository = getCustomRepository(InvitesRepository);
     const participantsService = new ParticipantsService();

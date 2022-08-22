@@ -35,7 +35,11 @@ class User {
 
   @OneToMany(() => Invite, (invite) => invite.sended_by)
   @JoinColumn()
-  invites: Invite[];
+  sended_invites: Invite[];
+
+  @OneToMany(() => Invite, (invite) => invite.received_by)
+  @JoinColumn()
+  received_invites: Invite[];
 
   @OneToOne(() => UserNotification, {
     nullable: true,
