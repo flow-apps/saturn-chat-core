@@ -130,7 +130,7 @@ class ParticipantsController {
     }
 
     const group = await groupsRepository.findOne({
-      where: { id: query.group_id, type: GroupType.DIRECT },
+      where: { id: query.group_id, type: GroupType.GROUP },
     });
 
     if (!group) {
@@ -201,7 +201,7 @@ class ParticipantsController {
     }
 
     const group = await groupsRepository.findOne({
-      where: { id: query.group_id, type: GroupType.DIRECT },
+      where: { id: query.group_id, type: GroupType.GROUP },
     });
 
     if (!group) {

@@ -1,9 +1,9 @@
 import { Response } from "express";
-import { getCustomRepository, In, Not } from "typeorm";
+import { getCustomRepository, In } from "typeorm";
 import { FriendsState } from "../database/enums/friends";
 import { GroupType } from "../database/enums/groups";
 import { InviteType } from "../database/enums/invites";
-import { ParticipantRole } from "../database/enums/participants";
+import { ParticipantRole, ParticipantState } from "../database/enums/participants";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { FriendsRepository } from "../repositories/FriendsRepository";
@@ -17,6 +17,7 @@ import { InvitesService } from "../services/InvitesService";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
+import _ from "lodash"
 
 class FriendsController {
   async list(req: RequestAuthenticated, res: Response) {
@@ -51,29 +52,6 @@ class FriendsController {
     );
 
     return res.json(friendsWithUnreadMessages);
-  }
-
-  async listRequests(req: RequestAuthenticated, res: Response) {
-    const invitesRepository = getCustomRepository(InvitesRepository);
-    const friendsRepository = getCustomRepository(FriendsRepository);
-
-    const inviteRequests = await invitesRepository.find({
-      where: [{ type: InviteType.FRIEND, received_by_id: req.userId }],
-      loadEagerRelations: true,
-    });
-    const friendsRequests = await friendsRepository.find({
-      where: [{ state: FriendsState.REQUESTED, received_by_id: req.userId }],
-      loadEagerRelations: true,
-    });
-
-    const typedInviteRequests = inviteRequests.map((ir) =>
-      Object.assign(ir, { type: "GROUP_INVITE" })
-    );
-    const typedFriendsRequests = friendsRequests.map((fr) =>
-      Object.assign(fr, { type: "FRIEND_REQUEST" })
-    );
-
-    return res.json([ ...typedFriendsRequests, ...typedInviteRequests ]);
   }
 
   async request(req: RequestAuthenticated, res: Response) {
@@ -270,11 +248,11 @@ class FriendsController {
           userID === friend.received_by_id
             ? friend.requested_by_id
             : friend.received_by_id;
-        const inGroup = await participantsService.index(friendID, group_id);
+        const isPart = await participantsService.index(friendID, group_id);
 
-        if (!inGroup) {
+        if (isPart.state !== ParticipantState.JOINED) {
           const hasInvite = await invitesRepository.findOne({
-            where: { type: InviteType.FRIEND, friend_id: friend.id, sended_by: userID },
+            where: { type: InviteType.FRIEND, friend_id: friend.id, sended_by_id: userID },
           });
 
           return Object.assign(friend, { invited: !!hasInvite });
@@ -282,7 +260,7 @@ class FriendsController {
       })
     );
 
-    return res.json(friendsNotInGroup);
+    return res.json(friendsNotInGroup.filter(Boolean));
   }
 
   async sendGroupInviteToFriend(req: RequestAuthenticated, res: Response) {
