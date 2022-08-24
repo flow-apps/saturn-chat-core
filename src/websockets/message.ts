@@ -1,5 +1,6 @@
 import { getCustomRepository } from "typeorm";
 import { io, ISocketAuthenticated } from ".";
+import { GroupType } from "../database/enums/groups";
 import { ParticipantStatus } from "../database/enums/participants";
 import { Participant } from "../entities/Participant";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
@@ -30,7 +31,6 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     }
 
     socket.in(groupID).emit("new_user_online", userID);
-
     console.log(`Socket ${socket.id} conectado no grupo ${id}`);
   });
 
@@ -50,13 +50,22 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
 
   socket.on(
     "new_user_message",
-    async (data: { message: string; reply_to_id: string; localReference: string }) => {
+    async (data: {
+      message: string;
+      reply_to_id: string;
+      localReference: string;
+    }) => {
       const createdMessage = await messagesService.create({
         author_id: socket.userID,
         group_id: groupID,
         message: data.message,
-        reply_to_id: data.reply_to_id
+        reply_to_id: data.reply_to_id,
       });
+
+      const isDM = createdMessage.group.type === GroupType.DIRECT;
+      const groupName = isDM
+        ? createdMessage.author.name
+        : createdMessage.group.name;
 
       socket.emit("sended_user_message", {
         msg: createdMessage,
@@ -77,8 +86,8 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
         categoryId: "message",
         message: {
           content: {
-            title: `${createdMessage.group.name}`,
-            body: `💬 ${createdMessage.author.name}: ${createdMessage.message}`,
+            title: `${groupName}`,
+            body: `💬 ${groupName}: ${createdMessage.message}`,
           },
         },
       });
@@ -91,8 +100,12 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       author_id: userID,
       group_id: groupID,
       message: data.message,
-      reply_to_id: data.reply_to_id
+      reply_to_id: data.reply_to_id,
     });
+    const isDM = newVoiceMessage.group.type === GroupType.DIRECT;
+    const groupName = isDM
+      ? newVoiceMessage.author.name
+      : newVoiceMessage.group.name;
 
     socket.emit("sended_user_message", {
       msg: newVoiceMessage,
@@ -113,8 +126,8 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       channelId: "messages",
       message: {
         content: {
-          title: `${newVoiceMessage.group.name}`,
-          body: `🗣 ${newVoiceMessage.author.name}: 🎤`,
+          title: `${groupName}`,
+          body: `🗣 ${groupName}: 🎤 Nova mensagem de voz`,
         },
       },
     });
@@ -127,6 +140,10 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       message_id: data.message_id,
       message: data.message,
     });
+    const isDM = newMessageWithFiles.group.type === GroupType.DIRECT;
+    const groupName = isDM
+      ? newMessageWithFiles.author.name
+      : newMessageWithFiles.group.name;
 
     socket.emit("sended_user_message", {
       msg: newMessageWithFiles,
@@ -149,8 +166,8 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       channelId: "messages",
       message: {
         content: {
-          title: `${newMessageWithFiles.group.name}`,
-          body: `📂 ${newMessageWithFiles.author.name}: ${newMessageWithFiles.message}`,
+          title: `${groupName}`,
+          body: `📂 ${groupName}: ${newMessageWithFiles.message}`,
         },
       },
     });
