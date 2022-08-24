@@ -59,7 +59,7 @@ class Participant {
     enum: ParticipantState,
     nullable: true
   })
-  state: string
+  state: ParticipantState;
 
   @Column({
     type: "enum",

@@ -2,6 +2,11 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.12
+
+- Invite friends for groups
+- Fix kick and ban participants
+
 ## 0.0.11
 
 - Remove DM messages of unfriends
