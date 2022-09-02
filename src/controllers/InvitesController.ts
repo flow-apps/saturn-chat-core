@@ -131,9 +131,8 @@ class InvitesController {
     const invitesRepository = getCustomRepository(InvitesRepository);
     const invite = await invitesRepository.findOne({
       where: [
-        { invite_code: inviteID },
-        { id: inviteID },
-        { type: InviteType.LINK },
+        { invite_code: inviteID, type: InviteType.LINK },
+        { id: inviteID, type: InviteType.LINK },
       ],
       relations: ["group", "group.group_avatar"],
     });

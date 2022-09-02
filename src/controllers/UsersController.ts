@@ -12,6 +12,8 @@ import { RequestAuthenticated } from "../middlewares/authProvider";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
 import { GroupType } from "../database/enums/groups";
+import { ParticipantsService } from "../services/ParticipantsService";
+import { ParticipantState } from "../database/enums/participants";
 
 interface Data {
   name: string;
@@ -88,6 +90,7 @@ class UsersController {
   async me(req: RequestAuthenticated, res: Response) {
     const usersRepository = getCustomRepository(UsersRepository);
     const friendsRepository = getCustomRepository(FriendsRepository);
+    const participantsService = new ParticipantsService();
 
     let user = await usersRepository.findOne(req.userId, {
       loadEagerRelations: true,
@@ -106,7 +109,23 @@ class UsersController {
     });
 
     if (user.groups) {
-      user.groups = user.groups.filter((group) => group.type !== GroupType.DIRECT);
+      user.groups = await Promise.all(
+        user.groups.filter(async (group) => {
+          if (group.type !== GroupType.DIRECT) {
+            const hasParticipant = await participantsService.index(
+              user.id,
+              group.id
+            );
+            if (hasParticipant) {
+              if (hasParticipant.state === ParticipantState.JOINED) {
+                return true;
+              }
+            }
+          }
+
+          return false;
+        })
+      );
     }
 
     user = Object.assign(user, {
@@ -121,6 +140,8 @@ class UsersController {
 
     const usersRepository = getCustomRepository(UsersRepository);
     const friendsRepository = getCustomRepository(FriendsRepository);
+    const participantsService = new ParticipantsService();
+
     let user = await usersRepository.findOne(String(id), {
       relations: ["avatar", "participating"],
     });
@@ -164,7 +185,23 @@ class UsersController {
     }
 
     if (user.groups) {
-      user.groups = user.groups.filter((group) => group.type !== GroupType.DIRECT);
+      user.groups = await Promise.all(
+        user.groups.filter(async (group) => {
+          if (group.type !== GroupType.DIRECT) {
+            const hasParticipant = await participantsService.index(
+              user.id,
+              group.id
+            );
+            if (hasParticipant) {
+              if (hasParticipant.state === ParticipantState.JOINED) {
+                return true;
+              }
+            }
+          }
+
+          return false;
+        })
+      );
     }
 
     return res.status(200).json(user);
@@ -214,7 +251,7 @@ class UsersController {
       throw new AppError(error.errors);
     }
 
-    dataValidated.name = dataValidated.name.trim()
+    dataValidated.name = dataValidated.name.trim();
 
     const user = await usersRepository.findOne({
       where: [{ id: userID }],
