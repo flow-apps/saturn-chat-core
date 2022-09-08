@@ -1,6 +1,5 @@
 import { v4 as uuid } from "uuid";
 import {
-  Tree,
   Column,
   CreateDateColumn,
   Entity,
@@ -17,6 +16,8 @@ import { Audio } from "./Audio";
 import { File } from "./File";
 import { ReadMessage } from "./ReadMessage";
 import { Participant } from "./Participant";
+
+import { LinkData } from "../../@types/interfaces"
 
 @Entity({ name: "messages" })
 class Message {
@@ -68,6 +69,9 @@ class Message {
 
   @Column({ length: 5000, default: "" })
   message: string;
+
+  @Column({ type: "jsonb", nullable: true, array: true })
+  links: LinkData[];
 
   @ManyToOne(() => ReadMessage, (rm) => rm.message)
   @JoinColumn()

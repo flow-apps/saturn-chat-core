@@ -36,6 +36,12 @@ export class CreateMessages1622164951875 implements MigrationInterface {
             isNullable: true
           },
           {
+            name: "links",
+            type: "jsonb",
+            isArray: true,
+            isNullable: true
+          },
+          {
             name: "voice_message_id",
             type: "varchar",
             isNullable: true,
