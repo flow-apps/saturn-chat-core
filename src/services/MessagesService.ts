@@ -16,6 +16,7 @@ import {
 import { GroupType } from "../database/enums/groups";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
+import { LinkUtils } from "../utils/link";
 
 interface ICreateMessageProps {
   message: string;
@@ -78,6 +79,17 @@ class MessagesService {
     const messageRepository = getCustomRepository(MessagesRepository);
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const participantsService = new ParticipantsService();
+
+    const linkUtils = new LinkUtils()
+    const links = linkUtils.getAllLinksFromText(msgData.message)
+
+    if (links) [
+      await Promise.all(links.map(async link => {
+        const data = await linkUtils.getDataFromLink(link)
+
+        console.log(data);
+      }))
+    ]
 
     const participant = await participantsService.index(
       msgData.author_id,
