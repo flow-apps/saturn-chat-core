@@ -58,7 +58,7 @@ class StorageManager {
     path,
   }: UploadFileProps) {
     const originalName = clearFilename(file.originalname);
-    const randomString = randomBytes(16).toString("hex");
+    const randomString = randomBytes(20).toString("hex");
     const filename = `${randomString}_${originalName}`;
     const fileType = file.mimetype.split("/")[0];
 

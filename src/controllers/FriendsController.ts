@@ -250,6 +250,10 @@ class FriendsController {
             : friend.received_by_id;
         const isPart = await participantsService.index(friendID, group_id);
 
+        if (!isPart) {
+          return Object.assign(friend, { invited: false });
+        }
+
         if (isPart.state !== ParticipantState.JOINED) {
           const hasInvite = await invitesRepository.findOne({
             where: { type: InviteType.FRIEND, friend_id: friend.id, sended_by_id: userID },

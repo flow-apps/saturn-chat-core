@@ -17,7 +17,7 @@ import { File } from "./File";
 import { ReadMessage } from "./ReadMessage";
 import { Participant } from "./Participant";
 
-import { LinkData } from "../../@types/interfaces"
+import { LinkData } from "../../@types/interfaces";
 
 @Entity({ name: "messages" })
 class Message {
@@ -70,7 +70,7 @@ class Message {
   @Column({ length: 5000, default: "" })
   message: string;
 
-  @Column({ type: "jsonb", nullable: true, array: true })
+  @Column("jsonb", { nullable: true })
   links: LinkData[];
 
   @ManyToOne(() => ReadMessage, (rm) => rm.message)

@@ -2,6 +2,13 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.13
+
+- Add link preview generator
+  - Add field in DB for storage the links info
+  - Create utils functions for help generate link infos
+- Fix bugs in participant
+
 ## 0.0.12
 
 - Invite friends for groups

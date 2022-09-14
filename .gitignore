@@ -9,3 +9,4 @@ uploads
 firebase-key.json
 *.sqlite
 *.log
+configs.json
