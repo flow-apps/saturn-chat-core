@@ -17,6 +17,8 @@ import { GroupType } from "../database/enums/groups";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
 import { LinkUtils } from "../utils/link";
+import { LinkData } from "../../@types/interfaces";
+import { SaturnChatDomains } from "../configs.json";
 
 interface ICreateMessageProps {
   message: string;
@@ -80,16 +82,8 @@ class MessagesService {
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const participantsService = new ParticipantsService();
 
-    const linkUtils = new LinkUtils()
-    const links = linkUtils.getAllLinksFromText(msgData.message)
-
-    if (links) [
-      await Promise.all(links.map(async link => {
-        const data = await linkUtils.getDataFromLink(link)
-
-        console.log(data);
-      }))
-    ]
+    const linkUtils = new LinkUtils();
+    const links = linkUtils.getAllLinksFromText(msgData.message);
 
     const participant = await participantsService.index(
       msgData.author_id,
@@ -107,7 +101,7 @@ class MessagesService {
           { received_by_id: msgData.author_id, chat_id: msgData.group_id },
           { requested_by_id: msgData.author_id, chat_id: msgData.group_id },
         ],
-        cache: true
+        cache: true,
       });
 
       if (!friend || friend.state !== FriendsState.FRIENDS) {
@@ -128,9 +122,24 @@ class MessagesService {
       throw new Error(error);
     }
 
+    let linksData: LinkData[] = [];
+
+    if (links) {
+      await Promise.all(
+        links.map(async (link) => {
+          if (SaturnChatDomains.includes(link)) return;
+
+          const data = await linkUtils.getDataFromLink(link);
+
+          if (data) linksData.push(data);
+        })
+      );
+    }
+
     const newMessage = messageRepository.create({
       ...msgData,
       participant_id: participant.id,
+      links: linksData,
     });
     const savedMessage = await messageRepository.save(newMessage);
     const newReadMessage = readMessagesRepository.create({
@@ -174,12 +183,18 @@ class MessagesService {
         const friendsRepository = getCustomRepository(FriendsRepository);
         const friend = await friendsRepository.findOne({
           where: [
-            { received_by_id: audioData.author_id, chat_id: audioData.group_id },
-            { requested_by_id: audioData.author_id, chat_id: audioData.group_id },
+            {
+              received_by_id: audioData.author_id,
+              chat_id: audioData.group_id,
+            },
+            {
+              requested_by_id: audioData.author_id,
+              chat_id: audioData.group_id,
+            },
           ],
-          cache: true
+          cache: true,
         });
-  
+
         if (!friend || friend.state !== FriendsState.FRIENDS) {
           throw new Error("You are not friends with this user!");
         }
@@ -234,7 +249,7 @@ class MessagesService {
           { received_by_id: msgData.author_id, chat_id: msgData.group_id },
           { requested_by_id: msgData.author_id, chat_id: msgData.group_id },
         ],
-        cache: true
+        cache: true,
       });
 
       if (!friend || friend.state !== FriendsState.FRIENDS) {

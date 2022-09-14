@@ -30,7 +30,7 @@ class ParticipantsService {
       });
 
       if (!participant) {
-        throw new AppError("Participant not found", 404);
+        return null
       }
 
       return participant;
