@@ -2,6 +2,11 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.14
+
+- Remove Remote Config route
+- Up the number of chars in filename (20 to 30 random chars)
+
 ## 0.0.13
 
 - Add link preview generator
