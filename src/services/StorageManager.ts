@@ -46,7 +46,7 @@ class StorageManager {
       name: filename,
       original_name,
       url: `${process.env.API_URL}/uploads/${filename}`,
-      path: join(__dirname, "..", "..", "uploads", "files", filename),
+      path: join("..", "..", "uploads", "files", filename),
       size: file.size,
       type: fileType,
     };
@@ -58,7 +58,7 @@ class StorageManager {
     path,
   }: UploadFileProps) {
     const originalName = clearFilename(file.originalname);
-    const randomString = randomBytes(20).toString("hex");
+    const randomString = randomBytes(30).toString("hex");
     const filename = `${randomString}_${originalName}`;
     const fileType = file.mimetype.split("/")[0];
 
@@ -121,7 +121,7 @@ class StorageManager {
   ) {
     try {
       if (InLocal) {
-        fs.unlinkSync(path);
+        fs.unlinkSync(join(__dirname, path));
         return;
       }
       await this.bucket.file(path).delete();
