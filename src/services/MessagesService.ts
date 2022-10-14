@@ -7,7 +7,6 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 import { ParticipantsService } from "./ParticipantsService";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
-import { NotificationsService } from "./NotificationsService";
 import {
   ParticipantRole,
   ParticipantState,
@@ -19,6 +18,7 @@ import { FriendsState } from "../database/enums/friends";
 import { LinkUtils } from "../utils/link";
 import { LinkData } from "../../@types/interfaces";
 import { SaturnChatDomains } from "../configs.json";
+import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 
 interface ICreateMessageProps {
   message: string;
@@ -42,31 +42,39 @@ interface IGetMessageWithFilesProps {
   group_id: string;
 }
 
-interface IGetNotificationsTokensOptions {
+interface IGetUserIDsOptions {
   getOnlines?: boolean;
 }
 
 class MessagesService {
-  async getNotificationsTokens(
+  async getParticipantsUserIds(
     groupID: string,
-    userID: string,
-    options: IGetNotificationsTokensOptions = {}
+    options: IGetUserIDsOptions = {}
   ) {
+    const userNotifications = getCustomRepository(UserNotificationsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
-    const UserIds = await participantsRepository
+    const participantsUserIds = await participantsRepository.find({
+      where: {
+        group_id: groupID,
+        status: options.getOnlines
+          ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
+          : Not(ParticipantStatus.ONLINE),
+      },
+      select: ["user_id"],
+    });
+
+    const userIds = await userNotifications
       .find({
         where: {
-          group_id: groupID,
-          status: options.getOnlines
-            ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
-            : Not(ParticipantStatus.ONLINE),
-          
+          user_id: In(participantsUserIds),
+          send_notification: true,
+          is_revoked: false,
         },
         select: ["user_id"],
       })
-      .then((part) => part.map((p) => p.user_id));
+      .then((users) => users.map((u) => u.user_id));
 
-    return UserIds;
+    return userIds;
   }
 
   async create(msgData: ICreateMessageProps) {
