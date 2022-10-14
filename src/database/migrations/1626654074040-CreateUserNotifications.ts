@@ -18,13 +18,13 @@ export class CreateUserNotifications1626654074040
             type: "varchar",
           },
           {
-            name: "notification_token",
-            type: "varchar",
-            isUnique: true,
-          },
-          {
             name: "platform",
             type: "varchar",
+          },
+          {
+            name: "language",
+            type: "varchar",
+            isNullable: true
           },
           {
             name: "is_revoked",

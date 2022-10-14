@@ -3,7 +3,10 @@ import { getCustomRepository, In } from "typeorm";
 import { FriendsState } from "../database/enums/friends";
 import { GroupType } from "../database/enums/groups";
 import { InviteType } from "../database/enums/invites";
-import { ParticipantRole, ParticipantState } from "../database/enums/participants";
+import {
+  ParticipantRole,
+  ParticipantState,
+} from "../database/enums/participants";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { FriendsRepository } from "../repositories/FriendsRepository";
@@ -17,7 +20,8 @@ import { InvitesService } from "../services/InvitesService";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
-import _ from "lodash"
+import _ from "lodash";
+import { ONESIGNAL } from "../configs.json";
 
 class FriendsController {
   async list(req: RequestAuthenticated, res: Response) {
@@ -57,19 +61,13 @@ class FriendsController {
   async request(req: RequestAuthenticated, res: Response) {
     const usersRepository = getCustomRepository(UsersRepository);
     const friendsRepository = getCustomRepository(FriendsRepository);
-    const userNotificationsRepository = getCustomRepository(
-      UserNotificationsRepository
-    );
     const notificationsService = new NotificationsService();
     const friendID = req.query.friend_id as string;
     const userID = req.userId;
 
     if (!friendID) throw new AppError("Friend ID not provided", 404);
 
-    const notification = await userNotificationsRepository.findOne({
-      where: { is_revoked: false, send_notification: true, user_id: friendID },
-    });
-
+    const requestedBy = await usersRepository.findOne(userID)
     const existsRequest = await friendsRepository.findOne({
       where: [
         {
@@ -99,19 +97,20 @@ class FriendsController {
           state: FriendsState.REQUESTED,
         });
 
-        if (notification && notification.notification_token) {
-          const requestedBy = await usersRepository.findOne(userID);
-
-          await notificationsService.send({
-            tokens: [notification.notification_token],
-            message: {
-              content: {
-                title: `👥 ${requestedBy.name} quer ser seu amigo`,
-                body: "Clique aqui para aceitar ou recusar",
-              },
+        await notificationsService.send({
+          name: "Friend Request Notification",
+          tokens: [friendID],
+          message: {
+            headings: {
+              pt: `👥 ${requestedBy.name} quer ser seu amigo`,
+              en: `👥 ${requestedBy.name} to want be your friend`,
             },
-          });
-        }
+            contents: {
+              pt: "Clique aqui para aceitar ou recusar",
+              en: "Click here for to accept or decline",
+            },
+          },
+        });
 
         return res.json({ ...existsRequest, state: FriendsState.REQUESTED });
       }
@@ -126,20 +125,20 @@ class FriendsController {
     });
 
     await friendsRepository.save(createdFriendRequest);
-
-    if (notification && notification.notification_token) {
-      const requestedBy = await usersRepository.findOne(userID);
-
-      await notificationsService.send({
-        tokens: [notification.notification_token],
-        message: {
-          content: {
-            title: `👥 ${requestedBy.name} quer ser seu amigo`,
-            body: "Clique aqui para aceitar ou recusar",
-          },
+    await notificationsService.send({
+      name: "Friend Request Notification",
+      tokens: [friendID],
+      message: {
+        headings: {
+          pt: `👥 ${requestedBy.name} quer ser seu amigo`,
+          en: `👥 ${requestedBy.name} to want be your friend`,
         },
-      });
-    }
+        contents: {
+          pt: "Clique aqui para aceitar ou recusar",
+          en: "Click here for to accept or decline",
+        },
+      },
+    });
 
     return res.json(createdFriendRequest);
   }
@@ -256,7 +255,11 @@ class FriendsController {
 
         if (isPart.state !== ParticipantState.JOINED) {
           const hasInvite = await invitesRepository.findOne({
-            where: { type: InviteType.FRIEND, friend_id: friend.id, sended_by_id: userID },
+            where: {
+              type: InviteType.FRIEND,
+              friend_id: friend.id,
+              sended_by_id: userID,
+            },
           });
 
           return Object.assign(friend, { invited: !!hasInvite });
