@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 import { v4 as uuid } from "uuid";
 
 @Entity({ name: "user_notifications" })
@@ -9,11 +9,11 @@ class UserNotification {
   @Column()
   readonly user_id: string;
 
-  @Column({ unique: true })
-  notification_token: string
-
   @Column()
-  platform: string
+  platform: string;
+
+  @Column({ nullable: true })
+  language: string;
 
   @Column({ default: false })
   is_revoked: boolean;

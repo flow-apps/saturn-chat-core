@@ -1,15 +1,19 @@
 import { Response } from "express";
 import { getCustomRepository, In } from "typeorm";
 import { GroupType } from "../database/enums/groups";
-import { ParticipantRole, ParticipantState } from "../database/enums/participants";
+import {
+  ParticipantRole,
+  ParticipantState,
+} from "../database/enums/participants";
 import { AppError } from "../errors/AppError";
 import { RequestAuthenticated } from "../middlewares/authProvider";
 import { GroupsRepository } from "../repositories/GroupsRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
-import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { io } from "../websockets";
+
+import { ONESIGNAL } from "../configs.json";
 
 class ParticipantsController {
   async new(req: RequestAuthenticated, res: Response) {
@@ -69,10 +73,7 @@ class ParticipantsController {
     const notificationsService = new NotificationsService();
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const groupsRepository = getCustomRepository(GroupsRepository);
-    const usersNotificationsRepository = getCustomRepository(
-      UserNotificationsRepository
-    );
-    const participantsService = new ParticipantsService()
+    const participantsService = new ParticipantsService();
 
     const group = await groupsRepository.findOne(id);
     const hasParticipant = await participantsRepository.findOne({
@@ -88,21 +89,17 @@ class ParticipantsController {
       throw new AppError("Participant not found", 404);
     }
 
-    const notification = await usersNotificationsRepository.findOne({
-      where: {
-        user_id: group.owner_id,
-        is_revoked: false,
-        send_notification: true,
-      },
-      select: ["notification_token"],
-    });
-    await participantsService.exit(hasParticipant.id, ParticipantState.EXITED)
+    await participantsService.exit(hasParticipant.id, ParticipantState.EXITED);
     await notificationsService.send({
-      tokens: [notification.notification_token],
+      name: "Exit Participant Notification",
+      tokens: [group.owner_id],
       message: {
-        content: {
-          title: group.name,
-          body: `😥 ${hasParticipant.user.name} saiu do grupo!`,
+        headings: {
+          en: group.name,
+        },
+        contents: {
+          pt: `😥 ${hasParticipant.user.name} saiu do grupo!`,
+          en: `😥 ${hasParticipant.user.name} left the group!`,
         },
       },
     });
@@ -113,7 +110,7 @@ class ParticipantsController {
   async kick(req: RequestAuthenticated, res: Response) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const groupsRepository = getCustomRepository(GroupsRepository);
-    const participantsService = new ParticipantsService()
+    const participantsService = new ParticipantsService();
     const notificationsService = new NotificationsService();
     const { participant_id } = req.params;
     const query = req.query as { [key: string]: string };
@@ -153,22 +150,22 @@ class ParticipantsController {
       throw new AppError("Participant not found for kick");
     }
 
-    await participantsService.exit(kickedUser.id, ParticipantState.KICKED)
+    await participantsService.exit(kickedUser.id, ParticipantState.KICKED);
 
     if (query.notify === "yes") {
-      const notifyToken = await notificationsService.getNotificationsTokens({
-        usersID: [kickedUser.user_id],
-      });
-
       await notificationsService.send({
-        tokens: notifyToken,
+        name: "Exit Participant Notification",
+        tokens: [kickedUser.user_id],
+        android_channel_id: ONESIGNAL.CHANNELS_IDS.BAN_AND_KICK,
         message: {
-          content: {
-            title: group.name,
-            body: `👮‍♂️ Você foi expulso do grupo!`,
+          headings: {
+            en: group.name,
+          },
+          contents: {
+            pt: `👮‍♂️ Você foi expulso do grupo!`,
+            en: `👮‍♂️ You are kicked of group!`,
           },
         },
-        priority: "high",
       });
     }
 
@@ -185,7 +182,7 @@ class ParticipantsController {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const groupsRepository = getCustomRepository(GroupsRepository);
     const notificationsService = new NotificationsService();
-    const participantsService = new ParticipantsService()
+    const participantsService = new ParticipantsService();
     const { participant_id } = req.params;
     const query = req.query as { [key: string]: string };
     const userID = req.userId;
@@ -224,22 +221,22 @@ class ParticipantsController {
       throw new AppError("Participant not found for ban");
     }
 
-    await participantsService.exit(bannedUser.id, ParticipantState.BANNED)
+    await participantsService.exit(bannedUser.id, ParticipantState.BANNED);
 
     if (query.notify === "yes") {
-      const notifyToken = await notificationsService.getNotificationsTokens({
-        usersID: [bannedUser.user_id],
-      });
-
       await notificationsService.send({
-        tokens: notifyToken,
+        name: "Exit Participant Notification",
+        tokens: [bannedUser.user_id],
+        android_channel_id: ONESIGNAL.CHANNELS_IDS.BAN_AND_KICK,
         message: {
-          content: {
-            title: group.name,
-            body: `👮‍♂️ Você foi banido do grupo!`,
+          headings: {
+            en: group.name,
+          },
+          contents: {
+            pt: `👮‍♂️ Você foi banido do grupo!`,
+            en: `👮‍♂️ You are banned of group!`,
           },
         },
-        priority: "high",
       });
     }
 
@@ -268,10 +265,10 @@ class ParticipantsController {
         group_id: query.group_id,
         role: In(authorizedRoles),
       },
-      relations: ["group"]
+      relations: ["group"],
     });
 
-    if (requestedByParticipant.group.type === GroupType.DIRECT) { 
+    if (requestedByParticipant.group.type === GroupType.DIRECT) {
       throw new AppError("Group not is valid for this action", 403);
     }
 

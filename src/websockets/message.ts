@@ -9,10 +9,15 @@ import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
 
+import { ONESIGNAL } from "../configs.json";
+import { Time } from "../utils/time";
+
 io.on("connection", async (socket: ISocketAuthenticated) => {
   const notificationsService = new NotificationsService();
   const participantsService = new ParticipantsService();
   const messagesService = new MessagesService();
+
+  const timeUtils = new Time();
 
   const userID = socket.userID;
   let participant: Participant;
@@ -66,6 +71,9 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       const groupName = isDM
         ? createdMessage.author.name
         : createdMessage.group.name;
+      const groupAvatar = isDM
+        ? createdMessage.author.avatar?.url
+        : createdMessage.group.group_avatar?.url;
 
       socket.emit("sended_user_message", {
         msg: createdMessage,
@@ -74,20 +82,31 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       socket.in(groupID).emit("new_user_message", createdMessage);
 
       await notificationsService.send({
-        tokens: await messagesService.getNotificationsTokens(groupID, userID),
+        name: "Message Notification",
+        android_group: groupID,
+        large_icon: groupAvatar,
+        tokens: await messagesService.getNotificationsTokens(groupID, userID, {
+          getOnlines: true,
+        }),
         data: {
-          id: createdMessage.id,
-          message: createdMessage.message,
-          author: createdMessage.author,
-          group: createdMessage.group,
+          message_id: createdMessage.id,
+          author_id: createdMessage.author.id,
+          group_id: createdMessage.group.id,
           created_at: createdMessage.created_at,
         },
-        channelId: "messages",
-        categoryId: "message",
+        android_channel_id: isDM
+          ? ONESIGNAL.CHANNELS_IDS.FRIEND_MESSAGES
+          : ONESIGNAL.CHANNELS_IDS.GROUP_MESSAGES,
         message: {
-          content: {
-            title: `${groupName}`,
-            body: `💬 ${groupName}: ${createdMessage.message}`,
+          headings: {
+            pt: groupName,
+            en: groupName,
+          },
+          contents: {
+            en:
+              "💬 " +
+              (!isDM ? `${createdMessage.author.name}: ` : "") +
+              `${createdMessage.message}`,
           },
         },
       });
@@ -107,27 +126,51 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       ? newVoiceMessage.author.name
       : newVoiceMessage.group.name;
 
+    const groupAvatar = isDM
+      ? newVoiceMessage.author.avatar?.url
+      : newVoiceMessage.group.group_avatar?.url;
+    const formattedDuration = timeUtils.formatTime(
+      newVoiceMessage.voice_message.duration
+    );
+
     socket.emit("sended_user_message", {
       msg: newVoiceMessage,
       localReference: data.localReference,
     });
     socket.in(groupID).emit("new_user_message", newVoiceMessage);
 
+    console.log(groupName);
+
     await notificationsService.send({
-      tokens: await messagesService.getNotificationsTokens(groupID, userID),
+      name: "Message Notification",
+      tokens: await messagesService.getNotificationsTokens(groupID, userID, {
+        getOnlines: true,
+      }),
+      large_icon: groupAvatar,
+      android_group: groupID,
       data: {
-        id: newVoiceMessage.id,
-        message: newVoiceMessage.message,
-        voice_message: newVoiceMessage.voice_message,
-        author: newVoiceMessage.author,
-        group: newVoiceMessage.group,
+        message_id: newVoiceMessage.id,
+        author_id: newVoiceMessage.author.id,
+        group_id: newVoiceMessage.group.id,
         created_at: newVoiceMessage.created_at,
       },
-      channelId: "messages",
+      android_channel_id: isDM
+        ? ONESIGNAL.CHANNELS_IDS.FRIEND_MESSAGES
+        : ONESIGNAL.CHANNELS_IDS.GROUP_MESSAGES,
       message: {
-        content: {
-          title: `${groupName}`,
-          body: `🗣 ${groupName}: 🎤 Nova mensagem de voz`,
+        headings: {
+          pt: groupName,
+          en: groupName,
+        },
+        contents: {
+          pt:
+            "🎤 " +
+            (!isDM ? `${newVoiceMessage.author.name}: ` : "") +
+            `Mensagem de voz (${formattedDuration})`,
+          en:
+            "🎤 " +
+            (!isDM ? `${newVoiceMessage.author.name}: ` : "") +
+            `Voice message (${formattedDuration})`,
         },
       },
     });
@@ -144,6 +187,9 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     const groupName = isDM
       ? newMessageWithFiles.author.name
       : newMessageWithFiles.group.name;
+    const groupAvatar = isDM
+      ? newMessageWithFiles.author.avatar?.url
+      : newMessageWithFiles.group.group_avatar?.url;
 
     socket.emit("sended_user_message", {
       msg: newMessageWithFiles,
@@ -152,22 +198,37 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     socket.in(groupID).emit("new_user_message", newMessageWithFiles);
 
     await notificationsService.send({
+      name: "Message Notification",
       tokens: await messagesService.getNotificationsTokens(groupID, userID, {
-        getOnlines: false,
+        getOnlines: true,
       }),
+      large_icon: groupAvatar,
+      android_group: groupID,
       data: {
-        id: newMessageWithFiles.id,
-        message: newMessageWithFiles.message,
-        files: newMessageWithFiles.files,
-        author: newMessageWithFiles.author,
-        group: newMessageWithFiles.group,
+        message_id: newMessageWithFiles.id,
+        author_id: newMessageWithFiles.author.id,
+        group_id: newMessageWithFiles.group.id,
         created_at: newMessageWithFiles.created_at,
       },
-      channelId: "messages",
+      android_channel_id: isDM
+        ? ONESIGNAL.CHANNELS_IDS.FRIEND_MESSAGES
+        : ONESIGNAL.CHANNELS_IDS.GROUP_MESSAGES,
       message: {
-        content: {
-          title: `${groupName}`,
-          body: `📂 ${groupName}: ${newMessageWithFiles.message}`,
+        headings: {
+          pt: groupName,
+          en: groupName,
+        },
+        contents: {
+          en:
+            `📂 ` +
+            (!isDM ? `${newMessageWithFiles.author.name}: ` : "") +
+            `(${newMessageWithFiles.files.length} files) ` +
+            `${newMessageWithFiles.message}`,
+          pt:
+            `📂 ` +
+            (!isDM ? `${newMessageWithFiles.author.name}: ` : "") +
+            `(${newMessageWithFiles.files.length} arquivos) ` +
+            `${newMessageWithFiles.message}`,
         },
       },
     });

@@ -1,16 +1,16 @@
-import { getCustomRepository, In, Not } from "typeorm";
-import { GroupType } from "../database/enums/groups";
+import { getCustomRepository } from "typeorm";
 import { InviteType } from "../database/enums/invites";
 import {
   ParticipantRole,
   ParticipantState,
 } from "../database/enums/participants";
-import { Participant } from "../entities/Participant";
 import { AppError } from "../errors/AppError";
 import { InvitesRepository } from "../repositories/InvitesRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
+import { ONESIGNAL } from "../configs.json"
+import { GroupType } from "../database/enums/groups";
 
 interface INewParticipant {
   user_id: string;
@@ -30,7 +30,7 @@ class ParticipantsService {
       });
 
       if (!participant) {
-        return null
+        return null;
       }
 
       return participant;
@@ -89,26 +89,32 @@ class ParticipantsService {
       }
     );
 
-    const owner = await participantsRepository.find({
+    const owner = await participantsRepository.findOne({
       where: { group_id, user_id: participant.group.owner_id },
     });
-    const notificationsTokens =
-      await notificationsService.getNotificationsTokens({
-        usersID: owner.map((data) => data.user_id),
-      });
 
-    await notificationsService.send({
-      tokens: notificationsTokens,
-      message: {
-        content: {
-          title: participant.group.name,
-          body: `🆕 ${participant.user.name} entrou no grupo.`,
+    if (participant.group.type !== GroupType.DIRECT) {
+      await notificationsService.send({
+        name: "New Participant Notification",
+        tokens: [owner.user_id],
+        large_icon: participant.user.avatar?.url,
+        message: {
+          headings: {
+            en: participant.group.name,
+          },
+          contents: {
+            en: `🆕 ${participant.user.name} entrou no grupo.`,
+          },
         },
-      },
-      channelId: "default",
-      data: participant,
-      priority: "high",
-    });
+        android_channel_id: ONESIGNAL.CHANNELS_IDS.NEW_PARTICIPANT,
+        data: {
+          participant_user_id: participant.user_id,
+          participant_id: participant.id,
+          group_id: participant.group_id
+        },
+      });
+    }
+
 
     return participant;
   }

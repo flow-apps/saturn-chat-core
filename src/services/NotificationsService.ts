@@ -1,101 +1,77 @@
-import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
-import { getCustomRepository, In } from "typeorm";
-import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
-import { Time } from "../utils/time";
+import { notificationApi } from "../configs/notificationApi";
+import _ from "lodash";
+import { AxiosResponse } from "axios";
 
 type SendNotificationProps = {
+  name: string;
   tokens: string[];
   message: NotificationsBody;
+  url_on_click?: string;
   data?: object;
-  priority?: "default" | "normal" | "high";
-  channelId?: string;
-  categoryId?: string;
+  ttl?: number;
+  large_icon?: string;
+  android_channel_id?: string;
+  android_group?: string;
+  thread_id?: string;
+  included_segments?: string[];
+  channel_for_external_user_ids?: "push" | "email" | "sms";
 };
 
 type NotificationsBody = {
-  content: {
-    title: string;
-    body: string;
+  headings: {
+    [key: string]: string;
+  };
+  contents: {
+    [key: string]: string;
   };
 };
 
-type GetNotificationsProps = {
-  usersID: string[];
-};
+type NotificationResult = {
+  id: string;
+  recipients: number;
+  external_id: null;
+} | {
+  id: string;
+  recipients: number;
+  external_id: null;
+  errors: any;
+}
 
 class NotificationsService {
-  private ExpoClient: Expo;
-
-  constructor() {
-    this.ExpoClient = new Expo({
-      accessToken: process.env.EXPO_NOTIFICATIONS_TOKEN,
-    });
-  }
-
-  async getNotificationsTokens({ usersID }: GetNotificationsProps) {
-    const userNotificationsRepository = getCustomRepository(
-      UserNotificationsRepository
-    );
-    const time = new Time();
-
-    const tokens = await userNotificationsRepository
-      .find({
-        where: {
-          user_id: In(usersID),
-          is_revoked: false,
-          send_notification: true,
-        },
-        cache: time.timeToMS(1, "hour"),
-        select: ["notification_token"],
-      })
-      .then((tokens) => tokens.map((t) => t.notification_token));
-
-    const uniqueTokens = [...new Set(tokens)];
-
-    return uniqueTokens;
-  }
-
   async send(data: SendNotificationProps) {
-    const notificationTokens = data.tokens;
-    const preparedMessages = [];
-
-    notificationTokens.map((token) => {
-      if (!Expo.isExpoPushToken(token)) return;
-
-      preparedMessages.push({
-        to: token,
-        ttl: 604800,
-        title: data.message.content.title,
-        body: data.message.content.body,
-        data: data.data || {},
-        priority: data.priority || "default",
-        channelId: data.channelId || "default",
-        categoryId: data.categoryId || undefined,
-      });
-    });
-
-    const notificationsChunks =
-      this.ExpoClient.chunkPushNotifications(preparedMessages);
-    const notificationsTickets: ExpoPushTicket[] = [];
+    const chunkedTokens = _.chunk(data.tokens, 2000);
+    const chunkedRequests = _.chunk(
+      chunkedTokens.map((tokens) => {
+        return {
+          name: data.name,
+          app_id: process.env.ONESIGNAL_APP_ID,
+          data: data.data,
+          included_segments: data.included_segments || ["Subscribed Users"],
+          include_external_user_ids: tokens,
+          headings: data.message.headings,
+          contents: data.message.contents,
+          large_icon: data.large_icon || "",
+          android_group: data.android_group || "",
+          android_channel_id: data.android_channel_id,
+          channel_for_external_user_ids:
+            data.channel_for_external_user_ids || "push",
+        };
+      }),
+      150
+    );
 
     await Promise.all(
-      notificationsChunks.map(async (chunk) => {
-        try {
-          const ticketChunk = await this.ExpoClient.sendPushNotificationsAsync(
-            chunk
-          );
-          notificationsTickets.push(...ticketChunk);
-        } catch (error) {
-          console.log(error);
-        }
+      chunkedRequests.map((requests) => {
+        requests.map((req) => {
+          notificationApi
+            .post("/notifications", req)
+            .then((res: AxiosResponse<NotificationResult, any>) => {
+              console.log(res.data);
+            })
+            .catch((error) => console.error(error.response.data));
+        });
       })
     );
-
-    notificationsTickets.map((ticket) => {
-      if (ticket.status === "ok") return;
-
-      console.log(ticket);
-    });
   }
 }
 

@@ -52,29 +52,21 @@ class MessagesService {
     userID: string,
     options: IGetNotificationsTokensOptions = {}
   ) {
-    const notificationsService = new NotificationsService();
     const participantsRepository = getCustomRepository(ParticipantsRepository);
-
-    const participantsID = await participantsRepository
+    const UserIds = await participantsRepository
       .find({
         where: {
           group_id: groupID,
           status: options.getOnlines
             ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
             : Not(ParticipantStatus.ONLINE),
-          user_id: Not(
-            process.env.NODE_ENV === "development" ? userID : undefined
-          ),
+          
         },
         select: ["user_id"],
       })
       .then((part) => part.map((p) => p.user_id));
 
-    const tokens = await notificationsService.getNotificationsTokens({
-      usersID: participantsID,
-    });
-
-    return tokens;
+    return UserIds;
   }
 
   async create(msgData: ICreateMessageProps) {
