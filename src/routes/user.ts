@@ -18,7 +18,7 @@ routes.patch("/users/update/avatar", authProvider, multer(configMulter(5)).singl
   usersController.updateAvatar
 );
 routes.post("/users/notify/register", authProvider, notificationsController.register)
-routes.patch("/users/notify/toggle/:token", authProvider, notificationsController.toggle)
-routes.delete("/users/notify/unregister/:token", authProvider, notificationsController.unregister)
+routes.patch("/users/notify/toggle/", authProvider, notificationsController.toggle)
+routes.delete("/users/notify/unregister", authProvider, notificationsController.unregister)
 
 export { routes as userRoutes };

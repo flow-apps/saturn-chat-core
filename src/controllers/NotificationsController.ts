@@ -3,12 +3,11 @@ import { RequestAuthenticated } from "../middlewares/authProvider";
 
 import * as Yup from "yup";
 import { AppError } from "../errors/AppError";
-import { Expo } from "expo-server-sdk";
 import { getCustomRepository } from "typeorm";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 
 type RegisterNotificationBody = {
-  notificationToken: string;
+  language: string;
   platform: string;
 };
 
@@ -18,43 +17,41 @@ class NotificationsController {
       UserNotificationsRepository
     );
     const schema = Yup.object().shape({
-      notificationToken: Yup.string().required(),
       platform: Yup.string().required(),
+      language: Yup.string(),
     });
 
-    let validatedBody: RegisterNotificationBody;
+    const body = req.body as RegisterNotificationBody;
 
     try {
-      validatedBody = await schema.validate(req.body, {
-        stripUnknown: true,
+      await schema.validate(body, {
         abortEarly: false,
       });
     } catch (error) {
       throw new AppError(error.errors);
     }
 
-    if (!Expo.isExpoPushToken(validatedBody.notificationToken)) {
-      throw new AppError("Invalid Expo Push Token");
-    }
-
     const userNotificationsExists = await userNotificationsRepository.findOne({
-      where: [{ notification_token: validatedBody.notificationToken }],
+      where: { user_id: req.userId },
     });
 
     if (!userNotificationsExists) {
       const newUserNotificationRepository = userNotificationsRepository.create({
-        platform: validatedBody.platform,
         user_id: req.userId,
+        platform: body.platform,
+        language: body.language,
       });
 
       await userNotificationsRepository.save(newUserNotificationRepository);
       return res.sendStatus(201);
     }
 
-    const merged = userNotificationsRepository.merge(
-      userNotificationsExists,
-      {}
-    );
+    const merged = userNotificationsRepository.merge(userNotificationsExists, {
+      platform: body.platform,
+      language: body.language,
+      is_revoked: false,
+    });
+
     await userNotificationsRepository.save(merged);
     return res.json(merged);
   }
@@ -63,37 +60,27 @@ class NotificationsController {
     const userNotificationsRepository = getCustomRepository(
       UserNotificationsRepository
     );
-    const { token } = req.params;
-
-    if (!token || !Expo.isExpoPushToken(token)) {
-      throw new AppError("Invalid Expo Push Token");
-    }
 
     const userNotificationsExists = await userNotificationsRepository.findOne({
-      where: [{ user_id: req.userId }, { notification_token: token }],
+      where: { user_id: req.userId, platform: req.query.platform },
     });
 
     if (userNotificationsExists) {
       await userNotificationsRepository.delete(userNotificationsExists);
       return res.sendStatus(201);
     } else {
-      throw new AppError("User Token not found");
+      throw new AppError("User not found");
     }
   }
 
   async toggle(req: RequestAuthenticated, res: Response) {
-    const { token } = req.params;
     const enable = req.query.enabled as "yes" | "no";
     const userNotificationsRepository = getCustomRepository(
       UserNotificationsRepository
     );
 
-    if (!token || !Expo.isExpoPushToken(token)) {
-      throw new AppError("Notification token not provided");
-    }
-
     const userNotification = await userNotificationsRepository.findOne({
-      where: { notification_token: token },
+      where: { user_id: req.userId },
     });
 
     if (!userNotification) {
