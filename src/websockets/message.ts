@@ -107,6 +107,10 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
               "💬 " +
               (!isDM ? `${createdMessage.author.name}: ` : "") +
               `${createdMessage.message}`,
+            pt:
+              "💬 " +
+              (!isDM ? `${createdMessage.author.name}: ` : "") +
+              `${createdMessage.message}`,
           },
         },
       });
@@ -138,8 +142,6 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       localReference: data.localReference,
     });
     socket.in(groupID).emit("new_user_message", newVoiceMessage);
-
-    console.log(groupName);
 
     await notificationsService.send({
       name: "Message Notification",

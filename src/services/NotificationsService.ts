@@ -39,6 +39,10 @@ type NotificationResult = {
 
 class NotificationsService {
   async send(data: SendNotificationProps) {
+
+    if (!data.tokens.length)
+      return;
+
     const chunkedTokens = _.chunk(data.tokens, 2000);
     const chunkedRequests = _.chunk(
       chunkedTokens.map((tokens) => {
@@ -46,7 +50,7 @@ class NotificationsService {
           name: data.name,
           app_id: process.env.ONESIGNAL_APP_ID,
           data: data.data,
-          included_segments: data.included_segments || ["Subscribed Users"],
+          included_segments: data.included_segments || [],
           include_external_user_ids: tokens,
           headings: data.message.headings,
           contents: data.message.contents,
