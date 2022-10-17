@@ -36,14 +36,14 @@ class NotificationsController {
     });
 
     if (!userNotificationsExists) {
-      const newUserNotificationRepository = userNotificationsRepository.create({
+      const newUserNotification = userNotificationsRepository.create({
         user_id: req.userId,
         platform: body.platform,
         language: body.language,
       });
 
-      await userNotificationsRepository.save(newUserNotificationRepository);
-      return res.sendStatus(201);
+      await userNotificationsRepository.save(newUserNotification);
+      return res.json(newUserNotification)
     }
 
     const merged = userNotificationsRepository.merge(userNotificationsExists, {

@@ -19,6 +19,7 @@ import { LinkUtils } from "../utils/link";
 import { LinkData } from "../../@types/interfaces";
 import { SaturnChatDomains } from "../configs.json";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
+import { v4 } from "uuid";
 
 interface ICreateMessageProps {
   message: string;
@@ -53,15 +54,17 @@ class MessagesService {
   ) {
     const userNotifications = getCustomRepository(UserNotificationsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
-    const participantsUserIds = await participantsRepository.find({
-      where: {
-        group_id: groupID,
-        status: options.getOnlines
-          ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
-          : Not(ParticipantStatus.ONLINE),
-      },
-      select: ["user_id"],
-    });
+    const participantsUserIds = await participantsRepository
+      .find({
+        where: {
+          group_id: groupID,
+          status: options.getOnlines
+            ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
+            : Not(ParticipantStatus.ONLINE),
+        },
+        select: ["user_id"],
+      })
+      .then((parts) => parts.map((p) => p.user_id));
 
     const userIds = await userNotifications
       .find({

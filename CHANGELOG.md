@@ -2,10 +2,25 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.16
+
+- Fix user notifications register
+- Refactor user notification routes
+- Fix notification of text messages
+- Add validation in Notification Service
+- Remove default segment in Notification Service
+
+## 0.0.15
+
+- Add OneSignal Notifications
+- Refactor Notification Service
+- Refactor Notification Controller
+- Refactor Notifications on Websockets
+
 ## 0.0.14
 
 - Remove Remote Config route
-- Up the number of chars in filename (20 to 30 random chars)
+- Up the number of chars in filename (20 to 30 random bytes)
 
 ## 0.0.13
 
