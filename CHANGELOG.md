@@ -2,6 +2,13 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.17
+
+- Add handling error for OneSignal Notification
+- Add feature for revoke invalid Notification User IDs
+- Add required data in notification body
+- Fix bugs
+
 ## 0.0.16
 
 - Fix user notifications register

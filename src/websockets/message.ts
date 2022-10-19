@@ -11,6 +11,7 @@ import { ParticipantsService } from "../services/ParticipantsService";
 
 import { ONESIGNAL } from "../configs.json";
 import { Time } from "../utils/time";
+import { NotificationsType } from "../../@types/enums";
 
 io.on("connection", async (socket: ISocketAuthenticated) => {
   const notificationsService = new NotificationsService();
@@ -89,6 +90,8 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
           getOnlines: true,
         }),
         data: {
+          type: NotificationsType.CHAT_MESSAGE,
+          open_in_app: true,
           message_id: createdMessage.id,
           author_id: createdMessage.author.id,
           group_id: createdMessage.group.id,
@@ -151,6 +154,8 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       large_icon: groupAvatar,
       android_group: groupID,
       data: {
+        type: NotificationsType.CHAT_MESSAGE,
+        open_in_app: true,
         message_id: newVoiceMessage.id,
         author_id: newVoiceMessage.author.id,
         group_id: newVoiceMessage.group.id,
@@ -207,6 +212,8 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       large_icon: groupAvatar,
       android_group: groupID,
       data: {
+        type: NotificationsType.CHAT_MESSAGE,
+        open_in_app: true,
         message_id: newMessageWithFiles.id,
         author_id: newMessageWithFiles.author.id,
         group_id: newMessageWithFiles.group.id,
