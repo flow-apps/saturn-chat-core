@@ -243,19 +243,19 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     });
   });
 
-  socket.on("add_user_typing", async ({ typing }) => {
+  socket.on("add_user_typing", async ({ group_id }) => {
     const usersRepository = getCustomRepository(UsersRepository);
     const user = await usersRepository.findOne(userID);
 
-    socket.in(groupID).emit("new_user_typing", user);
+    socket.in(group_id).emit("new_user_typing", user);
   });
 
-  socket.on("remove_user_typing", async ({ typing, user_id }) => {
-    socket.in(groupID).emit("deleted_user_typing", userID);
+  socket.on("remove_user_typing", async ({ group_id }) => {
+    socket.in(group_id).emit("deleted_user_typing", userID);
   });
 
-  socket.on("set_read_message", async (messageID: string) => {
-    await messagesService.readMessage(messageID, userID, groupID);
+  socket.on("set_read_message", async ({ message_id, group_id }) => {
+    await messagesService.readMessage(message_id, userID, group_id);
   });
 
   socket.on("delete_user_message", async (messageID: string) => {
