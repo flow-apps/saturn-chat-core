@@ -2,6 +2,12 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.18
+
+- Start refactor websockets
+  - Separate Group Events of Message Events
+- Add new rules in filename sanitize
+
 ## 0.0.17
 
 - Add handling error for OneSignal Notification
