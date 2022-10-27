@@ -5,5 +5,5 @@ export function clearFilename(name: string) {
     newName = newName.slice(newName.length - 20);
   }
 
-  return newName.replace(/[^a-zA-Z0-9\-\_\.]/gi, "");
+  return newName.replace(/[^a-zA-Z0-9\-\_\(\)\.]/gi, "");
 }
