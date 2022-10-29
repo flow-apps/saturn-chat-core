@@ -1,13 +1,7 @@
-import compression from "compression";
-import express from "express";
 import "express-async-errors";
-import helmet from "helmet";
 import { createServer } from "http";
-import path from "path";
-import createConnection from "./database";
 import { fakePoweredBy } from "./middlewares/fakePoweredBy";
 import { handlerError } from "./middlewares/handlerError";
-import cors from "cors";
 import { userRoutes } from "./routes/user";
 import { groupRoutes } from "./routes/group";
 import { messageRoutes } from "./routes/message";
@@ -16,6 +10,13 @@ import { inviteRoutes } from "./routes/invite";
 import { startTasks } from "./cronjobs";
 import { appRoutes } from "./routes/app";
 import { friendRoutes } from "./routes/friend";
+import createConnection from "./database";
+import compression from "compression";
+import express from "express";
+import helmet from "helmet";
+import morgan from "morgan";
+import path from "path";
+import cors from "cors";
 
 process.on("unhandledRejection", console.error)
 createConnection()
@@ -24,6 +25,7 @@ startTasks()
 const app = express();
 const http = createServer(app);
 
+app.use(morgan("tiny"))
 app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(fakePoweredBy);

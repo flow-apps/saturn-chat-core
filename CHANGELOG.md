@@ -2,6 +2,12 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.19
+
+- Add Redis
+- Add cache in Express
+- Add Redis in Rate Limiter
+
 ## 0.0.18
 
 - Start refactor websockets

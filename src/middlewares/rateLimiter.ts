@@ -1,10 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { RateLimiterMemory } from "rate-limiter-flexible";
+import { RateLimiterRedis } from "rate-limiter-flexible";
+import { redisClient } from "../configs/redis";
 
-const rateLimiter = new RateLimiterMemory({
+const rateLimiter = new RateLimiterRedis({
   points: 30,
   duration: 60,
   blockDuration: 600,
+  storeClient: redisClient,
+  keyPrefix: "rate_limiter",
 });
 
 async function rateLimiterMiddleware(
@@ -12,6 +15,10 @@ async function rateLimiterMiddleware(
   res: Response,
   _next: NextFunction
 ) {
+
+  console.log("[Rate Limiter] processando Rate Limiter");
+  
+
   if (
     process.env.NODE_ENV === "development" ||
     process.env.NODE_ENV === "test"
