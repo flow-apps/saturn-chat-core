@@ -19,13 +19,13 @@ routes.post(
 );
 routes.get("/group/:id", redisCache.route(), groupsController.index);
 routes.get("/group/participants/new/:group_id", participantsController.new);
-routes.get("/group/participants/list", redisCache.route(), participantsController.list);
-routes.get("/group/participant/:group_id", redisCache.route(300), participantsController.index);
+routes.get("/group/participants/list", redisCache.route(60), participantsController.list);
+routes.get("/group/participant/:group_id", redisCache.route(30), participantsController.index);
 routes.get("/group/participant/kick/:participant_id", participantsController.kick);
 routes.get("/group/participant/ban/:participant_id", participantsController.ban);
 routes.post("/group/participant/role/set/:participant_id", participantsController.setRole);
 routes.delete("/group/participant/exit/:id", participantsController.delete)
-routes.get("/groups/list", redisCache.route(5), groupsController.list);
+routes.get("/groups/list", redisCache.route(10), groupsController.list);
 routes.get("/groups/search", redisCache.route(600), groupsController.search);
 routes.delete("/group/:id", groupsController.delete);
 routes.patch("/group/:groupID", groupsController.update);
