@@ -1,4 +1,5 @@
 require("dotenv").config();
+import { DbOptions } from "typeorm"
 
 export default {
   type: "postgres",

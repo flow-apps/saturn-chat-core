@@ -3,6 +3,7 @@ import { InviteType } from "../database/enums/invites";
 import {
   ParticipantRole,
   ParticipantState,
+  ParticipantStatus,
 } from "../database/enums/participants";
 import { AppError } from "../errors/AppError";
 import { InvitesRepository } from "../repositories/InvitesRepository";
@@ -108,9 +109,10 @@ class ParticipantsService {
         },
         android_channel_id: ONESIGNAL.CHANNELS_IDS.NEW_PARTICIPANT,
         data: {
+          type: "NEW_PARTICIPANT",
           participant_user_id: participant.user_id,
           participant_id: participant.id,
-          group_id: participant.group_id
+          group_id: participant.group_id,
         },
       });
     }
@@ -132,6 +134,7 @@ class ParticipantsService {
 
     await participantsRepository.update(participant.id, {
       state: state || ParticipantState.EXITED,
+      status: ParticipantStatus.OFFLINE
     });
 
     return;

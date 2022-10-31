@@ -2,8 +2,9 @@
   "compilerOptions": {
     "lib": ["ES2016"],
     "target": "ES2016",
-    "module": "commonjs",
+    "module": "CommonJS",
     "moduleResolution": "node",
+    "rootDir": ".",
     "outDir": "./build",
     "removeComments": true,
     "allowJs": true,
@@ -13,7 +14,9 @@
     "experimentalDecorators": true,
     "resolveJsonModule": true,
     "sourceMap": true,
+    "noEmit": true,
+    "typeRoots": ["node_modules/@types", "./@types"]
   },
-  "include": ["src"],
+  "include": ["**/*"],
   "exclude": ["node_modules", ".vscode", "uploads", "__tests__"]
 }
