@@ -1,7 +1,7 @@
 import { notificationApi } from "../configs/notificationApi";
 import { AxiosResponse } from "axios";
 import _ from "lodash";
-import { ONESIGNAL_ERROR_TYPE } from "../../@types/enums";
+import { ONESIGNAL_ERROR_TYPE } from "../types/enums";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { getCustomRepository, In } from "typeorm";
 

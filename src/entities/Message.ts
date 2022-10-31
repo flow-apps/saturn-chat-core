@@ -17,7 +17,7 @@ import { File } from "./File";
 import { ReadMessage } from "./ReadMessage";
 import { Participant } from "./Participant";
 
-import { LinkData } from "../../@types/interfaces";
+import { LinkData } from "../types/interfaces";
 
 @Entity({ name: "messages" })
 class Message {

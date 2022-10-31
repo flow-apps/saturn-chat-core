@@ -7,7 +7,7 @@ import { NotificationsService } from "../services/NotificationsService";
 
 import { ONESIGNAL } from "../configs.json";
 import { Time } from "../utils/time";
-import { NotificationsType } from "../../@types/enums";
+import { NotificationsType } from "../types/enums";
 
 io.on("connection", async (socket: ISocketAuthenticated) => {
   const notificationsService = new NotificationsService();
