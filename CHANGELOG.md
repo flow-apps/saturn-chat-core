@@ -2,6 +2,10 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.19.2
+
+- Fix TS Build
+
 ## 0.0.19.1
 
 - Disconnect from group when socket disconnect

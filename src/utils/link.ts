@@ -1,6 +1,6 @@
 import axios from "axios";
 import { load } from "cheerio";
-import { LinkData } from "../../@types/interfaces";
+import { LinkData } from "../types/interfaces";
 
 class LinkUtils {
   getAllLinksFromText(text: string) {

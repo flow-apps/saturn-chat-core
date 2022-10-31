@@ -16,7 +16,7 @@ import { GroupType } from "../database/enums/groups";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
 import { LinkUtils } from "../utils/link";
-import { LinkData } from "../../@types/interfaces";
+import { LinkData } from "../types/interfaces";
 import { SaturnChatDomains } from "../configs.json";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { v4 } from "uuid";
