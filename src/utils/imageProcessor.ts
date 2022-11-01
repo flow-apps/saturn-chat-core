@@ -17,7 +17,7 @@ class ImageProcessor {
       .jpeg({
         mozjpeg: true,
         force: true,
-        chromaSubsampling: "4:4:4",
+        chromaSubsampling: quality <= 90 ? "4:4:4" : "4:2:0",
         progressive: true,
         quality: quality,
       })
@@ -26,14 +26,14 @@ class ImageProcessor {
     return newImage
   }
 
-  async image({ image, quality }: ImageProcessorProps) {
+  async image({ image, quality = 90 }: ImageProcessorProps) {
     const newImage = await sharp(image)
       .jpeg({
         force: false,
-        mozjpeg: true,
-        quality: quality || 90,
-        progressive: true,
+        quality: quality,
+        chromaSubsampling: quality <= 90 ? "4:4:4" : "4:2:0",
       })
+      .withMetadata()
       .toBuffer();
 
     return newImage;
