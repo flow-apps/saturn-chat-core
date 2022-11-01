@@ -1,7 +1,7 @@
 require("dotenv").config();
-import { DbOptions } from "typeorm"
 
 export default {
+
   type: "postgres",
   host: process.env.POSTGRES_HOST,
   port: process.env.POSTGRES_PORT,

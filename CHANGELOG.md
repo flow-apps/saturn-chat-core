@@ -2,6 +2,11 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.19.3
+
+- Fix Message Entity
+- Fix replying message
+
 ## 0.0.19.2
 
 - Fix TS Build

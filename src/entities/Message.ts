@@ -36,7 +36,7 @@ class Message {
   @Column({ nullable: true })
   reply_to_id: string;
 
-  @OneToOne(() => Message, {
+  @ManyToOne(() => Message, {
     nullable: true,
     onDelete: "SET NULL",
     onUpdate: "CASCADE",
