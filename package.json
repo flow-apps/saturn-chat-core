@@ -9,8 +9,9 @@
     "typeorm": "ts-node-dev node_modules/typeorm/cli.js",
     "test": "set NODE_ENV=test && jest -i --detectOpenHandles",
     "audit-fix": "yarn-audit-fix",
-    "build": "yarn && tsc",
-    "start": "node ./dist/src/server.js"
+    "build": "yarn && yarn add typescript && yarn tsc",
+    "start": "node ./dist/src/server.js",
+    "tsc": "tsc"
   },
   "dependencies": {
     "@google-cloud/storage": "^5.8.5",
