@@ -4,7 +4,6 @@ import { join } from "path";
 import { Bucket } from "@google-cloud/storage";
 import { randomBytes } from "crypto";
 import { clearFilename } from "../utils/clear";
-import { ImageProcessor } from "../utils/imageProcessor";
 
 interface UploadFileProps {
   file: Express.Multer.File;
@@ -28,7 +27,6 @@ export interface UploadedFile {
 
 class StorageManager {
   private bucket: Bucket;
-  private imageProcessor = new ImageProcessor();
 
   constructor() {
     this.bucket = storage.bucket(process.env.FIREBASE_STORAGE_URL);
@@ -63,15 +61,6 @@ class StorageManager {
     const randomString = randomBytes(30).toString("hex");
     const filename = `${randomString}_${originalName}`;
     const fileType = file.mimetype.split("/")[0];
-
-    if (fileType === "image") {
-      file.buffer = await this.imageProcessor.image({
-        image: file.buffer,
-        quality: 80,
-      });
-
-      file.size = Buffer.byteLength(file.buffer);
-    }
 
     if (inLocal)
       return this.saveInLocal(file, filename, originalName, fileType);
