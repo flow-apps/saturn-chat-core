@@ -1,7 +1,6 @@
 require("dotenv").config();
 
-export default {
-
+module.exports = {
   type: "postgres",
   host: process.env.POSTGRES_HOST,
   port: process.env.POSTGRES_PORT,
