@@ -8,7 +8,9 @@
     "dev": "ts-node-dev --transpile-only --ignore-watch node_modules src/server.ts",
     "typeorm": "ts-node-dev node_modules/typeorm/cli.js",
     "test": "set NODE_ENV=test && jest -i --detectOpenHandles",
-    "audit-fix": "yarn-audit-fix"
+    "audit-fix": "yarn-audit-fix",
+    "build": "tsc",
+    "start": "node ./dist/src/server.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^5.8.5",
