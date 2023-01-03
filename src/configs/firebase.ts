@@ -3,7 +3,7 @@ import path from "path";
 
 FirebaseAdmin.initializeApp({
   credential: FirebaseAdmin.credential.cert(
-    require(path.join(__dirname, "..", "firebase-key.json"))
+    require(process.env.FIREBASE_KEY_FILE_PATH || path.join(__dirname, "..", "firebase-key.json"))
   ),
 });
 
