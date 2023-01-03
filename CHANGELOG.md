@@ -2,10 +2,6 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
-## 0.0.19.4
-
-- Add process image for uploaded images
-
 ## 0.0.19.3
 
 - Fix Message Entity
