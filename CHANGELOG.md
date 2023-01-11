@@ -2,6 +2,11 @@
 
 For each update, modify this changelog (newest to older) with a subsequent version number.
 
+## 0.0.20.0
+
+- Fix invite requests list
+- Add notification on accept friend invite
+
 ## 0.0.19.3
 
 - Fix Message Entity
