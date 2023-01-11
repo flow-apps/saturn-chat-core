@@ -246,7 +246,11 @@ class InvitesController {
     const friendsRequests = await friendsRepository.find({
       where: [{ state: FriendsState.REQUESTED, received_by_id: req.userId }],
       loadEagerRelations: true,
-    });
+    })
+
+    if (!friendsRequests && !inviteRequests) {
+      return res.json([]);
+    }
 
     const typedInviteRequests = inviteRequests.map((ir) =>
       Object.assign(ir, { type: "GROUP_INVITE" })

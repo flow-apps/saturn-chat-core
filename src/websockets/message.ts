@@ -43,7 +43,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       android_group: data.group_id,
       large_icon: groupAvatar,
       tokens: await messagesService.getParticipantsUserIds(data.group_id, {
-        getOnlines: true,
+        getOnlines: false,
       }),
       data: {
         type: NotificationsType.CHAT_MESSAGE,
@@ -104,7 +104,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     await notificationsService.send({
       name: "Message Notification",
       tokens: await messagesService.getParticipantsUserIds(data.group_id, {
-        getOnlines: true,
+        getOnlines: false,
       }),
       large_icon: groupAvatar,
       android_group: data.group_id,
@@ -162,7 +162,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     await notificationsService.send({
       name: "Message Notification",
       tokens: await messagesService.getParticipantsUserIds(data.group_id, {
-        getOnlines: true,
+        getOnlines: false,
       }),
       large_icon: groupAvatar,
       android_group: data.group_id,

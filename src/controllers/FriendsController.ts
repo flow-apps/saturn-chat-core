@@ -14,14 +14,13 @@ import { GroupsRepository } from "../repositories/GroupsRepository";
 import { InvitesRepository } from "../repositories/InvitesRepository";
 import { MessagesRepository } from "../repositories/MessagesRepository";
 import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
-import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { InvitesService } from "../services/InvitesService";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
 import _ from "lodash";
-import { ONESIGNAL } from "../configs.json";
+import { NotificationsType } from "src/types/enums";
 
 class FriendsController {
   async list(req: RequestAuthenticated, res: Response) {
@@ -67,7 +66,7 @@ class FriendsController {
 
     if (!friendID) throw new AppError("Friend ID not provided", 404);
 
-    const requestedBy = await usersRepository.findOne(userID)
+    const requestedBy = await usersRepository.findOne(userID);
     const existsRequest = await friendsRepository.findOne({
       where: [
         {
@@ -128,6 +127,9 @@ class FriendsController {
     await notificationsService.send({
       name: "Friend Request Notification",
       tokens: [friendID],
+      data: {
+        type: NotificationsType.FRIEND_REQUEST,
+      },
       message: {
         headings: {
           pt: `👥 ${requestedBy.name} quer ser seu amigo`,
@@ -147,9 +149,12 @@ class FriendsController {
     const participantsService = new ParticipantsService();
     const groupsRepository = getCustomRepository(GroupsRepository);
     const friendsRepository = getCustomRepository(FriendsRepository);
+    const notificationsService = new NotificationsService();
     const { state, friend_id } = req.query;
 
-    const friendRequest = await friendsRepository.findOne(String(friend_id));
+    const friendRequest = await friendsRepository.findOne(String(friend_id), {
+      relations: ["requested_by", "received_by"]
+    });
 
     if (!friendRequest) {
       throw new AppError("Friend request not found", 404);
@@ -173,6 +178,7 @@ class FriendsController {
         tags: [],
       });
       await groupsRepository.save(group);
+
       await participantsService.new({
         group_id: group.id,
         user_id: friendRequest.requested_by_id,
@@ -185,8 +191,26 @@ class FriendsController {
       });
 
       await friendsRepository.update(String(friend_id), {
-        state: state === "ACCEPT" ? FriendsState.FRIENDS : FriendsState.NONE,
+        state: FriendsState.FRIENDS,
         chat_id: group.id,
+      });
+
+      await notificationsService.send({
+        name: "Friend Request Accept Notification",
+        tokens: [friendRequest.requested_by_id],
+        data: {
+          type: NotificationsType.FRIEND_REQUEST_ACCEPT,
+        },
+        message: {
+          headings: {
+            pt: `✔ ${friendRequest.received_by.name} aceitou seu pedido de amizade!`,
+            en: `✔ ${friendRequest.received_by.name} accept your friendship request!`,
+          },
+          contents: {
+            pt: "Acesse o menu de 'Amigos' e comece a conversar",
+            en: "Access the menu 'Friends' and start talk",
+          },
+        },
       });
     }
 
