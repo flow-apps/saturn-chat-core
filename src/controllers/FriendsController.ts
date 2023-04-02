@@ -20,7 +20,7 @@ import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
 import { ParticipantsService } from "../services/ParticipantsService";
 import _ from "lodash";
-import { NotificationsType } from "src/types/enums";
+import { NotificationsType } from "../types/enums";
 
 class FriendsController {
   async list(req: RequestAuthenticated, res: Response) {

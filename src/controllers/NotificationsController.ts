@@ -89,6 +89,7 @@ class NotificationsController {
 
     await userNotificationsRepository.update(userNotification.id, {
       send_notification: enable === "yes",
+      is_revoked: false
     });
 
     return res.sendStatus(204);

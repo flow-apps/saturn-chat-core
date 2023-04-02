@@ -92,7 +92,8 @@ class UsersController {
     const friendsRepository = getCustomRepository(FriendsRepository);
     const participantsService = new ParticipantsService();
 
-    let user = await usersRepository.findOne(req.userId, {
+    let user = await usersRepository.findOne({
+      where: { id: req.userId },
       loadEagerRelations: true,
       relations: ["groups"],
     });

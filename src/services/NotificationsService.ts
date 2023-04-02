@@ -98,7 +98,7 @@ class NotificationsService {
                         const userIds = errors[key];
                         await userNotifications.update(
                           { user_id: In(userIds) },
-                          { is_revoked: true, send_notification: false }
+                          { is_revoked: true }
                         );
                       }
                     })

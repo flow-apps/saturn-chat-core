@@ -192,7 +192,9 @@ class GroupsController {
       loadEagerRelations: true,
     });
 
-    const filteredParticipating = participating.filter(part => part.group.type !== GroupType.DIRECT)
+    const filteredParticipating = participating.filter(
+      (part) => part.group.type !== GroupType.DIRECT
+    );
 
     const groupsWithUnreadMessages = await Promise.all(
       filteredParticipating.map(async (participant) => {
@@ -231,12 +233,12 @@ class GroupsController {
         {
           name: ILike(`%${query}%`),
           privacy: Not("PRIVATE"),
-          type: Not(GroupType.DIRECT)
+          type: Not(GroupType.DIRECT),
         },
         {
           tags: Raw((alias) => `${alias} @> :tags`, { tags: [query] }),
           privacy: Not("PRIVATE"),
-          type: Not(GroupType.DIRECT)
+          type: Not(GroupType.DIRECT),
         },
       ],
       skip: Number(_page) * Number(_limit),
@@ -276,17 +278,21 @@ class GroupsController {
       ParticipantRole.OWNER,
     ];
 
-    let dataValidated: { name: string; description: string; privacy: string; tags: string[] | string | any; }
+    let dataValidated: {
+      name: string;
+      description: string;
+      privacy: string;
+      tags: string[] | string | any;
+    };
 
     try {
-      dataValidated = (await schema.validate(body, {
+      dataValidated = await schema.validate(body, {
         abortEarly: false,
         stripUnknown: true,
-      }));
+      });
     } catch (error) {
       throw new AppError(error.errors);
     }
-
 
     const group = await groupsRepository.findOne({
       where: [{ id: groupID, type: Not(GroupType.DIRECT) }],
@@ -303,7 +309,7 @@ class GroupsController {
       throw new AppError("User not authorized for this action", 403);
     }
 
-    dataValidated.name = dataValidated.name.trim()
+    dataValidated.name = dataValidated.name.trim();
     dataValidated.tags = dataValidated.tags
       ? dataValidated.tags
           .trim()

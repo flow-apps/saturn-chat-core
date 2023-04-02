@@ -7,11 +7,11 @@ import { StorageManager } from "../services/StorageManager";
 import { AudiosRepository } from "../repositories/AudiosRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { FilesRepository } from "../repositories/FilesRepository";
-import { ReadMessagesRepository } from "../repositories/ReadMessagesRepository";
 import { GroupType } from "../database/enums/groups";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
 import { ParticipantState } from "../database/enums/participants";
+import { MessagesService } from "../services/MessagesService";
 
 class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
@@ -20,10 +20,15 @@ class MessagesController {
 
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
-    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
+
+    const messagesService = new MessagesService();
 
     const participant = await participantsRepository.findOne({
-      where: { group_id: groupID, user_id: req.userId },
+      where: {
+        group_id: groupID,
+        user_id: req.userId,
+        state: ParticipantState.JOINED,
+      },
       cache: 50000,
     });
 
@@ -50,20 +55,9 @@ class MessagesController {
       order: { created_at: "DESC" },
     });
 
-    Promise.all(
+    await Promise.all(
       messages.map(async (message) => {
-        const isRead = await readMessagesRepository.findOne({
-          where: { message_id: message.id, user_id: req.userId },
-        });
-
-        if (!isRead) {
-          const newMessageRead = readMessagesRepository.create({
-            message_id: message.id,
-            user_id: req.userId,
-            group_id: groupID,
-          });
-          await readMessagesRepository.save(newMessageRead);
-        }
+        await messagesService.readMessage(message.id, req.userId, groupID);
       })
     );
 
@@ -78,16 +72,21 @@ class MessagesController {
     const audiosRepository = getCustomRepository(AudiosRepository);
     const filesRepository = getCustomRepository(FilesRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const messagesService = new MessagesService();
 
     const attachType = String(req.query.type);
     const groupID = req.params.groupID;
 
     const participant = await participantsRepository.findOne({
-      where: { group_id: groupID, user_id: req.userId },
+      where: {
+        group_id: groupID,
+        user_id: req.userId,
+        state: ParticipantState.JOINED,
+      },
       cache: 50000,
     });
 
-    if (!participant || participant.state !== ParticipantState.JOINED) {
+    if (!participant) {
       throw new AppError("Participant not found", 404);
     }
 
@@ -98,7 +97,7 @@ class MessagesController {
           { received_by_id: req.userId, chat_id: groupID },
           { requested_by_id: req.userId, chat_id: groupID },
         ],
-        cache: true
+        cache: true,
       });
 
       if (!friend || friend.state !== FriendsState.FRIENDS) {
@@ -131,10 +130,15 @@ class MessagesController {
         group_id: groupID,
         message: body.message,
         participant_id: participant.id,
-        reply_to_id: body.reply_to_id
+        reply_to_id: body.reply_to_id,
       });
 
       await messageRepository.save(createdMessage);
+      await messagesService.readMessage(
+        createdMessage.id,
+        createdMessage.author_id,
+        groupID
+      );
 
       const files = req.files as Express.Multer.File[];
       const uploadedFiles = await storage.uploadMultipleFiles({

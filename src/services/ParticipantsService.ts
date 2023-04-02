@@ -10,7 +10,7 @@ import { InvitesRepository } from "../repositories/InvitesRepository";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
-import { ONESIGNAL } from "../configs.json"
+import { ONESIGNAL } from "../configs.json";
 import { GroupType } from "../database/enums/groups";
 
 interface INewParticipant {
@@ -94,7 +94,10 @@ class ParticipantsService {
       where: { group_id, user_id: participant.group.owner_id },
     });
 
-    if (participant.group.type !== GroupType.DIRECT) {
+    if (
+      participant.group.type !== GroupType.DIRECT &&
+      participant.role !== ParticipantRole.OWNER
+    ) {
       await notificationsService.send({
         name: "New Participant Notification",
         tokens: [owner.user_id],
@@ -117,7 +120,6 @@ class ParticipantsService {
       });
     }
 
-
     return participant;
   }
 
@@ -134,7 +136,7 @@ class ParticipantsService {
 
     await participantsRepository.update(participant.id, {
       state: state || ParticipantState.EXITED,
-      status: ParticipantStatus.OFFLINE
+      status: ParticipantStatus.OFFLINE,
     });
 
     return;

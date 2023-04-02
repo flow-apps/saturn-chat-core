@@ -3,7 +3,7 @@ import { RateLimiterRedis } from "rate-limiter-flexible";
 import { redisClient } from "../configs/redis";
 
 const rateLimiter = new RateLimiterRedis({
-  points: 30,
+  points: 15,
   duration: 60,
   blockDuration: 600,
   storeClient: redisClient,
@@ -15,14 +15,11 @@ async function rateLimiterMiddleware(
   res: Response,
   _next: NextFunction
 ) {
+  const nodeEnv = process.env.NODE_ENV;
 
   console.log("[Rate Limiter] processando Rate Limiter");
-  
 
-  if (
-    process.env.NODE_ENV === "development" ||
-    process.env.NODE_ENV === "test"
-  ) {
+  if (["test", "development"].includes(nodeEnv)) {
     return _next();
   }
 

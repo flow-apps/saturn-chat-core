@@ -7,10 +7,8 @@ import { MessagesController } from "../controllers/MessagesController";
 const routes = Router();
 const messageController = new MessagesController();
 
-routes.use(authProvider)
-
-routes.get("/messages/:groupID", messageController.list);
-routes.post("/messages/SendAttachment/:groupID",
+routes.get("/messages/:groupID", authProvider, messageController.list);
+routes.post("/messages/SendAttachment/:groupID", authProvider,
   multer(configMulter(120, ["*/*"])).array("attachment"),
   messageController.createAttachment
 );
