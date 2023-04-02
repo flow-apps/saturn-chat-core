@@ -4,7 +4,6 @@ import { configMulter } from "../configs/multer";
 import { NotificationsController } from "../controllers/NotificationsController";
 import { UsersController } from "../controllers/UsersController";
 import { authProvider } from "../middlewares/authProvider";
-import { redisCache } from "../middlewares/redisCache";
 
 const routes = Router();
 const usersController = new UsersController();
@@ -15,8 +14,8 @@ routes.post(
   multer(configMulter(5)).single("avatar"),
   usersController.create
 );
-routes.get("/users", authProvider, redisCache.route(), usersController.index);
-routes.get("/users/@me", authProvider, redisCache.route(10), usersController.me);
+routes.get("/users", authProvider, usersController.index);
+routes.get("/users/@me", authProvider, usersController.me);
 routes.delete("/users", authProvider, usersController.delete);
 routes.patch("/users/update", authProvider, usersController.update);
 routes.patch(

@@ -263,6 +263,7 @@ class ParticipantsController {
       where: {
         user_id: req.userId,
         group_id: query.group_id,
+        state: ParticipantState.JOINED,
         role: In(authorizedRoles),
       },
       relations: ["group"],

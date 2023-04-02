@@ -20,6 +20,7 @@ import { LinkData } from "../types/interfaces";
 import { SaturnChatDomains } from "../configs.json";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { v4 } from "uuid";
+import { AudiosRepository } from "../repositories/AudiosRepository";
 
 interface ICreateMessageProps {
   message: string;
@@ -58,6 +59,7 @@ class MessagesService {
       .find({
         where: {
           group_id: groupID,
+          state: ParticipantState.JOINED,
           status: options.getOnlines
             ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
             : Not(ParticipantStatus.ONLINE),
@@ -82,7 +84,6 @@ class MessagesService {
 
   async create(msgData: ICreateMessageProps) {
     const messageRepository = getCustomRepository(MessagesRepository);
-    const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const participantsService = new ParticipantsService();
 
     const linkUtils = new LinkUtils();
@@ -145,13 +146,6 @@ class MessagesService {
       links: linksData,
     });
     const savedMessage = await messageRepository.save(newMessage);
-    const newReadMessage = readMessagesRepository.create({
-      message_id: savedMessage.id,
-      user_id: savedMessage.author_id,
-      group_id: msgData.group_id,
-    });
-
-    await readMessagesRepository.save(newReadMessage);
     const message = await messageRepository.findOne(savedMessage.id, {
       where: { group_id: savedMessage.group_id },
       relations: [
@@ -164,6 +158,12 @@ class MessagesService {
       ],
       cache: new Time().timeToMS(1, "hour"),
     });
+
+    await this.readMessage(
+      newMessage.id,
+      newMessage.author_id,
+      newMessage.group_id
+    );
 
     return message;
   }
@@ -214,6 +214,11 @@ class MessagesService {
 
       const newMessage = messagesRepository.create(data);
       await messagesRepository.save(newMessage);
+      await this.readMessage(
+        newMessage.id,
+        newMessage.author_id,
+        newMessage.group_id
+      );
       const completedMessage = await messagesRepository.findOne(newMessage.id, {
         loadEagerRelations: true,
         relations: [
@@ -279,9 +284,13 @@ class MessagesService {
   }
 
   async readMessage(messageID: string, userID: string, groupID: string) {
+
+    if (!groupID || !messageID || !userID)
+      return;
+
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const isRead = await readMessagesRepository.findOne({
-      where: { user_id: userID, message_id: messageID },
+      where: { user_id: userID, group_id: groupID, message_id: messageID },
     });
 
     if (!isRead) {
@@ -299,6 +308,7 @@ class MessagesService {
     const storage = new StorageManager();
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
+    const audiosRepository = getCustomRepository(AudiosRepository)
     const message = await messageRepository.findOne(messageID, {
       relations: ["files", "voice_message"],
     });
@@ -323,6 +333,7 @@ class MessagesService {
       await messageRepository.delete(message.id).then(async () => {
         if (message.voice_message)
           await storage.deleteFile(message.voice_message.path);
+          await audiosRepository.delete({ id: message.voice_message_id })
 
         if (message.files.length > 0) {
           await Promise.all(

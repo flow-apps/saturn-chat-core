@@ -8,12 +8,15 @@ import { NotificationsService } from "../services/NotificationsService";
 import { ONESIGNAL } from "../configs.json";
 import { Time } from "../utils/time";
 import { NotificationsType } from "../types/enums";
+import { redisClient } from "../configs/redis";
+import { RedisService } from "../services/RedisService";
 
 io.on("connection", async (socket: ISocketAuthenticated) => {
   const notificationsService = new NotificationsService();
   const messagesService = new MessagesService();
+  const redisService = new RedisService()
   const timeUtils = new Time();
-  
+
   const userID = socket.userID;
 
   socket.on("new_user_message", async (data) => {
@@ -51,6 +54,9 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
         message_id: createdMessage.id,
         author_id: createdMessage.author.id,
         group_id: createdMessage.group.id,
+        group_type: isDM ? GroupType.DIRECT : GroupType.GROUP,
+        friend_name: isDM ? groupName : undefined,
+        friend_id: isDM ? createdMessage.author_id : undefined,
         created_at: createdMessage.created_at,
       },
       android_channel_id: isDM
@@ -114,6 +120,9 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
         message_id: newVoiceMessage.id,
         author_id: newVoiceMessage.author.id,
         group_id: newVoiceMessage.group.id,
+        group_type: isDM ? GroupType.DIRECT : GroupType.GROUP,
+        friend_name: isDM ? groupName : undefined,
+        friend_id: isDM ? newVoiceMessage.author_id : undefined,
         created_at: newVoiceMessage.created_at,
       },
       android_channel_id: isDM
@@ -172,6 +181,9 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
         message_id: newMessageWithFiles.id,
         author_id: newMessageWithFiles.author.id,
         group_id: newMessageWithFiles.group.id,
+        group_type: isDM ? GroupType.DIRECT : GroupType.GROUP,
+        friend_name: isDM ? groupName : undefined,
+        friend_id: isDM ? newMessageWithFiles.author_id : undefined,
         created_at: newMessageWithFiles.created_at,
       },
       android_channel_id: isDM
@@ -201,15 +213,29 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
   socket.on("add_user_typing", async ({ group_id }) => {
     const usersRepository = getCustomRepository(UsersRepository);
     const user = await usersRepository.findOne(userID);
+    const alreadyTyping = await redisClient.exists(
+      `user_typing_${userID}_${group_id}`
+    );
 
-    socket.in(group_id).emit("new_user_typing", user);
+    if (!alreadyTyping) {
+      await redisService.set(`user_typing_${userID}_${group_id}`, "true");
+      socket.in(group_id).emit("new_user_typing", user);
+    }
   });
 
   socket.on("remove_user_typing", async ({ group_id }) => {
+    const isTyping = await redisClient.exists(
+      `user_typing_${userID}_${group_id}`
+    );
+
+    if (isTyping) {
+      await redisService.delete(`user_typing_${userID}_${group_id}`)
+    }
+
     socket.in(group_id).emit("deleted_user_typing", userID);
   });
 
-  socket.on("set_read_message", async ({ message_id, group_id }) => {
+  socket.on("set_read_message", async ({ message_id, group_id }) => {    
     await messagesService.readMessage(message_id, userID, group_id);
   });
 
