@@ -54,7 +54,7 @@ class StorageManager {
 
   async uploadFile({
     file,
-    inLocal = process.env.NODE_ENV === "development" ? true : false,
+    inLocal = process.env.NODE_ENV !== "prod",
     path,
   }: UploadFileProps) {
     const originalName = clearFilename(file.originalname);
@@ -117,7 +117,7 @@ class StorageManager {
 
   async deleteFile(
     path: string,
-    InLocal = process.env.NODE_ENV === "development" ? true : false
+    InLocal = process.env.NODE_ENV !== "prod"
   ) {
     try {
       if (InLocal) {
