@@ -62,7 +62,7 @@ class MessagesService {
           state: ParticipantState.JOINED,
           status: options.getOnlines
             ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
-            : Not(ParticipantStatus.ONLINE),
+            : ParticipantStatus.OFFLINE,
         },
         select: ["user_id"],
       })
@@ -284,9 +284,7 @@ class MessagesService {
   }
 
   async readMessage(messageID: string, userID: string, groupID: string) {
-
-    if (!groupID || !messageID || !userID)
-      return;
+    if (!groupID || !messageID || !userID) return;
 
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
     const isRead = await readMessagesRepository.findOne({
@@ -308,7 +306,7 @@ class MessagesService {
     const storage = new StorageManager();
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
-    const audiosRepository = getCustomRepository(AudiosRepository)
+    const audiosRepository = getCustomRepository(AudiosRepository);
     const message = await messageRepository.findOne(messageID, {
       relations: ["files", "voice_message"],
     });
@@ -333,7 +331,7 @@ class MessagesService {
       await messageRepository.delete(message.id).then(async () => {
         if (message.voice_message)
           await storage.deleteFile(message.voice_message.path);
-          await audiosRepository.delete({ id: message.voice_message_id })
+        await audiosRepository.delete({ id: message.voice_message_id });
 
         if (message.files.length > 0) {
           await Promise.all(

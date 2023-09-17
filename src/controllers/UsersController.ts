@@ -296,7 +296,7 @@ class UsersController {
       file: req.file,
       path: "files/users/avatars",
     });
-
+    
     if (!userAvatar) {
       const createdAvatar = avatarsRepository.create({
         name: uploadedAvatar.name,

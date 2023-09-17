@@ -7,11 +7,11 @@ module.exports = {
   username: process.env.POSTGRES_USERNAME,
   password: process.env.POSTGRES_PASSWORD,
   database:
-    process.env.NODE_ENV !== "prod"
+    process.env.NODE_ENV === "dev"
       ? process.env.POSTGRES_DATABASE_DEV
       : process.env.POSTGRES_DATABASE_PROD,
-  synchronize: false,
-  migrationsRun: true,
+  synchronize: true,
+  migrationsRun: false,
   logging: false,
   entities: ["src/entities/**/*{.ts, .js}"],
   migrations: ["src/database/migrations/**/*{.ts, .js}"],

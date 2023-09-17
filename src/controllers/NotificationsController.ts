@@ -40,10 +40,12 @@ class NotificationsController {
         user_id: req.userId,
         platform: body.platform,
         language: body.language,
+        send_notification: true,
+        is_revoked: false
       });
 
       await userNotificationsRepository.save(newUserNotification);
-      return res.json(newUserNotification)
+      return res.json(newUserNotification);
     }
 
     const merged = userNotificationsRepository.merge(userNotificationsExists, {
@@ -66,7 +68,9 @@ class NotificationsController {
     });
 
     if (userNotificationsExists) {
-      await userNotificationsRepository.delete(userNotificationsExists);
+      await userNotificationsRepository.update(userNotificationsExists, {
+        is_revoked: true,
+      });
       return res.sendStatus(201);
     } else {
       throw new AppError("User not found");
@@ -74,7 +78,7 @@ class NotificationsController {
   }
 
   async toggle(req: RequestAuthenticated, res: Response) {
-    const enable = req.query.enabled as "yes" | "no";
+    const enable = req.query.enabled as "0" | "1";
     const userNotificationsRepository = getCustomRepository(
       UserNotificationsRepository
     );
@@ -88,8 +92,8 @@ class NotificationsController {
     }
 
     await userNotificationsRepository.update(userNotification.id, {
-      send_notification: enable === "yes",
-      is_revoked: false
+      send_notification: enable === "1",
+      is_revoked: false,
     });
 
     return res.sendStatus(204);

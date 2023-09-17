@@ -30,7 +30,7 @@ routes.post(
   notificationsController.register
 );
 routes.patch(
-  "/users/notify/toggle/",
+  "/users/notify/toggle",
   authProvider,
   notificationsController.toggle
 );

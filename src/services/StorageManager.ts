@@ -27,9 +27,11 @@ export interface UploadedFile {
 
 class StorageManager {
   private bucket: Bucket;
+  private inLocal: boolean;
 
   constructor() {
     this.bucket = storage.bucket(process.env.FIREBASE_STORAGE_URL);
+    this.inLocal = process.env.NODE_ENV === "dev"
   }
 
   private async saveInLocal(
@@ -54,15 +56,14 @@ class StorageManager {
 
   async uploadFile({
     file,
-    inLocal = process.env.NODE_ENV !== "prod",
     path,
-  }: UploadFileProps) {
+  }: UploadFileProps) {    
     const originalName = clearFilename(file.originalname);
     const randomString = randomBytes(30).toString("hex");
     const filename = `${randomString}_${originalName}`;
     const fileType = file.mimetype.split("/")[0];
 
-    if (inLocal)
+    if (this.inLocal)
       return this.saveInLocal(file, filename, originalName, fileType);
     try {
       return new Promise<UploadedFile>((resolve, reject) => {
@@ -120,7 +121,7 @@ class StorageManager {
     InLocal = process.env.NODE_ENV !== "prod"
   ) {
     try {
-      if (InLocal) {
+      if (this.inLocal) {
         fs.unlinkSync(join(__dirname, path));
         return;
       }
