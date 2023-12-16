@@ -4,7 +4,7 @@
 
 O *Saturn Chat Core* é o **núcleo** do app [Saturn Chat](https://github.com/flow-apps/saturn-chat-mobile), onde toda a regra de negócio fica.
 
-Aqui é o local onde é feito **todo o cadastro de novo usuários, grupos, onde são criados feitos convites para grupos, e tudo mais que o app mobile faz hoje.**
+Aqui é o local onde é feito **todo o cadastro de novo usuários, grupos, onde são criados os convites para grupos, e tudo mais que o app mobile faz hoje.**
 
 ## 👨‍🏭 Como posso contribuir com projeto?
 
