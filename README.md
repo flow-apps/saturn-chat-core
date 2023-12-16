@@ -1,3 +1,7 @@
+# Saturn Chat Core (API)
+
+![Imagem do Saturn Chat Core](https://github.com/pedrohenriquebraga/portfolio/blob/main/public/projects/saturn-chat-api-project.jpg)
+
 O *Saturn Chat Core* é o **núcleo** do app [Saturn Chat](https://github.com/flow-apps/saturn-chat-mobile), onde toda a regra de negócio fica.
 
 Aqui é o local onde é feito **todo o cadastro de novo usuários, grupos, onde são criados feitos convites para grupos, e tudo mais que o app mobile faz hoje.**
