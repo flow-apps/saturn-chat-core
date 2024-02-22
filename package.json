@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^5.8.5",
-    "axios": "^0.27.2",
+    "axios": "^0.28.0",
     "bcryptjs": "^2.4.3",
     "cheerio": "^1.0.0-rc.12",
     "compression": "^1.7.4",
