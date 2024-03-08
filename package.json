@@ -1,7 +1,7 @@
 {
   "name": "saturn_chat",
   "version": "1.0.0",
-  "description": "Api for app Flow Chat",
+  "description": "Api for app Saturn Chat",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
