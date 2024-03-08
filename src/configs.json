@@ -1,0 +1,15 @@
+{
+  "SaturnChatDomains": ["saturn-chat.vercel.app", "saturnchat.app"],
+  "ONESIGNAL": {
+    "CHANNELS_IDS": {
+      "GROUP_MESSAGES": "ffd1c1c7-be9b-4a72-bd1f-55445e067a42",
+      "FRIEND_MESSAGES": "762b9388-091a-4f62-8f4d-ba90b958e921",
+      "INFOS": "a46a46d2-8fe1-4333-a20a-d1a1a55b1f9d",
+      "NEWS_AND_UPDATES": "e01547c6-65bf-40a8-8808-c56708c78470",
+      "REQUIRED_ACTIONS": "d48c5837-b65b-4207-bedf-21cb28ce1bfb",
+      "NEW_PARTICIPANT": "5993ae78-97ce-48f8-8748-ef326befc52a",
+      "EXIT_PARTICIPANT": "3aff9352-942b-48fe-a5cf-71ceb67cb672",
+      "BAN_AND_KICK": "6145675e-b654-40e4-ba5a-99fb3428dc4d"
+    } 
+  }
+}
