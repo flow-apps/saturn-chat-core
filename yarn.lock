@@ -4040,9 +4040,9 @@ ip-regex@^4.1.0:
   integrity sha512-B9ZWJxHHOHUhUjCPrMpLD4xEq35bUTClHM1S6CBU5ixQnkZmwipwgc96vAd7AAGM9TGHvJR+Uss+/Ak6UphK+Q==
 
 ip@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/ip/-/ip-1.1.5.tgz#bdded70114290828c0a039e72ef25f5aaec4354a"
-  integrity sha1-vd7XARQpCCjAoDnnLvJfWq7ENUo=
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/ip/-/ip-1.1.9.tgz#8dfbcc99a754d07f425310b86a99546b1151e396"
+  integrity sha512-cyRxvOEpNHNtchU3Ln9KC/auJgup87llfQpQ+t5ghoC/UhL16SWzbueiCsdTnWmqAWl7LadfuwhlqmtOaqMHdQ==
 
 ipaddr.js@1.9.1:
   version "1.9.1"
@@ -6340,6 +6340,13 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
+promzard@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/promzard/-/promzard-0.3.0.tgz#26a5d6ee8c7dee4cb12208305acfb93ba382a9ee"
+  integrity sha512-JZeYqd7UAcHCwI+sTOeUDYkvEU+1bQ7iE0UT1MgB/tERkAPkesW46MrpIySzODi+owTjZtiF8Ay5j9m60KmMBw==
+  dependencies:
+    read "1"
+
 property-expr@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/property-expr/-/property-expr-2.0.4.tgz#37b925478e58965031bb612ec5b3260f8241e910"
@@ -6492,6 +6499,16 @@ read-package-json-fast@^2.0.3:
     json-parse-even-better-errors "^2.3.0"
     npm-normalize-package-bin "^1.0.1"
 
+read-package-json@^4.0.0:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/read-package-json/-/read-package-json-4.1.2.tgz#b444d047de7c75d4a160cb056d00c0693c1df703"
+  integrity sha512-Dqer4pqzamDE2O4M55xp1qZMuLPqi4ldk2ya648FOMHRjwMzFhuxVrG04wd0c38IsvkVdr3vgHI6z+QTPdAjrQ==
+  dependencies:
+    glob "^7.1.1"
+    json-parse-even-better-errors "^2.3.0"
+    normalize-package-data "^3.0.0"
+    npm-normalize-package-bin "^1.0.0"
+
 read-package-json@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/read-package-json/-/read-package-json-4.0.1.tgz#da88a38c410344fecb7d840d35f27635e848ea54"
@@ -6521,7 +6538,7 @@ read-pkg@^5.2.0:
     parse-json "^5.0.0"
     type-fest "^0.6.0"
 
-read@^1.0.7, read@~1.0.7:
+read@1, read@^1.0.7, read@~1.0.1, read@~1.0.7:
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/read/-/read-1.0.7.tgz#b3da19bd052431a97671d44a42634adf710b40c4"
   integrity sha1-s9oZvQUkMal2cdRKQmNK33ELQMQ=
@@ -7849,7 +7866,7 @@ v8-to-istanbul@^7.0.0:
     convert-source-map "^1.6.0"
     source-map "^0.7.3"
 
-validate-npm-package-license@^3.0.1:
+validate-npm-package-license@^3.0.1, validate-npm-package-license@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz#fc91f6b9c7ba15c857f4cb2c5defeec39d4f410a"
   integrity sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==
