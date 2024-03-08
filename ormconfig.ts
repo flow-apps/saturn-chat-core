@@ -7,14 +7,14 @@ module.exports = {
   username: process.env.POSTGRES_USERNAME,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
-  synchronize: false,
+  synchronize: true,
   migrationsRun: true,
   logging: false,
-  entities: ["src/entities/**/*{.ts, .js}"],
-  migrations: ["src/database/migrations/**/*{.ts, .js}"],
+  entities: [process.env.TYPEORM_ENTITIES_PATH],
+  migrations: [process.env.TYPEORM_MIGRATIONS_PATH],
   cli: {
-    entitiesDir: "src/entities",
-    migrationsDir: "src/database/migrations",
+    entitiesDir: process.env.TYPEORM_ENTITIES_CLI_PATH,
+    migrationsDir: process.env.TYPEORM_MIGRATIONS_CLI_PATH,
   },
   autoSchemaSync: true
 };
