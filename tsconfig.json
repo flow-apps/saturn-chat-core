@@ -4,7 +4,8 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "baseUrl": "./",
-    "outDir": "dist",
+    "outDir": "./dist",
+    "rootDirs": ["./src", "./"],
     "skipLibCheck": true,
     "removeComments": true,
     "allowJs": true,
@@ -15,5 +16,6 @@
     "resolveJsonModule": true,
     "sourceMap": true,
   },
+  "include": ["**/*", "./src/firebase-key.json"],
   "exclude": ["node_modules", "__tests__", "jest.*", "build", "**/*spec.ts", "dist"]
 }

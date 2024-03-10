@@ -10,12 +10,14 @@ function handlerError(
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       message: err.message,
+      reason: err.reason
     });
   }
 
   console.error(err);
   return res.status(500).json({
     message: `Internal server error.`,
+    reason: err.message
   });
 }
 

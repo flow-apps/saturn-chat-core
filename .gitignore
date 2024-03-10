@@ -6,8 +6,6 @@ tmp/
 temp/
 .env
 uploads
-firebase-key.json
 *.sqlite
 *.log
 dist
-configs.json

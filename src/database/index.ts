@@ -14,6 +14,9 @@ export default async (): Promise<Connection> => {
     })
   );
 
-  await connection.runMigrations();
-  return connection;
+  console.log("Conexão com banco de dados estabelecida");
+  
+
+  await connection.runMigrations()
+  return connection
 };
