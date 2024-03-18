@@ -26,7 +26,7 @@ async function rateLimiterMiddleware(
     .consume(req.ip)
     .then(() => _next())
     .catch((error) => {
-      throw new AppError("Too many requests", 429, error)
+      res.status(429).json({ message: "Too many requests" })
     });
 }
 
