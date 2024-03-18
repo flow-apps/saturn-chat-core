@@ -33,20 +33,21 @@ io.on("connection", (socket: ISocketAuthenticated) => {
   });
 
   socket.on("leave_chat", async () => {
-    const data = JSON.parse(await cacheService.get(`room_user_${userID}`));
+    const cachedData = await cacheService.get(`room_user_${userID}`);
 
-    if (data) {
-      console.log(
-        `[ Websocket ] desconectando socket ${data.socket_id} do grupo ${data.group_id}`
-      );
+    if (!cachedData) return;
 
-      participantsRepository.update(data.participant_id, {
-        status: ParticipantStatus.OFFLINE,
-      });
-      await cacheService.delete(`room_user_${userID}`);
-      socket.in(data.group_id).emit("new_user_offline", userID);
-    }
+    const data = JSON.parse(cachedData);
 
+    console.log(
+      `[ Websocket ] desconectando socket ${data.socket_id} do grupo ${data.group_id}`
+    );
+
+    participantsRepository.update(data.participant_id, {
+      status: ParticipantStatus.OFFLINE,
+    });
+    await cacheService.delete(`room_user_${userID}`);
+    socket.in(data.group_id).emit("new_user_offline", userID);
   });
 
   socket.on("exit_group", async (participantID: string) => {

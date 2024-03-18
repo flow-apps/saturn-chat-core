@@ -13,7 +13,7 @@ import { CacheService } from "../services/CacheService";
 io.on("connection", async (socket: ISocketAuthenticated) => {
   const notificationsService = new NotificationsService();
   const messagesService = new MessagesService();
-  const cacheService = new CacheService()
+  const cacheService = new CacheService();
   const timeUtils = new Time();
 
   const userID = socket.userID;
@@ -26,7 +26,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       reply_to_id: data.reply_to_id,
     });
 
-    const isDM = createdMessage.group.type === GroupType.DIRECT;    
+    const isDM = createdMessage.group.type === GroupType.DIRECT;
 
     const groupName = isDM
       ? createdMessage.author.name
@@ -45,10 +45,13 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       name: "Message Notification",
       android_group: data.group_id,
       large_icon: groupAvatar,
-      tokens: await messagesService.getParticipantsUserIds(createdMessage.group_id, {
-        getOnlines: false,
-        excludedIds: [createdMessage.author_id]
-      }),
+      tokens: await messagesService.getParticipantsUserIds(
+        createdMessage.group_id,
+        {
+          getOnlines: false,
+          excludedIds: [createdMessage.author_id],
+        }
+      ),
       data: {
         type: NotificationsType.CHAT_MESSAGE,
         open_in_app: true,
@@ -110,10 +113,13 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
 
     await notificationsService.send({
       name: "Message Notification",
-      tokens: await messagesService.getParticipantsUserIds(newVoiceMessage.group_id, {
-        getOnlines: false,
-        excludedIds: [newVoiceMessage.author_id]
-      }),
+      tokens: await messagesService.getParticipantsUserIds(
+        newVoiceMessage.group_id,
+        {
+          getOnlines: false,
+          excludedIds: [newVoiceMessage.author_id],
+        }
+      ),
       large_icon: groupAvatar,
       android_group: data.group_id,
       data: {
@@ -172,10 +178,13 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
 
     await notificationsService.send({
       name: "Message Notification",
-      tokens: await messagesService.getParticipantsUserIds(newMessageWithFiles.group_id, {
-        getOnlines: false,
-        excludedIds: [newMessageWithFiles.author_id]
-      }),
+      tokens: await messagesService.getParticipantsUserIds(
+        newMessageWithFiles.group_id,
+        {
+          getOnlines: false,
+          excludedIds: [newMessageWithFiles.author_id],
+        }
+      ),
       large_icon: groupAvatar,
       android_group: data.group_id,
       data: {
@@ -218,7 +227,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     const user = await usersRepository.findOne(userID);
     const alreadyTyping = await cacheService.verifyExistKey(
       `user_typing_${userID}_${group_id}`
-    );    
+    );
 
     if (!alreadyTyping) {
       await cacheService.set(`user_typing_${userID}_${group_id}`, "true");
@@ -232,13 +241,13 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
     );
 
     if (isTyping) {
-      await cacheService.delete(`user_typing_${userID}_${group_id}`)
+      await cacheService.delete(`user_typing_${userID}_${group_id}`);
     }
 
     socket.in(group_id).emit("deleted_user_typing", userID);
   });
 
-  socket.on("set_read_message", async ({ message_id, group_id }) => { 
+  socket.on("set_read_message", async ({ message_id, group_id }) => {
     await messagesService.readMessage(message_id, userID, group_id);
   });
 
