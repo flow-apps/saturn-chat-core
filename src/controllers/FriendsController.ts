@@ -282,7 +282,7 @@ class FriendsController {
             where: {
               type: InviteType.FRIEND,
               friend_id: friend.id,
-              sended_by_id: userID,
+              group_id
             },
           });
 
