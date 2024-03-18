@@ -236,7 +236,7 @@ class GroupsController {
           type: Not(GroupType.DIRECT),
         },
         {
-          tags: Raw((alias) => `${alias} @> :tags`, { tags: [query] }),
+          tags: Raw((alias) => `${alias} @> :tags`, { tags: [query.toLowerCase()] }),
           privacy: Not("PRIVATE"),
           type: Not(GroupType.DIRECT),
         },

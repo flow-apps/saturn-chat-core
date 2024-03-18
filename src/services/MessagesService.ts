@@ -46,6 +46,7 @@ interface IGetMessageWithFilesProps {
 
 interface IGetUserIDsOptions {
   getOnlines?: boolean;
+  excludedIds?: string[];
 }
 
 class MessagesService {
@@ -59,6 +60,7 @@ class MessagesService {
       .find({
         where: {
           group_id: groupID,
+          user_id: options.excludedIds ? Not(options.excludedIds) : undefined,
           state: ParticipantState.JOINED,
           status: options.getOnlines
             ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])

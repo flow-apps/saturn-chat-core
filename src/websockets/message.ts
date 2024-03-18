@@ -8,13 +8,12 @@ import { NotificationsService } from "../services/NotificationsService";
 import { ONESIGNAL } from "../configs.json";
 import { Time } from "../utils/time";
 import { NotificationsType } from "../types/enums";
-import { redisClient } from "../configs/redis";
-import { RedisService } from "../services/RedisService";
+import { CacheService } from "../services/CacheService";
 
 io.on("connection", async (socket: ISocketAuthenticated) => {
   const notificationsService = new NotificationsService();
   const messagesService = new MessagesService();
-  const redisService = new RedisService()
+  const cacheService = new CacheService()
   const timeUtils = new Time();
 
   const userID = socket.userID;
@@ -27,7 +26,8 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       reply_to_id: data.reply_to_id,
     });
 
-    const isDM = createdMessage.group.type === GroupType.DIRECT;
+    const isDM = createdMessage.group.type === GroupType.DIRECT;    
+
     const groupName = isDM
       ? createdMessage.author.name
       : createdMessage.group.name;
@@ -47,6 +47,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       large_icon: groupAvatar,
       tokens: await messagesService.getParticipantsUserIds(createdMessage.group_id, {
         getOnlines: false,
+        excludedIds: [createdMessage.author_id]
       }),
       data: {
         type: NotificationsType.CHAT_MESSAGE,
@@ -111,6 +112,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       name: "Message Notification",
       tokens: await messagesService.getParticipantsUserIds(newVoiceMessage.group_id, {
         getOnlines: false,
+        excludedIds: [newVoiceMessage.author_id]
       }),
       large_icon: groupAvatar,
       android_group: data.group_id,
@@ -172,6 +174,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       name: "Message Notification",
       tokens: await messagesService.getParticipantsUserIds(newMessageWithFiles.group_id, {
         getOnlines: false,
+        excludedIds: [newMessageWithFiles.author_id]
       }),
       large_icon: groupAvatar,
       android_group: data.group_id,
@@ -213,29 +216,29 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
   socket.on("add_user_typing", async ({ group_id }) => {
     const usersRepository = getCustomRepository(UsersRepository);
     const user = await usersRepository.findOne(userID);
-    const alreadyTyping = await redisClient.exists(
+    const alreadyTyping = await cacheService.verifyExistKey(
       `user_typing_${userID}_${group_id}`
-    );
+    );    
 
     if (!alreadyTyping) {
-      await redisService.set(`user_typing_${userID}_${group_id}`, "true");
+      await cacheService.set(`user_typing_${userID}_${group_id}`, "true");
       socket.in(group_id).emit("new_user_typing", user);
     }
   });
 
   socket.on("remove_user_typing", async ({ group_id }) => {
-    const isTyping = await redisClient.exists(
+    const isTyping = await cacheService.verifyExistKey(
       `user_typing_${userID}_${group_id}`
     );
 
     if (isTyping) {
-      await redisService.delete(`user_typing_${userID}_${group_id}`)
+      await cacheService.delete(`user_typing_${userID}_${group_id}`)
     }
 
     socket.in(group_id).emit("deleted_user_typing", userID);
   });
 
-  socket.on("set_read_message", async ({ message_id, group_id }) => {    
+  socket.on("set_read_message", async ({ message_id, group_id }) => { 
     await messagesService.readMessage(message_id, userID, group_id);
   });
 

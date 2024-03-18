@@ -3,12 +3,12 @@ import { io, ISocketAuthenticated } from ".";
 import { ParticipantStatus } from "../database/enums/participants";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { ParticipantsService } from "../services/ParticipantsService";
-import { RedisService } from "../services/RedisService";
+import { CacheService } from "../services/CacheService";
 
 io.on("connection", (socket: ISocketAuthenticated) => {
   const participantsRepository = getCustomRepository(ParticipantsRepository);
   const participants = new ParticipantsService();
-  const redis = new RedisService();
+  const cacheService = new CacheService();
 
   const userID = socket.userID;
 
@@ -22,7 +22,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
       });
     }
 
-    await redis.set(`room_user_${userID}`, {
+    await cacheService.set(`room_user_${userID}`, {
       participant_id: participant.id,
       group_id: id,
       socket_id: socket.id,
@@ -33,7 +33,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
   });
 
   socket.on("leave_chat", async () => {
-    const data = JSON.parse(await redis.get(`room_user_${userID}`));
+    const data = JSON.parse(await cacheService.get(`room_user_${userID}`));
 
     if (data) {
       console.log(
@@ -43,7 +43,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
       participantsRepository.update(data.participant_id, {
         status: ParticipantStatus.OFFLINE,
       });
-      await redis.delete(`room_user_${userID}`);
+      await cacheService.delete(`room_user_${userID}`);
       socket.in(data.group_id).emit("new_user_offline", userID);
     }
 
@@ -56,7 +56,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
   });
 
   socket.on("disconnect", async () => {
-    const data = JSON.parse(await redis.get(`room_user_${userID}`));
+    const data = JSON.parse(await cacheService.get(`room_user_${userID}`));
 
     if (data) {
       if (data.participant_id) {
@@ -65,7 +65,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
         });
       }
 
-      await redis.delete(`room_user_${userID}`);
+      await cacheService.delete(`room_user_${userID}`);
     }
   });
 });

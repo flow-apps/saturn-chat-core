@@ -25,7 +25,7 @@ startTasks()
 const app = express();
 const http = createServer(app);
 
-app.use(morgan("tiny"))
+app.use(morgan("dev"))
 app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(fakePoweredBy);
