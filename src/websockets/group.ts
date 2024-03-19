@@ -57,16 +57,18 @@ io.on("connection", (socket: ISocketAuthenticated) => {
   });
 
   socket.on("disconnect", async () => {
-    const data = JSON.parse(await cacheService.get(`room_user_${userID}`));
+    const cachedData = await cacheService.get(`room_user_${userID}`);
 
-    if (data) {
-      if (data.participant_id) {
-        participantsRepository.update(data.participant_id, {
-          status: ParticipantStatus.OFFLINE,
-        });
-      }
+    if (!cachedData) return;
 
-      await cacheService.delete(`room_user_${userID}`);
+    const data = JSON.parse(cachedData);
+
+    if (data.participant_id) {
+      participantsRepository.update(data.participant_id, {
+        status: ParticipantStatus.OFFLINE,
+      });
     }
+
+    await cacheService.delete(`room_user_${userID}`);
   });
 });
