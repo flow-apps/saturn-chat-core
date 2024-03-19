@@ -1,3 +1,5 @@
+import path from "path";
+
 require("dotenv").config();
 
 module.exports = {
@@ -10,11 +12,11 @@ module.exports = {
   synchronize: true,
   migrationsRun: true,
   logging: false,
-  entities: [process.env.TYPEORM_ENTITIES_PATH],
-  migrations: [process.env.TYPEORM_MIGRATIONS_PATH],
+  entities: [path.join(__dirname, process.env.TYPEORM_ENTITIES_PATH)],
+  migrations: [path.join(__dirname, process.env.TYPEORM_MIGRATIONS_PATH)],
   cli: {
-    entitiesDir: process.env.TYPEORM_ENTITIES_CLI_PATH,
-    migrationsDir: process.env.TYPEORM_MIGRATIONS_CLI_PATH,
+    entitiesDir: path.join(__dirname, process.env.TYPEORM_ENTITIES_CLI_PATH),
+    migrationsDir: path.join(__dirname, process.env.TYPEORM_MIGRATIONS_CLI_PATH),
   },
   autoSchemaSync: true,
 };
