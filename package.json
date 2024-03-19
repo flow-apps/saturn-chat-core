@@ -5,11 +5,11 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "set NODE_ENV=development && ts-node-dev --transpile-only --ignore-watch node_modules src/server.ts",
+    "dev": "set NODE_ENV=development&& ts-node-dev --transpile-only --ignore-watch node_modules src/server.ts",
     "start": "node ./dist/src/server.js",
     "build": "tsc -p .",
     "typeorm": "ts-node node_modules/typeorm/cli.js",
-    "test": "set NODE_ENV=test && jest -i --detectOpenHandles",
+    "test": "set NODE_ENV=test&& jest -i --detectOpenHandles",
     "audit-fix": "yarn-audit-fix"
   },
   "dependencies": {
