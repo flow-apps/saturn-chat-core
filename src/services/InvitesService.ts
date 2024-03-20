@@ -96,6 +96,15 @@ class InvitesService {
       return completedInvite;
     }
   }
+
+  async checkHasInvites(userID: string) {
+    const invitesRepository = getCustomRepository(InvitesRepository);
+    const hasInvites = await invitesRepository.findOne({
+      where: { received_by_id: userID },
+    });
+
+    return !!hasInvites;
+  }
 }
 
 export { InvitesService };
