@@ -13,7 +13,10 @@ import crypto from "crypto";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { Invite } from "../entities/Invite";
 import { Participant } from "../entities/Participant";
-import { ParticipantRole } from "../database/enums/participants";
+import {
+  ParticipantRole,
+  ParticipantState,
+} from "../database/enums/participants";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { InviteType } from "../database/enums/invites";
 import { FriendsRepository } from "../repositories/FriendsRepository";
@@ -167,13 +170,11 @@ class InvitesController {
       where: [{ invite_code: inviteID }, { id: inviteID }],
     });
 
-    if (!invite) 
-      throw new AppError("Invite invalid");
+    if (!invite) throw new AppError("Invite invalid");
 
     const isValid = await isValidInvite(invite);
 
-    if (!isValid) 
-      throw new AppError("Invite invalid");
+    if (!isValid) throw new AppError("Invite invalid");
 
     const participant = await participantsService.new({
       group_id: invite.group_id,
@@ -238,6 +239,7 @@ class InvitesController {
   async listRequests(req: RequestAuthenticated, res: Response) {
     const invitesRepository = getCustomRepository(InvitesRepository);
     const friendsRepository = getCustomRepository(FriendsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
 
     const inviteRequests = await invitesRepository.find({
       where: [{ type: InviteType.FRIEND, received_by_id: req.userId }],
@@ -246,14 +248,23 @@ class InvitesController {
     const friendsRequests = await friendsRepository.find({
       where: [{ state: FriendsState.REQUESTED, received_by_id: req.userId }],
       loadEagerRelations: true,
-    })
+    });
 
     if (!friendsRequests && !inviteRequests) {
       return res.json([]);
     }
 
-    const typedInviteRequests = inviteRequests.map((ir) =>
-      Object.assign(ir, { type: "GROUP_INVITE" })
+    const typedInviteRequests = await Promise.all(
+      inviteRequests.map(async (ir) => {
+        const participantsAmount = await participantsRepository.count({
+          where: [{ state: ParticipantState.JOINED, group_id: ir.group_id }],
+        });
+
+        Object.assign(ir, {
+          type: "GROUP_INVITE",
+          participants_amount: participantsAmount,
+        });
+      })
     );
     const typedFriendsRequests = friendsRequests.map((fr) =>
       Object.assign(fr, { type: "FRIEND_REQUEST" })
