@@ -31,7 +31,9 @@ class StorageManager {
 
   constructor() {
     this.bucket = storage.bucket(process.env.FIREBASE_STORAGE_URL);
-    this.inLocal = process.env.NODE_ENV === "dev"
+    this.inLocal = process.env.NODE_ENV === "development"
+    console.log("[STORAGE] usando bucket local:", this.inLocal);
+    
   }
 
   private async saveInLocal(
@@ -40,15 +42,16 @@ class StorageManager {
     original_name: string,
     fileType: string
   ) {
+    
     fs.writeFileSync(
-      join(__dirname, "..", "..", "uploads", "files", filename),
+      join(process.cwd(), "uploads", "files", filename),
       file.buffer
     );
     return {
       name: filename,
       original_name,
       url: `${process.env.API_URL}/uploads/${filename}`,
-      path: join("..", "..", "uploads", "files", filename),
+      path: join(process.cwd(), "uploads", "files", filename),
       size: file.size,
       type: fileType,
     };
@@ -117,12 +120,11 @@ class StorageManager {
   }
 
   async deleteFile(
-    path: string,
-    InLocal = process.env.NODE_ENV !== "prod"
+    path: string
   ) {
     try {
       if (this.inLocal) {
-        fs.unlinkSync(join(__dirname, path));
+        fs.unlinkSync(join(path));
         return;
       }
       await this.bucket.file(path).delete();

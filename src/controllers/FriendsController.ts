@@ -281,7 +281,7 @@ class FriendsController {
           const hasInvite = await invitesRepository.findOne({
             where: {
               type: InviteType.FRIEND,
-              friend_id: friend.id,
+              received_by_id: friendID,
               group_id
             },
           });
