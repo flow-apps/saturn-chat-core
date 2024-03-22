@@ -260,15 +260,16 @@ class InvitesController {
           where: [{ state: ParticipantState.JOINED, group_id: ir.group_id }],
         });
 
-        Object.assign(ir, {
+        return Object.assign(ir, {
           type: "GROUP_INVITE",
           participants_amount: participantsAmount,
         });
       })
     );
-    const typedFriendsRequests = friendsRequests.map((fr) =>
-      Object.assign(fr, { type: "FRIEND_REQUEST" })
-    );
+
+    const typedFriendsRequests = friendsRequests.map((fr) => {
+      return Object.assign(fr, { type: "FRIEND_REQUEST" });
+    });
 
     return res.json([...typedFriendsRequests, ...typedInviteRequests]);
   }
