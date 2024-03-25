@@ -68,6 +68,10 @@
     "yarn-audit-fix": "^6.4.3"
   },
   "resolutions": {
-    "@types/node": "^10.11.6"
+    "@types/node": "^10.11.6",
+    "stream-shift": "1.0.2"
+  },
+  "overrides": {
+    "stream-shift": "1.0.2"
   }
 }
