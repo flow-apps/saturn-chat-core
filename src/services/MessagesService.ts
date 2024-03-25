@@ -116,7 +116,7 @@ class MessagesService {
     }
 
     const schema = Yup.object().shape({
-      message: Yup.string().max(500),
+      message: Yup.string().max(5000),
       group_id: Yup.string().required(),
       author_id: Yup.string().required(),
       reply_to_id: Yup.string(),
