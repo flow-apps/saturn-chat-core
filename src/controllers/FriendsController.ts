@@ -153,7 +153,7 @@ class FriendsController {
     const { state, friend_id } = req.query;
 
     const friendRequest = await friendsRepository.findOne(String(friend_id), {
-      relations: ["requested_by", "received_by"]
+      relations: ["requested_by", "received_by"],
     });
 
     if (!friendRequest) {
@@ -273,15 +273,12 @@ class FriendsController {
             : friend.received_by_id;
         const isPart = await participantsService.index(friendID, group_id);
 
-        if (!isPart) {
-          return Object.assign(friend, { invited: false });
-        }
-
-        if (isPart.state !== ParticipantState.JOINED) {
+        if (!isPart || isPart.state !== ParticipantState.JOINED) {
           const hasInvite = await invitesRepository.findOne({
             where: {
-              type: InviteType.FRIEND,
-              group_id
+              friend_id: friend.id,
+              received_by_id: friendID,
+              group_id: group_id,
             },
           });
 

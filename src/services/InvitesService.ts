@@ -67,7 +67,7 @@ class InvitesService {
       }
 
       const hasInvite = await invitesRepository.findOne({
-        where: { friend_id: areFriends.id, received_by_id: invited_user_id },
+        where: { friend_id: areFriends.id, received_by_id: invited_user_id, group_id },
       });
 
       if (hasInvite) throw new AppError("Invite already exists");
