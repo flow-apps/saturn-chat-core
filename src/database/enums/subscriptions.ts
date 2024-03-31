@@ -17,3 +17,9 @@ export enum CancelReasonType {
   REPLACE = 2,
   DEVELOPER = 3
 }
+
+export enum SubscriptionPeriod {
+  MONTHLY = 0,
+  QUARTERLY = 1,
+  YEARLY = 2
+}

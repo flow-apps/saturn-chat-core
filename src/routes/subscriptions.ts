@@ -6,6 +6,7 @@ import { validatePremium } from "../middlewares/validatePremium";
 const routes = Router();
 const subscriptionsController = new SubscriptionsController();
 
+routes.get("/subscriptions", authProvider, subscriptionsController.get);
 routes.get(
   "/subscriptions/validate",
   authProvider,

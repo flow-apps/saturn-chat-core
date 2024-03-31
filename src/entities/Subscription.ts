@@ -12,6 +12,7 @@ import {
   CancelReasonType,
   PaymentState,
   PurchaseType,
+  SubscriptionPeriod,
 } from "../database/enums/subscriptions";
 
 @Entity({ name: "subscriptions" })
@@ -42,6 +43,9 @@ class Subscription {
 
   @Column({ type: "enum", enum: CancelReasonType, nullable: true })
   cancel_reason: CancelReasonType;
+
+  @Column({ type: "enum", enum: SubscriptionPeriod, default: SubscriptionPeriod.MONTHLY })
+  subscription_period: SubscriptionPeriod;
 
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: "CASCADE",

@@ -14,7 +14,7 @@ export const validatePremium = async (
   console.log("AQUUUi");
   
   const subscriptionsService = new SubscriptionsService();
-  const subscription = await subscriptionsService.get(req.userId, true, false);
+  const subscription = await subscriptionsService.get(req.userId, true, true);
 
   if (!subscription) {
     req.isPremium = false;

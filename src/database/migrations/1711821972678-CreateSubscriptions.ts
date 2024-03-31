@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
-import { PaymentState } from "../enums/subscriptions";
+import { PaymentState, SubscriptionPeriod } from "../enums/subscriptions";
 
 export class CreateSubscriptions1711821972678 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -29,6 +29,12 @@ export class CreateSubscriptions1711821972678 implements MigrationInterface {
             name: "payment_state",
             type: "integer",
             default: PaymentState.PENDENT,
+          },
+          {
+            name: "subscription_period",
+            type: "integer",
+            default: SubscriptionPeriod.MONTHLY,
+            isNullable: true
           },
           {
             name: "purchase_type",

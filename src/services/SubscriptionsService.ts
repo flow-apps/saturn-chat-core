@@ -8,6 +8,10 @@ import { subcriptionsAPI } from "../configs/playStoreService";
 
 class SubscriptionsService {
   async isActive(subscription: Subscription) {
+
+    if (!subscription)
+      return false
+
     if (subscription.payment_state === PaymentState.PENDENT) {
       return false;
     }

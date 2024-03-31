@@ -7,10 +7,27 @@ import { AppError } from "../errors/AppError";
 
 import * as Yup from "yup";
 import { RequestPremium } from "../middlewares/validatePremium";
+import { SubscriptionsService } from "../services/SubscriptionsService";
+import { SubscriptionPeriod } from "../database/enums/subscriptions";
 
 class SubscriptionsController {
+  async get(req: RequestAuthenticated, res: Response) {
+    const subscriptionsService = new SubscriptionsService();
+    const subscription = await subscriptionsService.get(
+      req.userId,
+      true,
+      false
+    );
+
+    if (!subscription) return res.json({ hasSubscription: false });
+
+    const isActive = await subscriptionsService.isActive(subscription);
+
+    return res.json({ ...subscription, hasSubscription: true, isActive });
+  }
+
   async register(req: RequestAuthenticated, res: Response) {
-    const { purchase_token, product_id, package_name } = req.body;
+    const { purchase_token, product_id, package_name, period } = req.body;
     const subscriptionsRepository = getCustomRepository(
       SubscriptionsRepository
     );
@@ -19,6 +36,7 @@ class SubscriptionsController {
       purchase_token: Yup.string().required(),
       product_id: Yup.string().required(),
       package_name: Yup.string().required(),
+      period: Yup.string().required()
     });
 
     try {
@@ -64,6 +82,7 @@ class SubscriptionsController {
             package_name,
             subscription_id: product_id,
             auto_renewing: subscription.autoRenewing,
+            subscription_period: SubscriptionPeriod[String(period).toUpperCase()],
             cancel_reason: subscription.cancelReason
               ? subscription.cancelReason
               : null,
@@ -88,6 +107,7 @@ class SubscriptionsController {
         package_name,
         subscription_id: product_id,
         auto_renewing: subscription.autoRenewing,
+        subscription_period: SubscriptionPeriod[String(period).toUpperCase()],
         cancel_reason: subscription.cancelReason
           ? subscription.cancelReason
           : null,
@@ -111,7 +131,7 @@ class SubscriptionsController {
     }
   }
 
-  async isActive(req: RequestPremium, res: Response) {    
+  async isActive(req: RequestPremium, res: Response) {
     return res.json({ isActive: req.isPremium });
   }
 }
