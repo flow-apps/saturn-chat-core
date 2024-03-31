@@ -40,7 +40,7 @@ class Subscription {
   @Column({ type: "boolean" })
   auto_renewing: boolean;
 
-  @Column({ type: "enum", enum: CancelReasonType })
+  @Column({ type: "enum", enum: CancelReasonType, nullable: true })
   cancel_reason: CancelReasonType;
 
   @ManyToOne(() => User, (user) => user.id, {
@@ -52,13 +52,13 @@ class Subscription {
   @JoinColumn({ name: "user_id" })
   user: User;
 
-  @Column({ type: "integer" })
+  @Column({ type: "bigint" })
   started_at: number;
 
-  @Column({ type: "integer" })
+  @Column({ type: "bigint" })
   expiry_in: number;
 
-  @Column({ type: "integer", nullable: true })
+  @Column({ type: "bigint", nullable: true })
   resume_in: number;
 
   constructor() {
