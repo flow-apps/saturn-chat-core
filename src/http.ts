@@ -17,15 +17,16 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import cors from "cors";
+import { subscriptionsRoutes } from "./routes/subscriptions";
 
-process.on("unhandledRejection", console.error)
-createConnection()
-startTasks()
+process.on("unhandledRejection", console.error);
+createConnection();
+startTasks();
 
 const app = express();
 const http = createServer(app);
 
-app.use(morgan("dev"))
+app.use(morgan("dev"));
 app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(fakePoweredBy);
@@ -36,13 +37,14 @@ app.use(
   "/uploads",
   express.static(path.join(__dirname, "..", "uploads", "files"))
 );
-app.use(appRoutes)
+app.use(appRoutes);
 app.use(inviteRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(groupRoutes);
 app.use(messageRoutes);
-app.use(friendRoutes)
+app.use(friendRoutes);
+app.use(subscriptionsRoutes);
 app.use(handlerError);
 
 export { http };

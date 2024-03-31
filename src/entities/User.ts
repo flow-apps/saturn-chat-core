@@ -15,6 +15,7 @@ import { Group } from "./Group";
 import { Invite } from "./Invite";
 import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
+import { Subscription } from "./Subscription";
 
 @Entity({ name: "users" })
 class User {
@@ -51,6 +52,10 @@ class User {
   @OneToMany(() => Group, (group) => group.owner)
   @JoinColumn()
   groups: Group[];
+
+  @OneToMany(() => Subscription, (sub) => sub.user)
+  @JoinColumn()
+  subscriptions: Subscription[];
 
   @OneToMany(() => Friend, friend => friend.requested_by)
   @JoinColumn()
