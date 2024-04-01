@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { RateLimiterMemory } from "rate-limiter-flexible";
-import { AppError } from "../errors/AppError";
 
 const rateLimiter = new RateLimiterMemory({
   points: 15,
   duration: 60,
-  blockDuration: 600,
+  blockDuration: 60,
   keyPrefix: "rate_limiter"
 });
 

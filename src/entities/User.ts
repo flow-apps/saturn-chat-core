@@ -7,6 +7,7 @@ import {
   JoinColumn,
   OneToMany,
   UpdateDateColumn,
+  AfterLoad,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
@@ -16,7 +17,9 @@ import { Invite } from "./Invite";
 import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
 import { Subscription } from "./Subscription";
+import { SubscriptionsService } from "../services/SubscriptionsService";
 
+const subscriptionsService = new SubscriptionsService();
 @Entity({ name: "users" })
 class User {
   @PrimaryColumn()
@@ -44,10 +47,10 @@ class User {
 
   @OneToOne(() => UserNotification, {
     nullable: true,
-    cascade: true
+    cascade: true,
   })
   @JoinColumn()
-  user_notifications: UserNotification
+  user_notifications: UserNotification;
 
   @OneToMany(() => Group, (group) => group.owner)
   @JoinColumn()
@@ -57,11 +60,11 @@ class User {
   @JoinColumn()
   subscriptions: Subscription[];
 
-  @OneToMany(() => Friend, friend => friend.requested_by)
+  @OneToMany(() => Friend, (friend) => friend.requested_by)
   @JoinColumn()
   friends_requested: Friend[];
 
-  @OneToMany(() => Friend, friend => friend.received_by)
+  @OneToMany(() => Friend, (friend) => friend.received_by)
   @JoinColumn()
   friends_received: Friend[];
 
@@ -83,6 +86,17 @@ class User {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @AfterLoad()
+  async setComputedIsPremium() {
+    await subscriptionsService.get(this.id, true, true).then(async (sub) => {      
+      await subscriptionsService.isActive(sub).then((isActive) => {
+        this.isPremium = isActive;
+      });
+    });
+  }
+
+  isPremium: boolean;
 
   constructor() {
     if (!this.id) {

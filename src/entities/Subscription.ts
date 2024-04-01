@@ -44,14 +44,17 @@ class Subscription {
   @Column({ type: "enum", enum: CancelReasonType, nullable: true })
   cancel_reason: CancelReasonType;
 
-  @Column({ type: "enum", enum: SubscriptionPeriod, default: SubscriptionPeriod.MONTHLY })
+  @Column({
+    type: "enum",
+    enum: SubscriptionPeriod,
+    default: SubscriptionPeriod.MONTHLY,
+  })
   subscription_period: SubscriptionPeriod;
 
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
-    eager: true,
   })
   @JoinColumn({ name: "user_id" })
   user: User;

@@ -36,11 +36,12 @@ class AuthController {
     }
 
     const userWithAvatar = await userRepository.findOne(user.id, {
-      relations: ["avatar"]
-    })
-
+      relations: ["avatar"],
+    });
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY);
+
+    userWithAvatar.isPremium = undefined;
 
     return res.status(200).send({ user: userWithAvatar, token });
   }
@@ -48,32 +49,31 @@ class AuthController {
   async switchPassword(req: RequestAuthenticated, res: Response) {
     const schema = Yup.object().shape({
       currentPass: Yup.string().min(8),
-      newPass: Yup.string().min(8)
-    })
-    const userRepository = getCustomRepository(UsersRepository)
+      newPass: Yup.string().min(8),
+    });
+    const userRepository = getCustomRepository(UsersRepository);
 
     try {
-      await schema.validate(req.body, { abortEarly: false })
+      await schema.validate(req.body, { abortEarly: false });
     } catch (error) {
-      throw new AppError(error)
+      throw new AppError(error);
     }
 
     const user = await userRepository
-    .createQueryBuilder("user")
-    .where("user.id = :id", { id: req.userId })
-    .addSelect("user.password")
-    .getOne();
+      .createQueryBuilder("user")
+      .where("user.id = :id", { id: req.userId })
+      .addSelect("user.password")
+      .getOne();
 
-    if (!user)
-      throw new AppError("User not found", 404)
+    if (!user) throw new AppError("User not found", 404);
 
     if (!(await bcrypt.compare(req.body.currentPass, user.password)))
-      throw new AppError("User password incorrect", 403)
+      throw new AppError("User password incorrect", 403);
 
-    const newPassHash = await bcrypt.hash(req.body.newPass, 12)
-    await userRepository.update(req.userId, { password: newPassHash })
+    const newPassHash = await bcrypt.hash(req.body.newPass, 12);
+    await userRepository.update(req.userId, { password: newPassHash });
 
-    return res.sendStatus(204)
+    return res.sendStatus(204);
   }
 }
 
