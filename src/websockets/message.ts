@@ -92,7 +92,7 @@ io.on("connection", async (socket: ISocketPremium) => {
       group_id: data.group_id,
       message: data.message,
       reply_to_id: data.reply_to_id,
-    });
+    }, socket.isPremium);
     const isDM = newVoiceMessage.group.type === GroupType.DIRECT;
     const groupName = isDM
       ? newVoiceMessage.author.name

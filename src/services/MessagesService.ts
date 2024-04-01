@@ -197,7 +197,7 @@ class MessagesService {
     return message;
   }
 
-  async createAudio(audioData: ICreateAudioProps) {
+  async createAudio(audioData: ICreateAudioProps, isPremium = false) {
     try {
       const messagesRepository = getCustomRepository(MessagesRepository);
       const participantsService = new ParticipantsService();
