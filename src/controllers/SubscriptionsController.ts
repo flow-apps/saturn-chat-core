@@ -23,7 +23,12 @@ class SubscriptionsController {
 
     const isActive = await subscriptionsService.isActive(subscription);
 
-    return res.json({ ...subscription, hasSubscription: true, isActive });
+    return res.json({
+      ...subscription,
+      hasSubscription: true,
+      isPaused: !!subscription.resume_in,
+      isActive,
+    });
   }
 
   async register(req: RequestAuthenticated, res: Response) {
@@ -36,7 +41,7 @@ class SubscriptionsController {
       purchase_token: Yup.string().required(),
       product_id: Yup.string().required(),
       package_name: Yup.string().required(),
-      period: Yup.string().required()
+      period: Yup.string().required(),
     });
 
     try {
@@ -82,7 +87,8 @@ class SubscriptionsController {
             package_name,
             subscription_id: product_id,
             auto_renewing: subscription.autoRenewing,
-            subscription_period: SubscriptionPeriod[String(period).toUpperCase()],
+            subscription_period:
+              SubscriptionPeriod[String(period).toUpperCase()],
             cancel_reason: subscription.cancelReason
               ? subscription.cancelReason
               : null,
