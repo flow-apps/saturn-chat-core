@@ -10,9 +10,7 @@ export const validatePremium = async (
   req: RequestPremium,
   res: Response,
   _next: NextFunction
-) => {
-  console.log("AQUUUi");
-  
+) => {  
   const subscriptionsService = new SubscriptionsService();
   const subscription = await subscriptionsService.get(req.userId, true, true);
 

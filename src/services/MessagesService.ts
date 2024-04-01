@@ -21,6 +21,7 @@ import { SaturnChatDomains } from "../configs.json";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
 import { v4 } from "uuid";
 import { AudiosRepository } from "../repositories/AudiosRepository";
+import { FirebaseAdmin } from "../configs/firebase";
 
 interface ICreateMessageProps {
   message: string;
@@ -50,6 +51,22 @@ interface IGetUserIDsOptions {
 }
 
 class MessagesService {
+  private MAX_MESSAGE_LENGTH_PREMIUM: number;
+  private MAX_MESSAGE_LENGTH_DEFAULT: number;
+
+  constructor() {
+    FirebaseAdmin.remoteConfig()
+      .getTemplate()
+      .then((configs: any) => {
+        this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
+          configs.parameters.premium_max_message_length.defaultValue.value
+        );
+        this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
+          configs.parameters.default_max_message_length.defaultValue.value
+        );
+      });
+  }
+
   async getParticipantsUserIds(
     groupID: string,
     options: IGetUserIDsOptions = {}
@@ -84,7 +101,7 @@ class MessagesService {
     return userIds;
   }
 
-  async create(msgData: ICreateMessageProps) {
+  async create(msgData: ICreateMessageProps, isPremium = false) {
     const messageRepository = getCustomRepository(MessagesRepository);
     const participantsService = new ParticipantsService();
 
@@ -98,6 +115,12 @@ class MessagesService {
 
     if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new Error("Error on create a message for this group!");
+    }
+
+    if (isPremium) {
+      if (msgData.message.length > this.MAX_MESSAGE_LENGTH_PREMIUM) {
+        throw new Error("Error on create a message for this group!");
+      }
     }
 
     if (participant.group.type === GroupType.DIRECT) {
@@ -116,7 +139,11 @@ class MessagesService {
     }
 
     const schema = Yup.object().shape({
-      message: Yup.string().max(5000),
+      message: Yup.string().max(
+        isPremium
+          ? this.MAX_MESSAGE_LENGTH_PREMIUM
+          : this.MAX_MESSAGE_LENGTH_DEFAULT
+      ),
       group_id: Yup.string().required(),
       author_id: Yup.string().required(),
       reply_to_id: Yup.string(),

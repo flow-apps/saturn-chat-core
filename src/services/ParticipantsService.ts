@@ -12,6 +12,8 @@ import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
 import { ONESIGNAL } from "../configs.json";
 import { GroupType } from "../database/enums/groups";
+import { FirebaseAdmin } from "../configs/firebase";
+import { GroupsRepository } from "../repositories/GroupsRepository";
 
 interface INewParticipant {
   user_id: string;
@@ -20,6 +22,22 @@ interface INewParticipant {
 }
 
 class ParticipantsService {
+  private MAX_PARTICIPANTS_PER_GROUP_DEFAULT;
+  private MAX_PARTICIPANTS_PER_GROUP_PREMIUM;
+
+  constructor() {
+    FirebaseAdmin.remoteConfig()
+      .getTemplate()
+      .then((configs: any) => {
+        this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT = Number(
+          configs.parameters.default_max_participants.defaultValue.value
+        );
+        this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM = Number(
+          configs.parameters.premium_max_participants.defaultValue.value
+        );
+      });
+  }
+
   async index(userID: string, groupID: string) {
     try {
       const participantsRepository = getCustomRepository(
@@ -44,6 +62,7 @@ class ParticipantsService {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const invitesRepository = getCustomRepository(InvitesRepository);
     const notificationsService = new NotificationsService();
+    const groupsRepository = getCustomRepository(GroupsRepository);
 
     if (!group_id) {
       throw new AppError("Group ID not provided");
@@ -55,6 +74,21 @@ class ParticipantsService {
 
     if (hasInvite) {
       await invitesRepository.delete(hasInvite.id);
+    }
+
+    const participantsAmount = await participantsRepository.count({
+      where: { group_id, state: ParticipantState.JOINED },
+    });
+
+    if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM) {
+      const group = await groupsRepository.findOne({
+        where: { id: group_id },
+        relations: ["owner"],
+      });
+
+      if (!group.owner.isPremium) {
+        throw new AppError("Group reached maximum number of participants");
+      }
     }
 
     const existsParticipant = await participantsRepository.findOne({

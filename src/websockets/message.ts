@@ -1,5 +1,5 @@
 import { getCustomRepository } from "typeorm";
-import { io, ISocketAuthenticated } from ".";
+import { io, ISocketAuthenticated, ISocketPremium } from ".";
 import { GroupType } from "../database/enums/groups";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { MessagesService } from "../services/MessagesService";
@@ -10,7 +10,7 @@ import { Time } from "../utils/time";
 import { NotificationsType } from "../types/enums";
 import { CacheService } from "../services/CacheService";
 
-io.on("connection", async (socket: ISocketAuthenticated) => {
+io.on("connection", async (socket: ISocketPremium) => {
   const notificationsService = new NotificationsService();
   const messagesService = new MessagesService();
   const cacheService = new CacheService();
@@ -24,7 +24,7 @@ io.on("connection", async (socket: ISocketAuthenticated) => {
       group_id: data.group_id,
       message: data.message,
       reply_to_id: data.reply_to_id,
-    });
+    }, socket.isPremium);
 
     const isDM = createdMessage.group.type === GroupType.DIRECT;
 

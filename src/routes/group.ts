@@ -4,6 +4,7 @@ import { configMulter } from "../configs/multer";
 import { GroupsController } from "../controllers/GroupsController";
 import { ParticipantsController } from "../controllers/ParticipantsController";
 import { authProvider } from "../middlewares/authProvider";
+import { validatePremium } from "../middlewares/validatePremium";
 
 const routes = Router();
 const groupsController = new GroupsController();
@@ -12,6 +13,7 @@ const participantsController = new ParticipantsController();
 routes.post(
   "/groups",
   authProvider,
+  validatePremium,
   multer(configMulter(5)).single("group_avatar"),
   groupsController.create
 );

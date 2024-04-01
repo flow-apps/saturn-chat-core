@@ -12,8 +12,27 @@ import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
 import { ParticipantState } from "../database/enums/participants";
 import { MessagesService } from "../services/MessagesService";
+import { RequestPremium } from "../middlewares/validatePremium";
+import { FirebaseAdmin } from "../configs/firebase";
 
 class MessagesController {
+  private MAX_FILE_SIZE: number;
+  private MAX_MESSAGE_LENGTH_PREMIUM: number;
+
+  constructor() {
+    FirebaseAdmin.remoteConfig()
+      .getTemplate()
+      .then((configs: any) => {
+        this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
+          configs.parameters.premium_max_message_length.defaultValue.value
+        );
+
+        this.MAX_FILE_SIZE = Number(
+          configs.parameters.premium_file_upload.defaultValue.value
+        );
+      }) as any as number;
+  }
+
   async list(req: RequestAuthenticated, res: Response) {
     const { groupID } = req.params;
     const { _limit, _page } = req.query;
@@ -64,7 +83,7 @@ class MessagesController {
     return res.status(200).json({ messages });
   }
 
-  async createAttachment(req: RequestAuthenticated, res: Response) {
+  async createAttachment(req: RequestPremium, res: Response) {
     const body = req.body;
     const storage = new StorageManager();
 
@@ -125,6 +144,21 @@ class MessagesController {
       await audiosRepository.save(audio);
       return res.json(audio);
     } else if (attachType === "files") {
+      const files = req.files as Express.Multer.File[];
+
+      if (!req.isPremium) {
+        const hasOversizedFile = files.some((file) => {
+          file.size > this.MAX_FILE_SIZE;
+        });
+
+        if (
+          hasOversizedFile ||
+          body.message.length > this.MAX_MESSAGE_LENGTH_PREMIUM
+        ) {
+          throw new AppError("File or message size not permitted");
+        }
+      }
+
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
@@ -140,7 +174,6 @@ class MessagesController {
         groupID
       );
 
-      const files = req.files as Express.Multer.File[];
       const uploadedFiles = await storage.uploadMultipleFiles({
         files,
         path: `groups/${groupID}/attachments/files`,

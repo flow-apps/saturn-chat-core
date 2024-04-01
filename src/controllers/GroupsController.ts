@@ -18,6 +18,8 @@ import {
   ParticipantState,
 } from "../database/enums/participants";
 import { GroupType } from "../database/enums/groups";
+import { RequestPremium } from "../middlewares/validatePremium";
+import { FirebaseAdmin } from "../configs/firebase";
 
 interface Body {
   name: string;
@@ -40,7 +42,21 @@ interface Data {
   };
 }
 class GroupsController {
-  async create(req: RequestAuthenticated, res: Response) {
+  private MAX_GROUPS_PER_USER_DEFAULT: number;
+  private MAX_GROUPS_PER_USER_PREMIUM: number;
+
+  constructor() {
+    FirebaseAdmin.remoteConfig()
+      .getTemplate()
+      .then((configs: any) => {
+        this.MAX_GROUPS_PER_USER_DEFAULT =
+          configs.parameters.default_max_groups.defaultValue.value;
+        this.MAX_GROUPS_PER_USER_PREMIUM =
+          configs.parameters.premium_max_groups.defaultValue.value;
+      });
+  }
+
+  async create(req: RequestPremium, res: Response) {
     const body = req.body as Body;
     const imageProcessor = new ImageProcessor();
 
@@ -62,6 +78,20 @@ class GroupsController {
       await schema.validate(body, { abortEarly: false });
     } catch (error) {
       throw new AppError(error);
+    }
+
+    const userGroupsAmount = await groupsRepository.count({
+      where: { owner_id: req.userId, type: GroupType.GROUP },
+    });
+
+    if (req.isPremium) {
+      if (userGroupsAmount > this.MAX_GROUPS_PER_USER_PREMIUM) {
+        throw new AppError("User has reached group limit");
+      }
+    } else {
+      if (userGroupsAmount > this.MAX_GROUPS_PER_USER_DEFAULT) {
+        throw new AppError("User has reached group limit");
+      }
     }
 
     const data: Data = {
@@ -236,7 +266,9 @@ class GroupsController {
           type: Not(GroupType.DIRECT),
         },
         {
-          tags: Raw((alias) => `${alias} @> :tags`, { tags: [query.toLowerCase()] }),
+          tags: Raw((alias) => `${alias} @> :tags`, {
+            tags: [query.toLowerCase()],
+          }),
           privacy: Not("PRIVATE"),
           type: Not(GroupType.DIRECT),
         },
