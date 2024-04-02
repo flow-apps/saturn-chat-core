@@ -121,6 +121,10 @@ class MessagesService {
       if (msgData.message.length > this.MAX_MESSAGE_LENGTH_PREMIUM) {
         throw new Error("Error on create a message for this group!");
       }
+    } else {
+      if (msgData.message.length > this.MAX_MESSAGE_LENGTH_DEFAULT) {
+        throw new Error("Error on create a message for this group!");
+      }
     }
 
     if (participant.group.type === GroupType.DIRECT) {

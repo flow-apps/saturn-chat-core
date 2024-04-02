@@ -44,6 +44,8 @@ interface Data {
 class GroupsController {
   private MAX_GROUPS_PER_USER_DEFAULT: number;
   private MAX_GROUPS_PER_USER_PREMIUM: number;
+  private MAX_PARTICIPANTS_PER_GROUP_PREMIUM: number;
+  private MAX_PARTICIPANTS_PER_GROUP_DEFAULT: number;
 
   constructor() {
     FirebaseAdmin.remoteConfig()
@@ -53,6 +55,12 @@ class GroupsController {
           configs.parameters.default_max_groups.defaultValue.value;
         this.MAX_GROUPS_PER_USER_PREMIUM =
           configs.parameters.premium_max_groups.defaultValue.value;
+        this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM = Number(
+          configs.parameters.premium_max_participants.defaultValue.value
+        );
+        this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT = Number(
+          configs.parameters.default_max_participants.defaultValue.value
+        );
       });
   }
 
@@ -85,11 +93,11 @@ class GroupsController {
     });
 
     if (req.isPremium) {
-      if (userGroupsAmount > this.MAX_GROUPS_PER_USER_PREMIUM) {
+      if (userGroupsAmount >= this.MAX_GROUPS_PER_USER_PREMIUM) {
         throw new AppError("User has reached group limit");
       }
     } else {
-      if (userGroupsAmount > this.MAX_GROUPS_PER_USER_DEFAULT) {
+      if (userGroupsAmount >= this.MAX_GROUPS_PER_USER_DEFAULT) {
         throw new AppError("User has reached group limit");
       }
     }
@@ -173,8 +181,21 @@ class GroupsController {
       where: { group_id: group.id, state: ParticipantState.JOINED },
     });
 
+    let acceptingParticipants = true;
+
+    if (group.owner.isPremium) {
+      if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM) {
+        acceptingParticipants = false;
+      }
+    } else {
+      if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT) {
+        acceptingParticipants = false;
+      }
+    }
+
     const groupWithParticipantsAmount = Object.assign(group, {
       participantsAmount,
+      acceptingParticipants,
     });
 
     return res.status(200).json(groupWithParticipantsAmount);
@@ -284,8 +305,22 @@ class GroupsController {
         const participantsAmount = await participantsRepository.count({
           where: { group_id: group.id },
         });
+
+        let acceptingParticipants = true;
+
+        if (group.owner.isPremium) {
+          if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM) {
+            acceptingParticipants = false;
+          }
+        } else {
+          if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT) {
+            acceptingParticipants = false;
+          }
+        }
+
         return Object.assign(group, {
           participantsAmount,
+          acceptingParticipants,
         });
       })
     );

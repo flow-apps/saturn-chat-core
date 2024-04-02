@@ -16,8 +16,10 @@ import { RequestPremium } from "../middlewares/validatePremium";
 import { FirebaseAdmin } from "../configs/firebase";
 
 class MessagesController {
-  private MAX_FILE_SIZE: number;
+  private MAX_FILE_SIZE_PREMIUM: number;
+  private MAX_FILE_SIZE_DEFAULT: number;
   private MAX_MESSAGE_LENGTH_PREMIUM: number;
+  private MAX_MESSAGE_LENGTH_DEFAULT: number;
 
   constructor() {
     FirebaseAdmin.remoteConfig()
@@ -27,8 +29,16 @@ class MessagesController {
           configs.parameters.premium_max_message_length.defaultValue.value
         );
 
-        this.MAX_FILE_SIZE = Number(
+        this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
+          configs.parameters.default_max_message_length.defaultValue.value
+        );
+
+        this.MAX_FILE_SIZE_PREMIUM = Number(
           configs.parameters.premium_file_upload.defaultValue.value
+        );
+
+        this.MAX_FILE_SIZE_DEFAULT = Number(
+          configs.parameters.default_file_upload.defaultValue.value
         );
       }) as any as number;
   }
@@ -146,14 +156,25 @@ class MessagesController {
     } else if (attachType === "files") {
       const files = req.files as Express.Multer.File[];
 
-      if (!req.isPremium) {
+      if (req.isPremium) {
         const hasOversizedFile = files.some((file) => {
-          file.size > this.MAX_FILE_SIZE;
+          file.size > this.MAX_FILE_SIZE_PREMIUM;
         });
 
         if (
           hasOversizedFile ||
           body.message.length > this.MAX_MESSAGE_LENGTH_PREMIUM
+        ) {
+          throw new AppError("File or message size not permitted");
+        }
+      } else {
+        const hasOversizedFile = files.some((file) => {
+          file.size > this.MAX_FILE_SIZE_DEFAULT;
+        });
+
+        if (
+          hasOversizedFile ||
+          body.message.length > this.MAX_MESSAGE_LENGTH_DEFAULT
         ) {
           throw new AppError("File or message size not permitted");
         }

@@ -22,8 +22,8 @@ interface INewParticipant {
 }
 
 class ParticipantsService {
-  private MAX_PARTICIPANTS_PER_GROUP_DEFAULT;
-  private MAX_PARTICIPANTS_PER_GROUP_PREMIUM;
+  private MAX_PARTICIPANTS_PER_GROUP_DEFAULT: number;
+  private MAX_PARTICIPANTS_PER_GROUP_PREMIUM: number;
 
   constructor() {
     FirebaseAdmin.remoteConfig()
@@ -80,13 +80,17 @@ class ParticipantsService {
       where: { group_id, state: ParticipantState.JOINED },
     });
 
-    if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM) {
-      const group = await groupsRepository.findOne({
-        where: { id: group_id },
-        relations: ["owner"],
-      });
+    const group = await groupsRepository.findOne({
+      where: { id: group_id },
+      relations: ["owner"],
+    });
 
-      if (!group.owner.isPremium) {
+    if (group.owner.isPremium) {
+      if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM) {
+        throw new AppError("Group reached maximum number of participants");
+      }
+    } else {
+      if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT) {
         throw new AppError("Group reached maximum number of participants");
       }
     }
