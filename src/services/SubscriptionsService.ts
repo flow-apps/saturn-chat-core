@@ -8,9 +8,7 @@ import { subcriptionsAPI } from "../configs/playStoreService";
 
 class SubscriptionsService {
   async isActive(subscription: Subscription) {
-
-    if (!subscription)
-      return false
+    if (!subscription) return false;
 
     if (subscription.payment_state === PaymentState.PENDENT) {
       return false;
@@ -60,6 +58,8 @@ class SubscriptionsService {
         );
 
         if (cachedSubscription) {
+          console.log("[ Get Subscriptions ] Usando valor do cache");
+          
           return JSON.parse(cachedSubscription) as Subscription;
         }
       }
@@ -90,10 +90,18 @@ class SubscriptionsService {
 
       await subscriptionsRepository.save(mergedSubscription);
 
+      const hasCache = await cacheService.verifyExistKey(
+        `${userId}_subscription`
+      );
+
+      if (hasCache) {
+        await cacheService.delete(`${userId}_subscription`);
+      }
+
       await cacheService.setWithExpiration(
         `${userId}_subscription`,
         mergedSubscription,
-        process.env.NODE_ENV === "development" ? 60 : 600
+        process.env.NODE_ENV === "development" ? 60 : 1800
       );
 
       return mergedSubscription;
