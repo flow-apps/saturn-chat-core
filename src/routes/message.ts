@@ -4,15 +4,11 @@ import { configMulter } from "../configs/multer";
 import { authProvider } from "../middlewares/authProvider";
 import { MessagesController } from "../controllers/MessagesController";
 import { validatePremium } from "../middlewares/validatePremium";
-import { FirebaseAdmin } from "../configs/firebase";
+import { remoteConfigs } from "../configs/remoteConfigs";
 
 const routes = Router();
 const messageController = new MessagesController();
-const maxFileSizePremium = FirebaseAdmin.remoteConfig()
-  .getTemplate()
-  .then((configs: any) => {    
-    return Number(configs.parameters.premium_file_upload.defaultValue.value);
-  }) as any as number;
+const maxFileSizePremium = Number(remoteConfigs.premium_file_upload);
 
 routes.get("/messages/:groupID", authProvider, messageController.list);
 routes.post(

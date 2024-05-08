@@ -22,6 +22,7 @@ import { UserNotificationsRepository } from "../repositories/UserNotificationsRe
 import { v4 } from "uuid";
 import { AudiosRepository } from "../repositories/AudiosRepository";
 import { FirebaseAdmin } from "../configs/firebase";
+import { remoteConfigs } from "../configs/remoteConfigs";
 
 interface ICreateMessageProps {
   message: string;
@@ -55,16 +56,12 @@ class MessagesService {
   private MAX_MESSAGE_LENGTH_DEFAULT: number;
 
   constructor() {
-    FirebaseAdmin.remoteConfig()
-      .getTemplate()
-      .then((configs: any) => {
-        this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
-          configs.parameters.premium_max_message_length.defaultValue.value
-        );
-        this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
-          configs.parameters.default_max_message_length.defaultValue.value
-        );
-      });
+    this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
+      remoteConfigs.premium_max_message_length
+    );
+    this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
+      remoteConfigs.default_max_message_length
+    );
   }
 
   async getParticipantsUserIds(

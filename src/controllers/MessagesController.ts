@@ -13,7 +13,7 @@ import { FriendsState } from "../database/enums/friends";
 import { ParticipantState } from "../database/enums/participants";
 import { MessagesService } from "../services/MessagesService";
 import { RequestPremium } from "../middlewares/validatePremium";
-import { FirebaseAdmin } from "../configs/firebase";
+import { remoteConfigs } from "../configs/remoteConfigs";
 
 class MessagesController {
   private MAX_FILE_SIZE_PREMIUM: number;
@@ -22,25 +22,17 @@ class MessagesController {
   private MAX_MESSAGE_LENGTH_DEFAULT: number;
 
   constructor() {
-    FirebaseAdmin.remoteConfig()
-      .getTemplate()
-      .then((configs: any) => {
-        this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
-          configs.parameters.premium_max_message_length.defaultValue.value
-        );
+    this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
+      remoteConfigs.premium_max_message_length
+    );
 
-        this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
-          configs.parameters.default_max_message_length.defaultValue.value
-        );
+    this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
+      remoteConfigs.default_max_message_length
+    );
 
-        this.MAX_FILE_SIZE_PREMIUM = Number(
-          configs.parameters.premium_file_upload.defaultValue.value
-        );
+    this.MAX_FILE_SIZE_PREMIUM = Number(remoteConfigs.premium_file_upload);
 
-        this.MAX_FILE_SIZE_DEFAULT = Number(
-          configs.parameters.default_file_upload.defaultValue.value
-        );
-      }) as any as number;
+    this.MAX_FILE_SIZE_DEFAULT = Number(remoteConfigs.default_file_upload);
   }
 
   async list(req: RequestAuthenticated, res: Response) {

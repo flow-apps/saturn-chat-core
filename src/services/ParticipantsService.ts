@@ -12,8 +12,8 @@ import { Time } from "../utils/time";
 import { NotificationsService } from "./NotificationsService";
 import { ONESIGNAL } from "../configs.json";
 import { GroupType } from "../database/enums/groups";
-import { FirebaseAdmin } from "../configs/firebase";
 import { GroupsRepository } from "../repositories/GroupsRepository";
+import { remoteConfigs } from "../configs/remoteConfigs";
 
 interface INewParticipant {
   user_id: string;
@@ -26,16 +26,12 @@ class ParticipantsService {
   private MAX_PARTICIPANTS_PER_GROUP_PREMIUM: number;
 
   constructor() {
-    FirebaseAdmin.remoteConfig()
-      .getTemplate()
-      .then((configs: any) => {
-        this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT = Number(
-          configs.parameters.default_max_participants.defaultValue.value
-        );
-        this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM = Number(
-          configs.parameters.premium_max_participants.defaultValue.value
-        );
-      });
+    this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT = Number(
+      remoteConfigs.default_max_participants
+    );
+    this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM = Number(
+      remoteConfigs.premium_max_participants
+    );
   }
 
   async index(userID: string, groupID: string) {

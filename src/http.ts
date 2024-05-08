@@ -18,6 +18,7 @@ import morgan from "morgan";
 import path from "path";
 import cors from "cors";
 import { subscriptionsRoutes } from "./routes/subscriptions";
+import { FirebaseAdmin } from "./configs/firebase";
 
 process.on("unhandledRejection", console.error);
 createConnection();

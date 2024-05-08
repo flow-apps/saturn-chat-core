@@ -20,6 +20,7 @@ import {
 import { GroupType } from "../database/enums/groups";
 import { RequestPremium } from "../middlewares/validatePremium";
 import { FirebaseAdmin } from "../configs/firebase";
+import { remoteConfigs } from "../configs/remoteConfigs";
 
 interface Body {
   name: string;
@@ -48,20 +49,14 @@ class GroupsController {
   private MAX_PARTICIPANTS_PER_GROUP_DEFAULT: number;
 
   constructor() {
-    FirebaseAdmin.remoteConfig()
-      .getTemplate()
-      .then((configs: any) => {
-        this.MAX_GROUPS_PER_USER_DEFAULT =
-          configs.parameters.default_max_groups.defaultValue.value;
-        this.MAX_GROUPS_PER_USER_PREMIUM =
-          configs.parameters.premium_max_groups.defaultValue.value;
-        this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM = Number(
-          configs.parameters.premium_max_participants.defaultValue.value
-        );
-        this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT = Number(
-          configs.parameters.default_max_participants.defaultValue.value
-        );
-      });
+    this.MAX_GROUPS_PER_USER_DEFAULT = Number(remoteConfigs.default_max_groups);
+    this.MAX_GROUPS_PER_USER_PREMIUM = Number(remoteConfigs.premium_max_groups);
+    this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM = Number(
+      remoteConfigs.premium_max_participants
+    );
+    this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT = Number(
+      remoteConfigs.default_max_participants
+    );
   }
 
   async create(req: RequestPremium, res: Response) {
