@@ -40,10 +40,11 @@ class ParticipantsController {
       throw new AppError("Group ID not provided");
     }
 
-    const participant = await participantsRepository.findOne({
-      where: [{ id: participant_id }, { group_id, user_id: req.userId }],
-      cache: 50000,
-    });
+    const participant =
+      await participantsRepository.findParticipantWithPremiumField({
+        where: [{ id: participant_id }, { group_id, user_id: req.userId }],
+        cache: 50000,
+      });
 
     if (!participant) {
       throw new AppError("Participant not found");

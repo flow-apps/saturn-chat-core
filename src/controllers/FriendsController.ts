@@ -28,7 +28,7 @@ class FriendsController {
     const messagesRepository = getCustomRepository(MessagesRepository);
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
 
-    const friends = await friendsRepository.find({
+    const friends = await friendsRepository.findManyFriendsWithPremiumField({
       where: [
         { state: FriendsState.FRIENDS, requested_by_id: req.userId },
         { state: FriendsState.FRIENDS, received_by_id: req.userId },
@@ -66,7 +66,7 @@ class FriendsController {
 
     if (!friendID) throw new AppError("Friend ID not provided", 404);
 
-    const requestedBy = await usersRepository.findOne(userID);
+    const requestedBy = await usersRepository.findUserWithPremiumField(userID);
     const existsRequest = await friendsRepository.findOne({
       where: [
         {

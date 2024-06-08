@@ -92,8 +92,7 @@ class UsersController {
     const friendsRepository = getCustomRepository(FriendsRepository);
     const participantsService = new ParticipantsService();
 
-    let user = await usersRepository.findOne({
-      where: { id: req.userId },
+    let user = await usersRepository.findUserWithPremiumField(req.userId, {
       loadEagerRelations: true,
       relations: ["groups"],
     });
@@ -143,7 +142,7 @@ class UsersController {
     const friendsRepository = getCustomRepository(FriendsRepository);
     const participantsService = new ParticipantsService();
 
-    let user = await usersRepository.findOne(String(id), {
+    let user = await usersRepository.findUserWithPremiumField(String(id), {
       relations: ["avatar", "participating"],
     });
 
@@ -296,7 +295,7 @@ class UsersController {
       file: req.file,
       path: "files/users/avatars",
     });
-    
+
     if (!userAvatar) {
       const createdAvatar = avatarsRepository.create({
         name: uploadedAvatar.name,

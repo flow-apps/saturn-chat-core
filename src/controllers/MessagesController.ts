@@ -98,7 +98,7 @@ class MessagesController {
     const attachType = String(req.query.type);
     const groupID = req.params.groupID;
 
-    const participant = await participantsRepository.findOne({
+    const participant = await participantsRepository.findParticipantWithPremiumField({
       where: {
         group_id: groupID,
         user_id: req.userId,

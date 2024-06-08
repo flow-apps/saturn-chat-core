@@ -162,7 +162,7 @@ class GroupsController {
       throw new AppError("Group ID not provided!");
     }
 
-    const group = await groupsRepository.findOne({
+    const group = await groupsRepository.findGroupOwnerWithPremiumField({
       where: { id },
       relations: ["owner", "group_avatar", "participants"],
       loadEagerRelations: true,
@@ -233,10 +233,11 @@ class GroupsController {
     const messagesRepository = getCustomRepository(MessagesRepository);
     const readMessagesRepository = getCustomRepository(ReadMessagesRepository);
 
-    const participating = await participantsRepository.find({
-      where: { user_id: req.userId, state: ParticipantState.JOINED },
-      loadEagerRelations: true,
-    });
+    const participating =
+      await participantsRepository.findParticipantsWithPremiumField({
+        where: { user_id: req.userId, state: ParticipantState.JOINED },
+        loadEagerRelations: true,
+      });
 
     const filteredParticipating = participating.filter(
       (part) => part.group.type !== GroupType.DIRECT
@@ -274,7 +275,7 @@ class GroupsController {
 
     const query = String(q).trim();
 
-    const groups = await groupsRepository.find({
+    const groups = await groupsRepository.findManyGroupsOwnersWithPremiumField({
       where: [
         {
           name: ILike(`%${query}%`),

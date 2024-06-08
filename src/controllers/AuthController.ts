@@ -6,12 +6,9 @@ import jwt from "jsonwebtoken";
 import { getCustomRepository } from "typeorm";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { RequestAuthenticated } from "../middlewares/authProvider";
-import { FirebaseAdmin } from "../configs/firebase";
 
 class AuthController {
-  async authenticate(req: Request, res: Response) {
-    console.log(await FirebaseAdmin.remoteConfig().getTemplate());
-     
+  async authenticate(req: Request, res: Response) {     
     const body = req.body;
     const userRepository = getCustomRepository(UsersRepository);
     const schema = Yup.object().shape({

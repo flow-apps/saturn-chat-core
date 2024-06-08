@@ -39,7 +39,7 @@ class ParticipantsService {
       const participantsRepository = getCustomRepository(
         ParticipantsRepository
       );
-      const participant = await participantsRepository.findOne({
+      const participant = await participantsRepository.findParticipantWithPremiumField({
         where: [{ user_id: userID, group_id: groupID }],
         cache: new Time().timeToMS(1, "hour"),
       });
@@ -178,7 +178,7 @@ class ParticipantsService {
 
   async list(groupID: string, _page: number, _limit: number) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
-    const participants = await participantsRepository.find({
+    const participants = await participantsRepository.findParticipantsWithPremiumField({
       where: [{ group_id: groupID, state: ParticipantState.JOINED }],
       loadEagerRelations: true,
       take: _limit,

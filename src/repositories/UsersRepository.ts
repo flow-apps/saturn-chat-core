@@ -4,7 +4,7 @@ import { SubscriptionsService } from "../services/SubscriptionsService";
 
 @EntityRepository(User)
 class UsersRepository extends Repository<User> {
-  async findUserWithPremium(id: string, options?: FindManyOptions<User>) {
+  async findUserWithPremiumField(id: string, options?: FindManyOptions<User>) {
     const user = await this.findOne(id, options);
     const subscriptionsService = new SubscriptionsService();
 
@@ -19,7 +19,7 @@ class UsersRepository extends Repository<User> {
     return user;
   }
 
-  async findManyUsersWithPremium(options?: FindManyOptions<User>) {
+  async findManyUsersWithPremiumField(options?: FindManyOptions<User>) {
     const users = await this.find(options);
     const subscriptionsService = new SubscriptionsService();
 
