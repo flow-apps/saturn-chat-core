@@ -87,15 +87,6 @@ class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @AfterLoad()
-  async setComputedIsPremium() {
-    await subscriptionsService.get(this.id, true, true).then(async (sub) => {      
-      await subscriptionsService.isActive(sub).then((isActive) => {
-        this.isPremium = isActive;
-      });
-    });
-  }
-
   isPremium: boolean;
 
   constructor() {
