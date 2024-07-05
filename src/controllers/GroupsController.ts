@@ -239,6 +239,10 @@ class GroupsController {
         loadEagerRelations: true,
       });
 
+    if (!participating) {
+      return res.status(200).json([]);
+    }
+
     const filteredParticipating = participating.filter(
       (part) => part.group.type !== GroupType.DIRECT
     );

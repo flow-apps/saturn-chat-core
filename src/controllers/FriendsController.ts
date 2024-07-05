@@ -36,6 +36,10 @@ class FriendsController {
       loadEagerRelations: true,
     });
 
+    if (!friends) {
+      return res.json([]);
+    }
+
     const friendsWithUnreadMessages = await Promise.all(
       friends.map(async (friend) => {
         const totalMessages = await messagesRepository.count({
