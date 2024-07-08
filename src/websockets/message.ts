@@ -1,5 +1,5 @@
 import { getCustomRepository } from "typeorm";
-import { io, ISocketAuthenticated, ISocketPremium } from ".";
+import { io, ISocketPremium } from ".";
 import { GroupType } from "../database/enums/groups";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { MessagesService } from "../services/MessagesService";
@@ -93,6 +93,10 @@ io.on("connection", async (socket: ISocketPremium) => {
       message: data.message,
       reply_to_id: data.reply_to_id,
     }, socket.isPremium);
+
+    if (!newVoiceMessage)
+      return
+    
     const isDM = newVoiceMessage.group.type === GroupType.DIRECT;
     const groupName = isDM
       ? newVoiceMessage.author.name

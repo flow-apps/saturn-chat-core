@@ -3,7 +3,8 @@ import multer, { Options } from "multer";
 function configMulter(
   limitFileSize = 5,
   allowedMimeTypes: string[] = []
-): Options {
+): Options {    
+
   return {
     storage: multer.memoryStorage(),
     limits: {

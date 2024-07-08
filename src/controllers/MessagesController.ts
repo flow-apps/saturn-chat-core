@@ -89,6 +89,7 @@ class MessagesController {
     const body = req.body;
     const storage = new StorageManager();
 
+
     const messageRepository = getCustomRepository(MessagesRepository);
     const audiosRepository = getCustomRepository(AudiosRepository);
     const filesRepository = getCustomRepository(FilesRepository);
@@ -105,7 +106,7 @@ class MessagesController {
         state: ParticipantState.JOINED,
       },
       cache: 50000,
-    });
+    });    
 
     if (!participant) {
       throw new AppError("Participant not found", 404);
@@ -127,7 +128,7 @@ class MessagesController {
     }
 
     if (attachType === "voice_message") {
-      const file = req.files[0] as Express.Multer.File;
+      const file = req.files[0] as Express.Multer.File;      
       const uploadedFile = await storage.uploadFile({
         file,
         path: `groups/${groupID}/attachments/audios`,
@@ -140,13 +141,16 @@ class MessagesController {
         url: uploadedFile.url,
         path: uploadedFile.path,
         duration: body.duration,
-        size: body.size,
+        size: uploadedFile.size,
       });
 
       await audiosRepository.save(audio);
       return res.json(audio);
     } else if (attachType === "files") {
       const files = req.files as Express.Multer.File[];
+
+      console.log(files);
+      
 
       if (req.isPremium) {
         const hasOversizedFile = files.some((file) => {

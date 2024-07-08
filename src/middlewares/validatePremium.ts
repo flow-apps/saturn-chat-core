@@ -16,11 +16,11 @@ export const validatePremium = async (
 
   if (!subscription) {
     req.isPremium = false;
-    _next();
+    return _next();
   }
 
   const isPremium = await subscriptionsService.isActive(subscription);
 
   req.isPremium = isPremium;
-  _next();
+  return _next();
 };

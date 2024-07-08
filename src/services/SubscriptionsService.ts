@@ -71,8 +71,17 @@ class SubscriptionsService {
           token: subscription.purchase_token,
         })
         .then((res) => {
-          if (res.status === 200) return res.data;
-        });
+          return res.data;
+        })
+        .catch(async (error) => {
+          if (error.response.status === 410) {
+            await subscriptionsRepository.delete(subscription);
+            return null
+          }
+        })
+
+      if (!subscriptionPlayStore)
+        return
 
       const mergedSubscription = subscriptionsRepository.merge(subscription, {
         auto_renewing: subscriptionPlayStore.autoRenewing,
