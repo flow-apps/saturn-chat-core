@@ -149,9 +149,6 @@ class MessagesController {
     } else if (attachType === "files") {
       const files = req.files as Express.Multer.File[];
 
-      console.log(files);
-      
-
       if (req.isPremium) {
         const hasOversizedFile = files.some((file) => {
           file.size > this.MAX_FILE_SIZE_PREMIUM;

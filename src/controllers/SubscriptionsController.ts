@@ -13,11 +13,8 @@ import { SubscriptionPeriod } from "../database/enums/subscriptions";
 class SubscriptionsController {
   async get(req: RequestAuthenticated, res: Response) {
     const subscriptionsService = new SubscriptionsService();
-    const subscription = await subscriptionsService.get(
-      req.userId,
-      true,
-      false
-    );
+
+    const subscription = await subscriptionsService.get(req.userId, true);
 
     if (!subscription) return res.json({ hasSubscription: false });
 

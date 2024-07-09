@@ -38,7 +38,7 @@ class SubscriptionsService {
   async get(
     userId: string,
     getFromPlayStore?: boolean,
-    getFromCache?: boolean
+    getFromCache = false
   ) {
     const cacheService = new CacheService();
     const subscriptionsRepository = getCustomRepository(
@@ -78,6 +78,9 @@ class SubscriptionsService {
             await subscriptionsRepository.delete(subscription);
             return null
           }
+
+          console.log(error);
+          
         })
 
       if (!subscriptionPlayStore)
