@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { RateLimiterMemory } from "rate-limiter-flexible";
+import { RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
+import { cache } from "../configs/cache";
 
-const rateLimiter = new RateLimiterMemory({
-  points: 15,
-  duration: 60,
-  blockDuration: 60,
-  keyPrefix: "rate_limiter"
+const rateLimiter = new RateLimiterRedis({
+  storeClient: cache,
+  points: 5,
+  duration: 15,
+  blockDuration: 30,
+  keyPrefix: "rate_limiter",
 });
 
 async function rateLimiterMiddleware(
@@ -23,9 +25,12 @@ async function rateLimiterMiddleware(
 
   rateLimiter
     .consume(req.ip)
-    .then(() => _next())
+    .then(async () => {
+      await rateLimiter.delete(req.ip);
+      return _next();
+    })
     .catch((error) => {
-      res.status(429).json({ message: "Too many requests" })
+      return res.status(429).json({ message: "Too many requests" });
     });
 }
 
