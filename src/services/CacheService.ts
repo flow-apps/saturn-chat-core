@@ -5,13 +5,13 @@ class CacheService {
   private cacheService = cache;
 
   async get(key: string) {
-    return this.cacheService.retrieveItemValue(key) as string;
+    return await this.cacheService.get(key) as string;
   }
 
   async set(key: string, value: any) {
     const parsedValue = JSON.stringify(value);
 
-    return this.cacheService.storePermanentItem(key, parsedValue);
+    return await this.cacheService.set(key, parsedValue);
   }
 
   async setWithExpiration(
@@ -21,19 +21,21 @@ class CacheService {
   ) {
     const parsedValue = JSON.stringify(value);
 
-    return this.cacheService.storeExpiringItem(
+    return this.cacheService.set(
       key,
       parsedValue,
-      expirationTimeInSecs
+      "EX", expirationTimeInSecs
     );
   }
 
   async verifyExistKey(key: string): Promise<boolean> {
-    return this.cacheService.hasItem(key);
+    const hasItem = await this.cacheService.get(key);
+
+    return !!hasItem;
   }
 
   async delete(key: string) {
-    const syncDelete = promisify(this.cacheService.removeItem).bind(
+    const syncDelete = promisify(this.cacheService.del).bind(
       this.cacheService
     );
     return syncDelete(key);

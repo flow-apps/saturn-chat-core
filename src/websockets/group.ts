@@ -29,6 +29,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
     });
 
     socket.in(id).emit("new_user_online", userID);
+    socket.emit("success_join", id);
     console.log(`Socket ${socket.id} conectado no grupo ${id}`);
   });
 
@@ -48,6 +49,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
     });
     await cacheService.delete(`room_user_${userID}`);
     socket.in(data.group_id).emit("new_user_offline", userID);
+    socket.emit("success_leave", data.group_id);
   });
 
   socket.on("exit_group", async (participantID: string) => {
