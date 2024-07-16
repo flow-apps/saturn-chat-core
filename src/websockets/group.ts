@@ -13,6 +13,9 @@ io.on("connection", (socket: ISocketAuthenticated) => {
   const userID = socket.userID;
 
   socket.on("connect_in_chat", async (id: string) => {
+
+    console.log(`Socket ${socket.id} conectando no grupo ${id}`);
+
     await socket.join(id);
     const participant = await participants.index(socket.userID, id);
 

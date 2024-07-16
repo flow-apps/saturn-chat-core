@@ -22,14 +22,14 @@ io.use((socket: ISocketAuthenticated, _next) => {
   const token = socket.handshake.query.token;
 
   if (token) {
-    validateJWT(String(token), (err, decoded: any) => {
+    return validateJWT(String(token), (err, decoded: any) => {
       if (err) {
         socket.disconnect();
         console.log("WS >> Authenticate error");
         return _next(new Error("Authentication error"));
       }
       socket.userID = decoded.id;
-      _next();
+      return _next();
     });
   } else {
     socket.disconnect();
@@ -53,13 +53,13 @@ io.use(async (socket: ISocketPremium, _next) => {
 
   if (!subscription) {
     socket.isPremium = false;
-    _next();
+    return _next();
   }
 
   const isPremium = await subscriptionsService.isActive(subscription);
 
   socket.isPremium = isPremium;
-  _next();
+  return _next();
 });
 
 export { io, ISocketAuthenticated, ISocketPremium };
