@@ -108,11 +108,7 @@ class MessagesService {
     const participant = await participantsService.index(
       msgData.author_id,
       msgData.group_id
-    );
-
-    console.log("Dados da mensagem:", msgData);
-    console.log("Dados do participante:", participant);
-    
+    );    
 
     if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new Error("Participant not joined");

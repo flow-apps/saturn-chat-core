@@ -22,7 +22,7 @@ io.use((socket: ISocketAuthenticated, _next) => {
   const token = socket.handshake.query.token;
 
   if (token) {
-    return validateJWT(String(token), (err, decoded: any) => {
+    validateJWT(String(token), (err, decoded: any) => {
       if (err) {
         socket.disconnect();
         console.log("[ Websocket ] Authenticate error");
