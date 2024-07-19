@@ -53,9 +53,7 @@ interface IGetUserIDsOptions {
 class MessagesService {
   private MAX_MESSAGE_LENGTH_PREMIUM: number;
   private MAX_MESSAGE_LENGTH_DEFAULT: number;
-  private cryptr = new Cryptr(process.env.ENCRYPT_MESSAGE_KEY, {
-    saltLength: 15,
-  });
+  private cryptr = new Cryptr(process.env.ENCRYPT_MESSAGE_KEY);
 
   constructor() {
     this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
