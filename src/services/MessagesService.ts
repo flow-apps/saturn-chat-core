@@ -110,7 +110,8 @@ class MessagesService {
       msgData.group_id
     );
 
-    console.log(participant);
+    console.log("Dados da mensagem:", msgData);
+    console.log("Dados do participante:", participant);
     
 
     if (!participant || participant.state !== ParticipantState.JOINED) {
