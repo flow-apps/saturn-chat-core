@@ -25,7 +25,7 @@ io.use((socket: ISocketAuthenticated, _next) => {
     return validateJWT(String(token), (err, decoded: any) => {
       if (err) {
         socket.disconnect();
-        console.log("WS >> Authenticate error");
+        console.log("[ Websocket ] Authenticate error");
         return _next(new Error("Authentication error"));
       }
       socket.userID = decoded.id;
@@ -33,7 +33,7 @@ io.use((socket: ISocketAuthenticated, _next) => {
     });
   } else {
     socket.disconnect();
-    console.log("WS >> Authenticate failed");
+    console.log("[ Websocket ] Authenticate failed");
     return _next(new Error("Authentication error"));
   }
 });
@@ -49,14 +49,18 @@ io.use(async (socket: ISocketPremium, _next) => {
     socket.userID,
     true,
     true
-  );
+  );    
 
   if (!subscription) {
+    console.log("[ Websocket ] assinatura não encontrada");
+
     socket.isPremium = false;
     return _next();
   }
 
   const isPremium = await subscriptionsService.isActive(subscription);
+
+  console.log(`[ Websocket ] conectado ${isPremium ? "com premium" : "sem premium"}`);
 
   socket.isPremium = isPremium;
   return _next();

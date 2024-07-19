@@ -110,17 +110,20 @@ class MessagesService {
       msgData.group_id
     );
 
+    console.log(participant);
+    
+
     if (!participant || participant.state !== ParticipantState.JOINED) {
-      throw new Error("Error on create a message for this group!");
+      throw new Error("Participant not joined");
     }
 
     if (isPremium) {
       if (msgData.message.length > this.MAX_MESSAGE_LENGTH_PREMIUM) {
-        throw new Error("Error on create a message for this group!");
+        throw new Error("Message length error for premium users");
       }
     } else {
       if (msgData.message.length > this.MAX_MESSAGE_LENGTH_DEFAULT) {
-        throw new Error("Error on create a message for this group!");
+        throw new Error("Message length error for default users");
       }
     }
 
