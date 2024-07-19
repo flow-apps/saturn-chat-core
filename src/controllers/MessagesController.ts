@@ -82,13 +82,20 @@ class MessagesController {
       })
     );
 
-    return res.status(200).json({ messages });
+    const decryptedMessages = messages.map((message) => {
+      if (message.encrypted) {
+        message.message = messagesService.decryptMessage(message.message);
+      }
+
+      return message;
+    });
+
+    return res.status(200).json({ messages: decryptedMessages });
   }
 
   async createAttachment(req: RequestPremium, res: Response) {
     const body = req.body;
     const storage = new StorageManager();
-
 
     const messageRepository = getCustomRepository(MessagesRepository);
     const audiosRepository = getCustomRepository(AudiosRepository);
@@ -99,14 +106,15 @@ class MessagesController {
     const attachType = String(req.query.type);
     const groupID = req.params.groupID;
 
-    const participant = await participantsRepository.findParticipantWithPremiumField({
-      where: {
-        group_id: groupID,
-        user_id: req.userId,
-        state: ParticipantState.JOINED,
-      },
-      cache: 50000,
-    });    
+    const participant =
+      await participantsRepository.findParticipantWithPremiumField({
+        where: {
+          group_id: groupID,
+          user_id: req.userId,
+          state: ParticipantState.JOINED,
+        },
+        cache: 50000,
+      });
 
     if (!participant) {
       throw new AppError("Participant not found", 404);
@@ -128,7 +136,7 @@ class MessagesController {
     }
 
     if (attachType === "voice_message") {
-      const file = req.files[0] as Express.Multer.File;      
+      const file = req.files[0] as Express.Multer.File;
       const uploadedFile = await storage.uploadFile({
         file,
         path: `groups/${groupID}/attachments/audios`,
@@ -176,9 +184,10 @@ class MessagesController {
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
-        message: body.message,
+        message: messagesService.encryptMessage(body.message),
         participant_id: participant.id,
         reply_to_id: body.reply_to_id,
+        encrypted: true
       });
 
       await messageRepository.save(createdMessage);
@@ -207,6 +216,10 @@ class MessagesController {
             return createdFile;
           }
         })
+      );
+
+      createdMessage.message = messagesService.decryptMessage(
+        createdMessage.message
       );
 
       return res.json({ files: savedFiles, message_id: createdMessage.id });

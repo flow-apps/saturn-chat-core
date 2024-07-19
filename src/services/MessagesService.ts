@@ -19,10 +19,9 @@ import { LinkUtils } from "../utils/link";
 import { LinkData } from "../types/interfaces";
 import { SaturnChatDomains } from "../configs.json";
 import { UserNotificationsRepository } from "../repositories/UserNotificationsRepository";
-import { v4 } from "uuid";
 import { AudiosRepository } from "../repositories/AudiosRepository";
-import { FirebaseAdmin } from "../configs/firebase";
 import { remoteConfigs } from "../configs/remoteConfigs";
+import Cryptr from "cryptr";
 
 interface ICreateMessageProps {
   message: string;
@@ -54,6 +53,9 @@ interface IGetUserIDsOptions {
 class MessagesService {
   private MAX_MESSAGE_LENGTH_PREMIUM: number;
   private MAX_MESSAGE_LENGTH_DEFAULT: number;
+  private cryptr = new Cryptr(process.env.ENCRYPT_MESSAGE_KEY, {
+    saltLength: 15,
+  });
 
   constructor() {
     this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
@@ -62,6 +64,14 @@ class MessagesService {
     this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
       remoteConfigs.default_max_message_length
     );
+  }
+
+  encryptMessage(message: string) {
+    return this.cryptr.encrypt(message);
+  }
+
+  decryptMessage(hash: string) {
+    return this.cryptr.decrypt(hash);
   }
 
   async getParticipantsUserIds(
@@ -108,7 +118,7 @@ class MessagesService {
     const participant = await participantsService.index(
       msgData.author_id,
       msgData.group_id
-    );    
+    );
 
     if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new Error("Participant not joined");
@@ -172,6 +182,8 @@ class MessagesService {
 
     const newMessage = messageRepository.create({
       ...msgData,
+      message: this.encryptMessage(msgData.message),
+      encrypted: true,
       participant_id: participant.id,
       links: linksData,
     });
@@ -194,6 +206,8 @@ class MessagesService {
       newMessage.author_id,
       newMessage.group_id
     );
+
+    message.message = this.decryptMessage(message.message)
 
     return message;
   }
@@ -240,6 +254,7 @@ class MessagesService {
         voice_message_id: audioData.audio.id,
         participant_id: participant.id,
         reply_to_id: audioData.reply_to_id,
+        encrypted: true
       };
 
       const newMessage = messagesRepository.create(data);
@@ -309,6 +324,10 @@ class MessagesService {
         ],
       }
     );
+
+    completedMessage.message = completedMessage.encrypted
+      ? this.decryptMessage(completedMessage.message)
+      : completedMessage.message;
 
     return completedMessage;
   }

@@ -31,9 +31,13 @@ export class CreateMessages1622164951875 implements MigrationInterface {
           },
           {
             name: "message",
-            type: "varchar",
-            length: "5000",
+            type: "text",
             isNullable: true
+          },
+          {
+            name: "encrypted",
+            type: "boolean",
+            default: false,
           },
           {
             name: "links",

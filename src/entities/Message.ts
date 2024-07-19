@@ -67,8 +67,11 @@ class Message {
   @JoinColumn({ name: "participant_id" })
   participant: Participant;
 
-  @Column({ length: 5000, default: "" })
+  @Column("text", {  default: "" })
   message: string;
+
+  @Column("boolean", { default: false })
+  encrypted: boolean;
 
   @Column("jsonb", { nullable: true })
   links: LinkData[];
