@@ -97,6 +97,8 @@ class FriendsController {
     if (existsRequest) {
       if (existsRequest.state === FriendsState.UNFRIENDS) {
         await friendsRepository.update(existsRequest.id, {
+          requested_by_id: userID,
+          received_by_id: friendID,
           state: FriendsState.REQUESTED,
         });
 
