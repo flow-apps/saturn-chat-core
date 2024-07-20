@@ -53,7 +53,9 @@ interface IGetUserIDsOptions {
 class MessagesService {
   private MAX_MESSAGE_LENGTH_PREMIUM: number;
   private MAX_MESSAGE_LENGTH_DEFAULT: number;
-  private cryptr = new Cryptr(process.env.ENCRYPT_MESSAGE_KEY);
+  private cryptr = new Cryptr(process.env.ENCRYPT_MESSAGE_KEY, {
+    saltLength: 16,
+  });
 
   constructor() {
     this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
@@ -205,7 +207,7 @@ class MessagesService {
       newMessage.group_id
     );
 
-    message.message = this.decryptMessage(message.message)
+    message.message = this.decryptMessage(message.message);
 
     return message;
   }
@@ -252,7 +254,7 @@ class MessagesService {
         voice_message_id: audioData.audio.id,
         participant_id: participant.id,
         reply_to_id: audioData.reply_to_id,
-        encrypted: true
+        encrypted: true,
       };
 
       const newMessage = messagesRepository.create(data);
