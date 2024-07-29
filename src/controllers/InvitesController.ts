@@ -148,16 +148,18 @@ class InvitesController {
 
     let participant: Participant;
 
-    if (user_id) {
+    if (user_id && user_id === req.userId) {
       participant = await participantsService.index(
-        String(user_id),
+        req.userId,
         invite.group_id
       );
     }
 
     return res.json({
       invite,
-      participant,
+      participant: participant || {
+        state: ParticipantState.EXITED,
+      },
     });
   }
 
