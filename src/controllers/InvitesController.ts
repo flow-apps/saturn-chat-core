@@ -21,6 +21,7 @@ import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { InviteType } from "../database/enums/invites";
 import { FriendsRepository } from "../repositories/FriendsRepository";
 import { FriendsState } from "../database/enums/friends";
+import _ from "lodash";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -148,25 +149,31 @@ class InvitesController {
 
     let participant: Participant;
 
-    if (user_id && user_id === req.userId) {
-      participant = await participantsService.index(user_id, invite.group_id);
+    if (user_id) {
+      participant = await participantsService.index(
+        String(user_id),
+        invite.group_id
+      );
 
-      if (participant && participant.state !== ParticipantState.BANNED) {
+      if (
+        _.isObject(participant) &&
+        participant.state !== ParticipantState.BANNED
+      ) {
         return res.json({
           invite,
-          participant,
+          participant: {
+            state: participant.state,
+          },
         });
-      } else if (participant && participant.state === ParticipantState.BANNED) {
-        throw new AppError("Participant are banned", 403)
+      } else if (
+        _.isObject(participant) &&
+        participant.state === ParticipantState.BANNED
+      ) {
+        throw new AppError("Participant are banned", 403);
       }
     }
 
-    return res.json({
-      invite,
-      participant: {
-        state: ParticipantState.EXITED,
-      },
-    });
+    return res.json({ invite });
   }
 
   async join(req: RequestAuthenticated, res: Response) {
