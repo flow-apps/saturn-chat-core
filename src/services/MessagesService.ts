@@ -209,6 +209,10 @@ class MessagesService {
 
     message.message = this.decryptMessage(message.message);
 
+    if (message.reply_to) {
+      message.reply_to.message = this.decryptMessage(message.reply_to.message);
+    }
+
     return message;
   }
 
@@ -325,9 +329,13 @@ class MessagesService {
       }
     );
 
-    completedMessage.message = completedMessage.encrypted
-      ? this.decryptMessage(completedMessage.message)
-      : completedMessage.message;
+    completedMessage.message = this.decryptMessage(completedMessage.message);
+
+    if (completedMessage.reply_to) {
+      completedMessage.reply_to.message = this.decryptMessage(
+        completedMessage.reply_to.message
+      );
+    }
 
     return completedMessage;
   }

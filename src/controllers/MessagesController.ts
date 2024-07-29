@@ -85,6 +85,12 @@ class MessagesController {
     const decryptedMessages = messages.map((message) => {
       if (message.encrypted) {
         message.message = messagesService.decryptMessage(message.message);
+
+        if (message.reply_to && message.reply_to.encrypted) {
+          message.reply_to.message = messagesService.decryptMessage(
+            message.reply_to.message
+          );
+        }
       }
 
       return message;
@@ -187,7 +193,7 @@ class MessagesController {
         message: messagesService.encryptMessage(body.message),
         participant_id: participant.id,
         reply_to_id: body.reply_to_id,
-        encrypted: true
+        encrypted: true,
       });
 
       await messageRepository.save(createdMessage);
@@ -221,6 +227,12 @@ class MessagesController {
       createdMessage.message = messagesService.decryptMessage(
         createdMessage.message
       );
+
+      if (createdMessage.reply_to) {
+        createdMessage.reply_to.message = messagesService.decryptMessage(
+          createdMessage.reply_to.message
+        );
+      }
 
       return res.json({ files: savedFiles, message_id: createdMessage.id });
     }
