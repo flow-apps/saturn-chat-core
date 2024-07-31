@@ -23,7 +23,7 @@ class Subscription {
   @Column()
   user_id: string;
 
-  @Column({ unique: true })
+  @Column()
   subscription_id: string;
 
   @Column({ unique: true })

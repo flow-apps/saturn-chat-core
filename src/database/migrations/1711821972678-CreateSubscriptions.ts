@@ -19,7 +19,6 @@ export class CreateSubscriptions1711821972678 implements MigrationInterface {
           {
             name: "subscription_id",
             type: "varchar",
-            isUnique: true,
           },
           {
             name: "package_name",
