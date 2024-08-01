@@ -10,6 +10,8 @@ import { inviteRoutes } from "./routes/invite";
 import { startTasks } from "./cronjobs";
 import { appRoutes } from "./routes/app";
 import { friendRoutes } from "./routes/friend";
+import { subscriptionsRoutes } from "./routes/subscriptions";
+
 import createConnection from "./database";
 import compression from "compression";
 import express from "express";
@@ -17,7 +19,6 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import cors from "cors";
-import { subscriptionsRoutes } from "./routes/subscriptions";
 
 process.on("unhandledRejection", console.error);
 createConnection();
@@ -26,7 +27,7 @@ startTasks();
 const app = express();
 const http = createServer(app);
 
-app.use(morgan("dev"));
+app.use(morgan("tiny"));
 app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(fakePoweredBy);
