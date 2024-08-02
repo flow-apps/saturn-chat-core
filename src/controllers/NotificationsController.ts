@@ -64,7 +64,7 @@ class NotificationsController {
     );
 
     const userNotificationsExists = await userNotificationsRepository.findOne({
-      where: { user_id: req.userId, platform: req.query.platform },
+      where: { user_id: req.userId, platform: String(req.query.platform) },
     });
 
     if (userNotificationsExists) {

@@ -8,6 +8,8 @@ import {
   OneToMany,
   UpdateDateColumn,
   AfterLoad,
+  Index,
+  AfterUpdate,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
@@ -18,6 +20,7 @@ import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
 import { Subscription } from "./Subscription";
 import { SubscriptionsService } from "../services/SubscriptionsService";
+import { randInt } from "../utils/number";
 
 const subscriptionsService = new SubscriptionsService();
 @Entity({ name: "users" })
@@ -27,6 +30,9 @@ class User {
 
   @Column()
   name: string;
+
+  @Column({ nullable: true })
+  nickname?: string;
 
   @Column({ nullable: true })
   bio: string;
