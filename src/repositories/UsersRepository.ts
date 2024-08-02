@@ -1,6 +1,7 @@
 import { EntityRepository, FindManyOptions, Repository } from "typeorm";
 import { User } from "../entities/User";
 import { SubscriptionsService } from "../services/SubscriptionsService";
+import { nicknameRegex } from "../utils/regex";
 
 @EntityRepository(User)
 class UsersRepository extends Repository<User> {
@@ -34,6 +35,18 @@ class UsersRepository extends Repository<User> {
     });
 
     return users;
+  }
+
+  async isAvailableNickname(nickname: string) {
+    const isValidNickname = nicknameRegex.test(nickname.trim().toLowerCase());
+
+    if (!isValidNickname) {
+      return false;
+    }
+
+    const hasNickname = await this.findOne({ where: { nickname } });
+
+    return !hasNickname;
   }
 }
 

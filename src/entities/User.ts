@@ -7,9 +7,6 @@ import {
   JoinColumn,
   OneToMany,
   UpdateDateColumn,
-  AfterLoad,
-  Index,
-  AfterUpdate,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Avatar } from "./Avatar";
@@ -19,10 +16,6 @@ import { Invite } from "./Invite";
 import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
 import { Subscription } from "./Subscription";
-import { SubscriptionsService } from "../services/SubscriptionsService";
-import { randInt } from "../utils/number";
-
-const subscriptionsService = new SubscriptionsService();
 @Entity({ name: "users" })
 class User {
   @PrimaryColumn()
@@ -31,7 +24,7 @@ class User {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "varchar", nullable: true, unique: true })
   nickname?: string;
 
   @Column({ nullable: true })

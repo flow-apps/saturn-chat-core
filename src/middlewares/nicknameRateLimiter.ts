@@ -10,14 +10,14 @@ const rateLimiter = new RateLimiterRedis({
   keyPrefix: "rate_limiter",
 });
 
-async function rateLimiterMiddleware(
+async function nicknameRateLimiterMiddleware(
   req: Request,
   res: Response,
   _next: NextFunction
 ) {
   const nodeEnv = process.env.NODE_ENV;
 
-  console.log("[Rate Limiter] processando Rate Limiter");
+  console.log("[Rate Limiter] processando Nickname Rate Limiter");
 
   if (["test", "development"].includes(nodeEnv)) {
     return _next();
@@ -34,4 +34,4 @@ async function rateLimiterMiddleware(
     });
 }
 
-export { rateLimiterMiddleware };
+export { nicknameRateLimiterMiddleware };

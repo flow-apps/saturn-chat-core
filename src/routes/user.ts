@@ -4,6 +4,7 @@ import { configMulter } from "../configs/multer";
 import { NotificationsController } from "../controllers/NotificationsController";
 import { UsersController } from "../controllers/UsersController";
 import { authProvider } from "../middlewares/authProvider";
+import { nicknameRateLimiterMiddleware } from "../middlewares/nicknameRateLimiter";
 
 const routes = Router();
 const usersController = new UsersController();
@@ -13,6 +14,11 @@ routes.post(
   "/users",
   multer(configMulter(5)).single("avatar"),
   usersController.create
+);
+routes.get(
+  "/users/nickname/check/:nickname",
+  nicknameRateLimiterMiddleware,
+  usersController.checkAvailableNickname
 );
 routes.get("/users", authProvider, usersController.index);
 routes.get("/users/@me", authProvider, usersController.me);

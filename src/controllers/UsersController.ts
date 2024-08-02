@@ -14,9 +14,12 @@ import { FriendsState } from "../database/enums/friends";
 import { GroupType } from "../database/enums/groups";
 import { ParticipantsService } from "../services/ParticipantsService";
 import { ParticipantState } from "../database/enums/participants";
+import { generateNickname } from "../utils/name";
+import { nicknameRegex } from "../utils/regex";
 
 interface Data {
   name: string;
+  nickname?: string;
   email: string;
   password: string;
   avatar?: {
@@ -25,15 +28,17 @@ interface Data {
     path: string;
   };
 }
+
 class UsersController {
   async create(req: Request, res: Response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
+      nickname: Yup.string().notRequired(),
       email: Yup.string().email().required(),
       password: Yup.string().required(),
     });
 
-    const { name, email, password } = req.body as Data;
+    const { name, nickname, email, password } = req.body as Data;
     const avatar = req.file;
     const imageProcessor = new ImageProcessor();
     let processedImage: Buffer;
@@ -53,8 +58,19 @@ class UsersController {
       throw new AppError("User already exists!");
     }
 
+    if (nickname.length > 0) {
+      const isAvailableNickname = await usersRepository.isAvailableNickname(
+        nickname
+      );      
+
+      if (!isAvailableNickname) {
+        throw new AppError("Nickname not is available");
+      }
+    }
+
     const data: Data = {
       name: name.trim(),
+      nickname: nickname.trim().toLowerCase() || generateNickname(name),
       email,
       password: await bcrypt.hash(password, 12),
     };
@@ -78,6 +94,7 @@ class UsersController {
         path: uploadedAvatar.path,
       };
     }
+
     const user = usersRepository.create({ ...data });
     await usersRepository.save(user);
     user.password = undefined;
@@ -327,6 +344,27 @@ class UsersController {
     });
 
     return res.json({ user: updatedUser });
+  }
+
+  async checkAvailableNickname(req: Request, res: Response) {
+    let { nickname } = req.params as { nickname?: string };
+
+    if (!nickname) {
+      throw new AppError("Nickname not provided", 404);
+    }
+
+    nickname = nickname.trim().toLowerCase();
+
+    if (nicknameRegex.test(nickname)) {
+      throw new AppError("Invalid nickname format provided");
+    }
+
+    const usersRepository = getCustomRepository(UsersRepository);
+    const isAvailableNickname = await usersRepository.isAvailableNickname(
+      nickname
+    );
+
+    return res.json({ is_available: isAvailableNickname });
   }
 }
 
