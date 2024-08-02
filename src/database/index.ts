@@ -1,25 +1,28 @@
-import { Connection, createConnection, getConnectionOptions } from "typeorm";
+import {
+  Connection,
+  createConnection,
+  getConnection,
+  getConnectionManager,
+  getConnectionOptions,
+} from "typeorm";
 
 export default async (): Promise<Connection> => {
-  const defaultOptions = await getConnectionOptions();
-  const database = {
-    development: process.env.POSTGRES_DATABASE,
-    prod: process.env.POSTGRES_DATABASE,
-    test: "saturn_chat_test",
-  };
+  let connection: Connection;
 
-  console.log("[Banco de Dados] conectando ao banco:", database[process.env.NODE_ENV]);
-  
+  if (!getConnectionManager().has("default")) {
+    const connectionOptions = await getConnectionOptions();
+    connection = await createConnection(connectionOptions).then((conn) => {
+      console.log("Banco de dados conectado com sucesso");
 
-  const connection = await createConnection(
-    Object.assign(defaultOptions, {
-      database: database[process.env.NODE_ENV],
-    })
-  );
+      return conn;
+    });
+  } else {
+    connection = getConnection();
+  }
 
-  console.log("Conexão com banco de dados estabelecida");
-  
+  await connection.runMigrations().then(() => {
+    console.log("Migrações rodaram com sucesso!");
+  });
 
-  await connection.runMigrations()
-  return connection
+  return connection;
 };
