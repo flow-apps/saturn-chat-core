@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-import path from "path";
+const path = require("path");
 
 module.exports = {
   type: "postgres",
@@ -13,7 +13,7 @@ module.exports = {
   entities: [path.join(__dirname, process.env.TYPEORM_ENTITIES_PATH)],
   migrations: [path.join(__dirname, process.env.TYPEORM_MIGRATIONS_PATH)],
   cli: {
-    entitiesDir: process.env.TYPEORM_ENTITIES_CLI_PATH,
-    migrationsDir: process.env.TYPEORM_MIGRATIONS_CLI_PATH,
+    entitiesDir: path.join(__dirname, process.env.TYPEORM_ENTITIES_CLI_PATH),
+    migrationsDir: path.join(__dirname, process.env.TYPEORM_MIGRATIONS_CLI_PATH),
   },
 };

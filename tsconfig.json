@@ -14,7 +14,6 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": false,
-    "skipLibCheck": true
   },
   "include": ["**/*", "./src/firebase-key.json"],
   "exclude": ["node_modules", "__tests__", "jest.*", "build", "**/*spec.ts", "dist"]
