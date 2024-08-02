@@ -61,7 +61,7 @@ class UsersController {
     if (nickname.length > 0) {
       const isAvailableNickname = await usersRepository.isAvailableNickname(
         nickname
-      );      
+      );
 
       if (!isAvailableNickname) {
         throw new AppError("Nickname not is available");
@@ -254,10 +254,11 @@ class UsersController {
     const usersRepository = getCustomRepository(UsersRepository);
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
-      bio: Yup.string().max(100),
+      bio: Yup.string().max(100).nullable(),
+      nickname: Yup.string().notRequired(),
     });
 
-    let dataValidated: { name: string; bio: string };
+    let dataValidated: { name: string; bio: string; nickname?: string };
 
     try {
       dataValidated = await schema.validate(body, {
@@ -268,7 +269,21 @@ class UsersController {
       throw new AppError(error.errors);
     }
 
-    dataValidated.name = dataValidated.name.trim();
+    dataValidated.name = dataValidated.name.trim();    
+
+    if (dataValidated.nickname.length > 0) {
+      const isAvailableNickname = await usersRepository.isAvailableNickname(
+        dataValidated.nickname
+      );
+
+      if (!isAvailableNickname) {
+        throw new AppError("Nickname not is available");
+      }
+    } else {
+      throw new AppError("Nickname not provided");
+    }
+
+    dataValidated.nickname = dataValidated.nickname.trim().toLowerCase();
 
     const user = await usersRepository.findOne({
       where: [{ id: userID }],
