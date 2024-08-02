@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "set NODE_ENV=development&& ts-node-dev --transpile-only --ignore-watch node_modules src/server.ts",
-    "start": "ts-node --transpile-only ./src/server.ts",
+    "start": "node ./dist/src/server.js",
+    "build": "tsc -p .",
     "test": "set NODE_ENV=test&& jest -i --detectOpenHandles",
     "audit-fix": "yarn-audit-fix",
     "typeorm": "ts-node --transpile-only node_modules/typeorm/cli.js",

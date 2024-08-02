@@ -82,14 +82,14 @@ class MessagesService {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const participantsUserIds = await participantsRepository
       .find({
-        where: {
+        where: [{
           group_id: groupID,
           user_id: options.excludedIds ? Not(options.excludedIds) : undefined,
           state: ParticipantState.JOINED,
           status: options.getOnlines
             ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
             : ParticipantStatus.OFFLINE,
-        },
+        }],
         select: ["user_id"],
       })
       .then((parts) => parts.map((p) => p.user_id));

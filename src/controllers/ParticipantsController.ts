@@ -261,12 +261,14 @@ class ParticipantsController {
     ];
 
     const requestedByParticipant = await participantsRepository.findOne({
-      where: {
-        user_id: req.userId,
-        group_id: query.group_id,
-        state: ParticipantState.JOINED,
-        role: In(authorizedRoles),
-      },
+      where: [
+        {
+          user_id: req.userId,
+          group_id: query.group_id,
+          state: ParticipantState.JOINED,
+          role: In(authorizedRoles),
+        },
+      ],
       relations: ["group"],
     });
 
