@@ -268,66 +268,6 @@ class GroupsController {
     return res.status(200).json(groupsWithUnreadMessages);
   }
 
-  async search(req: RequestAuthenticated, res: Response) {
-    const { q, _limit, _page } = req.query;
-    const groupsRepository = getCustomRepository(GroupsRepository);
-    const participantsRepository = getCustomRepository(ParticipantsRepository);
-
-    if (!q) {
-      throw new AppError("Query not provided");
-    }
-
-    const query = String(q).trim();
-
-    const groups = await groupsRepository.findManyGroupsOwnersWithPremiumField({
-      where: [
-        {
-          name: ILike(`%${query}%`),
-          privacy: Not("PRIVATE"),
-          type: Not(GroupType.DIRECT),
-        },
-        {
-          tags: Raw((alias) => `${alias} @> :tags`, {
-            tags: [query.toLowerCase()],
-          }),
-          privacy: Not("PRIVATE"),
-          type: Not(GroupType.DIRECT),
-        },
-      ],
-      skip: Number(_page) * Number(_limit),
-      take: Number(_limit),
-
-      cache: 10000,
-    });
-
-    const groupsWithParticipantsAmount = await Promise.all(
-      groups.map(async (group) => {
-        const participantsAmount = await participantsRepository.count({
-          where: { group_id: group.id },
-        });
-
-        let acceptingParticipants = true;
-
-        if (group.owner.isPremium) {
-          if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_PREMIUM) {
-            acceptingParticipants = false;
-          }
-        } else {
-          if (participantsAmount >= this.MAX_PARTICIPANTS_PER_GROUP_DEFAULT) {
-            acceptingParticipants = false;
-          }
-        }
-
-        return Object.assign(group, {
-          participantsAmount,
-          acceptingParticipants,
-        });
-      })
-    );
-
-    return res.status(200).json(groupsWithParticipantsAmount);
-  }
-
   async update(req: RequestAuthenticated, res: Response) {
     const body = req.body as Body;
     const groupID = req.params.groupID;

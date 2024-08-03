@@ -26,7 +26,6 @@ routes.get("/group/participant/ban/:participant_id", authProvider, participantsC
 routes.post("/group/participant/role/set/:participant_id", authProvider, participantsController.setRole);
 routes.delete("/group/participant/exit/:id", authProvider, participantsController.delete)
 routes.get("/groups/list", authProvider, groupsController.list);
-routes.get("/groups/search", authProvider, groupsController.search);
 routes.delete("/group/:id", authProvider, groupsController.delete);
 routes.patch("/group/:groupID", authProvider, groupsController.update);
 routes.patch(
