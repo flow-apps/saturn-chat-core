@@ -38,8 +38,10 @@ class UsersRepository extends Repository<User> {
   }
 
   async isAvailableNickname(nickname: string) {
-    const isValidNickname = nicknameRegex.test(nickname.trim().toLowerCase());
-    
+    nickname = nickname.trim().toLowerCase();
+
+    const isValidNickname = nicknameRegex.test(nickname);
+
     if (!isValidNickname) {
       return false;
     }

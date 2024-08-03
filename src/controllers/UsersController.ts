@@ -32,10 +32,10 @@ interface Data {
 class UsersController {
   async create(req: Request, res: Response) {
     const schema = Yup.object().shape({
-      name: Yup.string().required(),
-      nickname: Yup.string().notRequired().nullable(),
-      email: Yup.string().email().required(),
-      password: Yup.string().required(),
+      name: Yup.string().max(100).required(),
+      nickname: Yup.string().max(100).notRequired().nullable(),
+      email: Yup.string().max(100).email().required(),
+      password: Yup.string().max(100).required(),
     });
 
     const { name, nickname, email, password } = req.body as Data;
@@ -255,8 +255,8 @@ class UsersController {
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
       bio: Yup.string().max(100).nullable(),
-      nickname: Yup.string().notRequired(),
-    });    
+      nickname: Yup.string().max(100).required(),
+    });
 
     let dataValidated: { name: string; bio: string; nickname?: string };
 
@@ -269,15 +269,12 @@ class UsersController {
       throw new AppError(error.errors);
     }
 
-    dataValidated.name = dataValidated.name.trim();    
+    dataValidated.name = dataValidated.name.trim();
 
     if (dataValidated.nickname.length > 0) {
       const isAvailableNickname = await usersRepository.isAvailableNickname(
         dataValidated.nickname
       );
-
-      console.log(isAvailableNickname);
-      
 
       if (!isAvailableNickname) {
         throw new AppError("Nickname not is available");
