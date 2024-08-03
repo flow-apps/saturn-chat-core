@@ -249,7 +249,7 @@ class UsersController {
   }
 
   async update(req: RequestAuthenticated, res: Response) {
-    const body = req.body;
+    const body = req.body as { name: string; bio: string; nickname: string };
     const userID = req.userId;
     const usersRepository = getCustomRepository(UsersRepository);
     const schema = Yup.object().shape({
@@ -258,32 +258,13 @@ class UsersController {
       nickname: Yup.string().max(100).required(),
     });
 
-    let dataValidated: { name: string; bio: string; nickname?: string };
-
     try {
-      dataValidated = await schema.validate(body, {
+      await schema.validate(body, {
         abortEarly: false,
-        stripUnknown: true,
       });
     } catch (error) {
       throw new AppError(error.errors);
     }
-
-    dataValidated.name = dataValidated.name.trim();
-
-    if (dataValidated.nickname.length > 0) {
-      const isAvailableNickname = await usersRepository.isAvailableNickname(
-        dataValidated.nickname
-      );
-
-      if (!isAvailableNickname) {
-        throw new AppError("Nickname not is available");
-      }
-    } else {
-      throw new AppError("Nickname not provided");
-    }
-
-    dataValidated.nickname = dataValidated.nickname.trim().toLowerCase();
 
     const user = await usersRepository.findOne({
       where: [{ id: userID }],
@@ -293,7 +274,26 @@ class UsersController {
       throw new AppError("Invalid user");
     }
 
-    const updatedUserData = Object.assign(user, dataValidated);
+    body.name = body.name.trim();
+    body.nickname = body.nickname.trim().toLowerCase();
+
+    if (body.nickname && body.nickname !== user?.nickname) {
+      const isAvailableNickname = await usersRepository.isAvailableNickname(
+        body.nickname
+      );
+
+      if (!isAvailableNickname) {
+        throw new AppError("Nickname not is available");
+      }
+    } else if (!body.nickname) {
+      throw new AppError("Nickname not provided");
+    }
+
+    const updatedUserData = Object.assign(user, {
+      name: body.name,
+      nickname: body.nickname,
+      bio: body.bio,
+    });
     const mergedUser = usersRepository.merge(user, updatedUserData);
     const savedFile = await usersRepository.save(mergedUser);
 
