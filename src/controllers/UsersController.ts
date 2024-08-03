@@ -33,7 +33,7 @@ class UsersController {
   async create(req: Request, res: Response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
-      nickname: Yup.string().notRequired(),
+      nickname: Yup.string().notRequired().nullable(),
       email: Yup.string().email().required(),
       password: Yup.string().required(),
     });
@@ -256,7 +256,7 @@ class UsersController {
       name: Yup.string().max(100).required(),
       bio: Yup.string().max(100).nullable(),
       nickname: Yup.string().notRequired(),
-    });
+    });    
 
     let dataValidated: { name: string; bio: string; nickname?: string };
 
@@ -275,6 +275,9 @@ class UsersController {
       const isAvailableNickname = await usersRepository.isAvailableNickname(
         dataValidated.nickname
       );
+
+      console.log(isAvailableNickname);
+      
 
       if (!isAvailableNickname) {
         throw new AppError("Nickname not is available");
@@ -362,15 +365,13 @@ class UsersController {
   }
 
   async checkAvailableNickname(req: Request, res: Response) {
-    let { nickname } = req.params as { nickname?: string };
+    const { nickname } = req.params as { nickname?: string };
 
     if (!nickname) {
       throw new AppError("Nickname not provided", 404);
     }
 
-    nickname = nickname.trim().toLowerCase();
-
-    if (nicknameRegex.test(nickname)) {
+    if (!nicknameRegex.test(nickname)) {
       throw new AppError("Invalid nickname format provided");
     }
 

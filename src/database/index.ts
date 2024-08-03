@@ -1,28 +1,15 @@
 import {
   Connection,
   createConnection,
-  getConnection,
-  getConnectionManager,
   getConnectionOptions,
 } from "typeorm";
 
 export default async (): Promise<Connection> => {
-  let connection: Connection;
+  const defaultOptions = await getConnectionOptions();
 
-  if (!getConnectionManager().has("default")) {
-    const connectionOptions = await getConnectionOptions();
-    connection = await createConnection(connectionOptions).then((conn) => {
-      console.log("Banco de dados conectado com sucesso");
-
-      return conn;
-    });
-  } else {
-    connection = getConnection();
-  }
-
+  const connection = await createConnection(defaultOptions);
   await connection.runMigrations().then(() => {
-    console.log("Migrações rodaram com sucesso!");
+    console.log("Migrações rodadas com sucesso!");
   });
-
   return connection;
 };
