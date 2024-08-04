@@ -25,6 +25,9 @@ class GroupSettings {
   @Column()
   setting_value: string;
 
+  @Column()
+  typeof_value: string;
+
   @ManyToOne(() => Group, (group) => group.group_settings, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
