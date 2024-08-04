@@ -1,0 +1,3 @@
+const defaultGroupSettings = {};
+
+export { defaultGroupSettings };

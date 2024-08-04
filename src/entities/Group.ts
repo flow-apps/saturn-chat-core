@@ -23,6 +23,7 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 import { io } from "../websockets";
 import { GroupType } from "../database/enums/groups";
 import { Friend } from "./Friend";
+import { GroupSettings } from "./GroupSetting";
 
 @Entity({ name: "groups" })
 class Group {
@@ -82,20 +83,16 @@ class Group {
   @Column("varchar", { array: true, nullable: true, default: [] })
   tags: string[];
 
-  @OneToOne(() => Group, (group) => group.group_avatar, {
-    cascade: true,
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-  })
-  @JoinColumn({ name: "group_id" })
-  group: Group;
-
   @OneToOne(() => GroupAvatar, {
     nullable: true,
     eager: true,
   })
   @JoinColumn()
   group_avatar: GroupAvatar;
+
+  @OneToMany(() => GroupSettings, (group) => group.group)
+  @JoinColumn()
+  group_settings: GroupSettings[];
 
   @OneToOne(() => Friend, (friend) => friend.chat, { nullable: true })
   @JoinColumn()
