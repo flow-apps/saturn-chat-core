@@ -28,6 +28,10 @@ export class CreateGroupSettings1722782882489 implements MigrationInterface {
             name: "typeof_value",
             type: "varchar",
           },
+          {
+            name: "input_type",
+            type: "varchar",
+          },
         ],
         foreignKeys: [
           {

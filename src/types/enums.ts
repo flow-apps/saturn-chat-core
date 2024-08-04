@@ -7,3 +7,7 @@ export enum NotificationsType {
   FRIEND_REQUEST = "FRIEND_REQUEST",
   FRIEND_REQUEST_ACCEPT = "FRIEND_REQUEST_ACCEPT",
 }
+
+export enum MaxParticipantsType {
+  NO_LIMIT = "NO_LIMIT"
+}

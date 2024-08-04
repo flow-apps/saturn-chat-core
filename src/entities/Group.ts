@@ -23,7 +23,7 @@ import { MessagesRepository } from "../repositories/MessagesRepository";
 import { io } from "../websockets";
 import { GroupType } from "../database/enums/groups";
 import { Friend } from "./Friend";
-import { GroupSettings } from "./GroupSetting";
+import { GroupSetting } from "./GroupSetting";
 
 @Entity({ name: "groups" })
 class Group {
@@ -90,9 +90,9 @@ class Group {
   @JoinColumn()
   group_avatar: GroupAvatar;
 
-  @OneToMany(() => GroupSettings, (group) => group.group)
+  @OneToMany(() => GroupSetting, (group) => group.group)
   @JoinColumn()
-  group_settings: GroupSettings[];
+  group_settings: GroupSetting[];
 
   @OneToOne(() => Friend, (friend) => friend.chat, { nullable: true })
   @JoinColumn()

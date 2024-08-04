@@ -1,5 +1,5 @@
 import { EntityRepository, In, Repository } from "typeorm";
-import { GroupSettings } from "../entities/GroupSetting";
+import { GroupSetting } from "../entities/GroupSetting";
 import { defaultGroupSettings } from "../configs/defaults/group.settings";
 import _ from "lodash";
 
@@ -7,21 +7,52 @@ interface IUpdateSettings {
   setting_name: string;
   setting_value: any;
 }
-@EntityRepository(GroupSettings)
-class GroupsSettingsRepository extends Repository<GroupSettings> {
+@EntityRepository(GroupSetting)
+class GroupsSettingsRepository extends Repository<GroupSetting> {
   async getOrGenerateSettings(group_id: string) {
-    const hasGroupSettings = await this.findOne({ where: { group_id } });
+    const defaultConfigsKeys = Object.keys(defaultGroupSettings);
+    const hasGroupSettings = await this.find({ where: { group_id } });
 
     if (hasGroupSettings) {
-      return hasGroupSettings;
+      const groupSettingsKeys = hasGroupSettings.map(
+        (setting) => setting.setting_name
+      );
+
+      if (_.isEqual(groupSettingsKeys, defaultConfigsKeys)) {
+        return hasGroupSettings;
+      } else {
+        const diferrentSettingKeys = defaultConfigsKeys.filter(
+          (dc) => !groupSettingsKeys.includes(dc)
+        );
+
+        await Promise.all(
+          diferrentSettingKeys.map(async (newKey) => {
+            const newSetting = this.create({
+              setting_name: newKey,
+              setting_value: defaultGroupSettings[newKey].value,
+              input_type: defaultGroupSettings[newKey].input_type,
+              typeof_value: typeof defaultGroupSettings[newKey].value,
+              group_id,
+            });
+
+            await this.save(newSetting);
+            return newSetting;
+          })
+        );
+
+        const savedSettings = await this.find({ where: { group_id } });
+
+        return savedSettings;
+      }
     }
 
     const newSettings = await Promise.all(
-      Object.keys(defaultGroupSettings).map(async (configKey) => {
+      defaultConfigsKeys.map(async (configKey) => {
         const createdSettings = this.create({
           setting_name: configKey,
-          setting_value: String(defaultGroupSettings[configKey]),
-          typeof_value: typeof defaultGroupSettings[configKey],
+          setting_value: String(defaultGroupSettings[configKey].value),
+          typeof_value: typeof defaultGroupSettings[configKey].value,
+          input_type: typeof defaultGroupSettings[configKey].input_type,
           group_id,
         });
 

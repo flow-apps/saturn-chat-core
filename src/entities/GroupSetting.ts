@@ -12,7 +12,7 @@ import { v4 as uuid } from "uuid";
 import { Group } from "./Group";
 
 @Entity({ name: "groups_settings" })
-class GroupSettings {
+class GroupSetting {
   @PrimaryColumn()
   readonly id: string;
 
@@ -27,6 +27,9 @@ class GroupSettings {
 
   @Column()
   typeof_value: string;
+
+  @Column()
+  input_type: string;
 
   @ManyToOne(() => Group, (group) => group.group_settings, {
     onDelete: "CASCADE",
@@ -50,4 +53,4 @@ class GroupSettings {
   }
 }
 
-export { GroupSettings };
+export { GroupSetting };
