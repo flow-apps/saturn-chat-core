@@ -18,6 +18,7 @@ routes.post(
   groupsController.create
 );
 routes.get("/group/:id", authProvider, groupsController.index);
+routes.get("/group/settings/:group_id", authProvider, groupsController.getSettings)
 routes.get("/group/participants/new/:group_id", authProvider, participantsController.new);
 routes.get("/group/participants/list", authProvider, participantsController.list);
 routes.get("/group/participant/:group_id", authProvider, participantsController.index);

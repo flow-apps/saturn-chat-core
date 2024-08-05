@@ -76,25 +76,23 @@ class MessagesController {
       order: { created_at: "DESC" },
     });
 
-    await Promise.all(
+    const decryptedMessages = await Promise.all(
       messages.map(async (message) => {
+        if (message.encrypted) {
+          message.message = messagesService.decryptMessage(message.message);
+
+          if (message.reply_to && message.reply_to.encrypted) {
+            message.reply_to.message = messagesService.decryptMessage(
+              message.reply_to.message
+            );
+          }
+        }
+
         await messagesService.readMessage(message.id, req.userId, groupID);
+
+        return message;
       })
     );
-
-    const decryptedMessages = messages.map((message) => {
-      if (message.encrypted) {
-        message.message = messagesService.decryptMessage(message.message);
-
-        if (message.reply_to && message.reply_to.encrypted) {
-          message.reply_to.message = messagesService.decryptMessage(
-            message.reply_to.message
-          );
-        }
-      }
-
-      return message;
-    });
 
     return res.status(200).json({ messages: decryptedMessages });
   }

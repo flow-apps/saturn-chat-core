@@ -21,6 +21,7 @@ import { GroupType } from "../database/enums/groups";
 import { RequestPremium } from "../middlewares/validatePremium";
 import { FirebaseAdmin } from "../configs/firebase";
 import { remoteConfigs } from "../configs/remoteConfigs";
+import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
 
 interface Body {
   name: string;
@@ -405,6 +406,43 @@ class GroupsController {
     });
 
     return res.sendStatus(204);
+  }
+
+  async getSettings(req: RequestAuthenticated, res: Response) {
+    const { group_id } = req.params;
+    const userID = req.userId;
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const groupSettingsRepository = getCustomRepository(
+      GroupsSettingsRepository
+    );
+
+    const rolesForUpdateConfigs = [
+      ParticipantRole.OWNER,
+      ParticipantRole.ADMIN,
+      ParticipantRole.MANAGER,
+    ];
+
+    if (!group_id) {
+      throw new AppError("Group ID not provided", 404);
+    }
+
+    const participant = await participantsRepository.findOne({
+      where: { group_id, user_id: userID, state: ParticipantState.JOINED },
+    });
+
+    if (!participant) {
+      throw new AppError("Participant not found", 404);
+    }
+
+    if (!rolesForUpdateConfigs.includes(participant.role)) {
+      throw new AppError("Participant role invalid");
+    }
+
+    const settings = await groupSettingsRepository.getOrGenerateSettings(
+      group_id
+    );
+
+    return res.json(settings);
   }
 }
 

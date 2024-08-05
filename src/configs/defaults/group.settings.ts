@@ -3,21 +3,17 @@ import { MaxParticipantsType } from "../../types/enums";
 
 const defaultGroupSettings = {
   notify_new_participants: {
-    input_type: "radio",
+    input_type: "switch",
     value: true
   },
   accepting_new_users: {
-    input_type: "radio",
-    value: true
+    input_type: "switch",
+    value: false
   },
-  minimal_role_for_message: {
-    input_type: "select",
+  minimum_role_for_send_message: {
+    input_type: "participant_role",
     value: ParticipantRole.PARTICIPANT
   },
-  max_participants: {
-    input_type: "number",
-    value: MaxParticipantsType.NO_LIMIT
-  }
 };
 
 export { defaultGroupSettings };
