@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Group } from "./Group";
+import { defaultGroupSettings } from "../configs/defaults/group.settings";
 
 @Entity({ name: "groups_settings" })
 class GroupSetting {
@@ -20,7 +21,7 @@ class GroupSetting {
   group_id: string;
 
   @Column()
-  setting_name: string;
+  setting_name: keyof typeof defaultGroupSettings;
 
   @Column()
   setting_value: string;

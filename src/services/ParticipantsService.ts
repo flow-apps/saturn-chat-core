@@ -14,6 +14,7 @@ import { ONESIGNAL } from "../configs.json";
 import { GroupType } from "../database/enums/groups";
 import { GroupsRepository } from "../repositories/GroupsRepository";
 import { remoteConfigs } from "../configs/remoteConfigs";
+import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
 
 interface INewParticipant {
   user_id: string;
@@ -39,10 +40,11 @@ class ParticipantsService {
       const participantsRepository = getCustomRepository(
         ParticipantsRepository
       );
-      const participant = await participantsRepository.findParticipantWithPremiumField({
-        where: [{ user_id: userID, group_id: groupID }],
-        cache: new Time().timeToMS(1, "hour"),
-      });
+      const participant =
+        await participantsRepository.findParticipantWithPremiumField({
+          where: [{ user_id: userID, group_id: groupID }],
+          cache: new Time().timeToMS(1, "hour"),
+        });
 
       if (!participant) {
         return null;
@@ -59,6 +61,9 @@ class ParticipantsService {
     const invitesRepository = getCustomRepository(InvitesRepository);
     const notificationsService = new NotificationsService();
     const groupsRepository = getCustomRepository(GroupsRepository);
+    const groupsSettingsRepository = getCustomRepository(
+      GroupsSettingsRepository
+    );
 
     if (!group_id) {
       throw new AppError("Group ID not provided");
@@ -128,9 +133,18 @@ class ParticipantsService {
       where: { group_id, user_id: participant.group.owner_id },
     });
 
+    const sendNotification = await groupsSettingsRepository.findOne({
+      where: {
+        group_id,
+        setting_name: "notify_new_participants",
+        setting_value: "true",
+      },
+    });
+
     if (
       participant.group.type !== GroupType.DIRECT &&
-      participant.role !== ParticipantRole.OWNER
+      participant.role !== ParticipantRole.OWNER &&
+      !!sendNotification
     ) {
       await notificationsService.send({
         name: "New Participant Notification",
@@ -178,13 +192,14 @@ class ParticipantsService {
 
   async list(groupID: string, _page: number, _limit: number) {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
-    const participants = await participantsRepository.findParticipantsWithPremiumField({
-      where: [{ group_id: groupID, state: ParticipantState.JOINED }],
-      loadEagerRelations: true,
-      take: _limit,
-      skip: _page * _limit,
-      order: { participating_since: "ASC" },
-    });
+    const participants =
+      await participantsRepository.findParticipantsWithPremiumField({
+        where: [{ group_id: groupID, state: ParticipantState.JOINED }],
+        loadEagerRelations: true,
+        take: _limit,
+        skip: _page * _limit,
+        order: { participating_since: "ASC" },
+      });
 
     return participants;
   }
