@@ -14,6 +14,8 @@ import { ParticipantState } from "../database/enums/participants";
 import { MessagesService } from "../services/MessagesService";
 import { RequestPremium } from "../middlewares/validatePremium";
 import { remoteConfigs } from "../configs/remoteConfigs";
+import { checkIsMinimumRole } from "../utils/role";
+import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
 
 class MessagesController {
   private MAX_FILE_SIZE_PREMIUM: number;
@@ -105,6 +107,9 @@ class MessagesController {
     const audiosRepository = getCustomRepository(AudiosRepository);
     const filesRepository = getCustomRepository(FilesRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const groupsSettingsRepository = getCustomRepository(
+      GroupsSettingsRepository
+    );
     const messagesService = new MessagesService();
 
     const attachType = String(req.query.type);
@@ -137,6 +142,20 @@ class MessagesController {
       if (!friend || friend.state !== FriendsState.FRIENDS) {
         throw new AppError("You are not friends with this user!", 403);
       }
+    }
+
+    const minimumRoleSendMessage = (
+      await groupsSettingsRepository.getOneSetting(
+        groupID,
+        "minimum_role_for_send_message"
+      )
+    ).setting_value;
+    const canSendMessage = checkIsMinimumRole(
+      minimumRoleSendMessage,
+      participant.role
+    );
+    if (!canSendMessage) {
+      throw new Error("Participant cannot send message");
     }
 
     if (attachType === "voice_message") {

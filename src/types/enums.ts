@@ -11,3 +11,4 @@ export enum NotificationsType {
 export enum MaxParticipantsType {
   NO_LIMIT = "NO_LIMIT"
 }
+

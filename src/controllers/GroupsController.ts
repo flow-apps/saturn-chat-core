@@ -23,6 +23,7 @@ import { FirebaseAdmin } from "../configs/firebase";
 import { remoteConfigs } from "../configs/remoteConfigs";
 import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
 import { GroupSetting } from "../entities/GroupSetting";
+import { converterStringWithType } from "../utils/converter";
 
 interface Body {
   name: string;
@@ -76,6 +77,10 @@ class GroupsController {
     const groupsAvatarsRepository = getCustomRepository(
       GroupsAvatarsRepository
     );
+    const groupsSettingsRepository = getCustomRepository(
+      GroupsSettingsRepository
+    );
+
     const participants = new ParticipantsService();
     const schema = Yup.object().shape({
       name: Yup.string().max(100).required(),
@@ -146,6 +151,11 @@ class GroupsController {
     const group = groupsRepository.create(data);
     await groupsRepository.save(group);
 
+    const generatedSettings =
+      await groupsSettingsRepository.getOrGenerateSettings(group.id);
+
+    group.group_settings = generatedSettings;
+
     if (createdAvatar) {
       await groupsAvatarsRepository.save(createdAvatar);
       await groupsRepository.update(group.id, {
@@ -165,12 +175,15 @@ class GroupsController {
     const { id } = req.params;
     const groupsRepository = getCustomRepository(GroupsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const groupsSettingsRepository = getCustomRepository(
+      GroupsSettingsRepository
+    );
 
     if (!id) {
       throw new AppError("Group ID not provided!");
     }
 
-    const group = await groupsRepository.findGroupOwnerWithPremiumField({
+    let group = await groupsRepository.findGroupOwnerWithPremiumField({
       where: { id },
       relations: ["owner", "group_avatar", "participants"],
       loadEagerRelations: true,
@@ -184,6 +197,11 @@ class GroupsController {
       where: { group_id: group.id, state: ParticipantState.JOINED },
     });
 
+    if (!group.group_settings) {
+      group.group_settings =
+        await groupsSettingsRepository.getOrGenerateSettings(group.id);
+    }
+
     let acceptingParticipants = true;
 
     if (group.owner.isPremium) {
@@ -195,6 +213,16 @@ class GroupsController {
         acceptingParticipants = false;
       }
     }
+
+    const settingAcceptingParticipants =
+      await groupsSettingsRepository.getOneSetting(
+        group.id,
+        "accepting_new_users"
+      );
+    acceptingParticipants = converterStringWithType(
+      settingAcceptingParticipants.setting_value,
+      settingAcceptingParticipants.typeof_value
+    );
 
     const groupWithParticipantsAmount = Object.assign(group, {
       participantsAmount,

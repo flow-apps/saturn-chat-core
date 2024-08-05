@@ -35,7 +35,6 @@ class GroupSetting {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,
-    eager: true,
   })
   @JoinColumn({ name: "group_id" })
   group: Group;

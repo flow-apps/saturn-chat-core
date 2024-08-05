@@ -7,6 +7,9 @@ interface IUpdateSettings {
   setting_name: string;
   setting_value: any;
 }
+
+type TSettingNameKeys = keyof typeof defaultGroupSettings;
+
 @EntityRepository(GroupSetting)
 class GroupsSettingsRepository extends Repository<GroupSetting> {
   async getOrGenerateSettings(group_id: string) {
@@ -64,7 +67,7 @@ class GroupsSettingsRepository extends Repository<GroupSetting> {
     return _.sortBy(newSettings, (o) => o.setting_name);
   }
 
-  async getOneSetting(group_id: string, setting_name: string) {
+  async getOneSetting(group_id: string, setting_name: TSettingNameKeys) {
     if (!group_id || !setting_name) return undefined;
 
     const setting = this.findOne({ where: { group_id, setting_name } });

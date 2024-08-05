@@ -22,6 +22,8 @@ import { UserNotificationsRepository } from "../repositories/UserNotificationsRe
 import { AudiosRepository } from "../repositories/AudiosRepository";
 import { remoteConfigs } from "../configs/remoteConfigs";
 import Cryptr from "cryptr";
+import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
+import { checkIsMinimumRole } from "../utils/role";
 
 interface ICreateMessageProps {
   message: string;
@@ -110,6 +112,7 @@ class MessagesService {
 
   async create(msgData: ICreateMessageProps, isPremium = false) {
     const messageRepository = getCustomRepository(MessagesRepository);
+    const groupsSettingsRepository = getCustomRepository(GroupsSettingsRepository)
     const participantsService = new ParticipantsService();
 
     const linkUtils = new LinkUtils();
@@ -120,8 +123,15 @@ class MessagesService {
       msgData.group_id
     );
 
+
     if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new Error("Participant not joined");
+    }
+
+    const minimumRoleSendMessage = (await groupsSettingsRepository.getOneSetting(msgData.group_id, "minimum_role_for_send_message")).setting_value;
+    const canSendMessage = checkIsMinimumRole(minimumRoleSendMessage, participant.role);
+    if (!canSendMessage) {
+      throw new Error("Participant cannot send message");
     }
 
     if (isPremium) {
