@@ -10,6 +10,7 @@ module.exports = {
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
   logging: false,
+  migrationsTransactionMode: 'each',
   entities: [path.join(__dirname, process.env.TYPEORM_ENTITIES_PATH)],
   migrations: [path.join(__dirname, process.env.TYPEORM_MIGRATIONS_PATH)],
   cli: {
