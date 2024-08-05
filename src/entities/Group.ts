@@ -90,7 +90,10 @@ class Group {
   @JoinColumn()
   group_avatar: GroupAvatar;
 
-  @OneToMany(() => GroupSetting, (group) => group.group, { eager: true })
+  @OneToMany(() => GroupSetting, (group) => group.group, {
+    eager: true,
+    nullable: true,
+  })
   @JoinColumn()
   group_settings: GroupSetting[];
 

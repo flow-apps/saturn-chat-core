@@ -197,10 +197,9 @@ class GroupsController {
       where: { group_id: group.id, state: ParticipantState.JOINED },
     });
 
-    if (!group.group_settings) {
-      group.group_settings =
-        await groupsSettingsRepository.getOrGenerateSettings(group.id);
-    }
+    const settigs = await groupsSettingsRepository.getOrGenerateSettings(
+      group.id
+    );
 
     let acceptingParticipants = true;
 
@@ -214,11 +213,10 @@ class GroupsController {
       }
     }
 
-    const settingAcceptingParticipants =
-      await groupsSettingsRepository.getOneSetting(
-        group.id,
-        "accepting_new_users"
-      );
+    const settingAcceptingParticipants = settigs.find(
+      (setting) => setting.setting_name === "accepting_new_users"
+    );
+
     acceptingParticipants = converterStringWithType(
       settingAcceptingParticipants.setting_value,
       settingAcceptingParticipants.typeof_value
