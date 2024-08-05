@@ -21,7 +21,7 @@ class GroupSetting {
   group_id: string;
 
   @Column()
-  setting_name: keyof typeof defaultGroupSettings | string;
+  setting_name: string;
 
   @Column()
   setting_value: string;
