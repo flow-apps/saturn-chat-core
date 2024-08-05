@@ -14,7 +14,7 @@ module.exports = {
   entities: [path.join(__dirname, process.env.TYPEORM_ENTITIES_PATH)],
   migrations: [path.join(__dirname, process.env.TYPEORM_MIGRATIONS_PATH)],
   cli: {
-    entitiesDir: path.join(__dirname, process.env.TYPEORM_ENTITIES_CLI_PATH),
-    migrationsDir: path.join(__dirname, process.env.TYPEORM_MIGRATIONS_CLI_PATH),
+    entitiesDir: process.env.TYPEORM_ENTITIES_CLI_PATH,
+    migrationsDir: process.env.TYPEORM_MIGRATIONS_CLI_PATH,
   },
 };
