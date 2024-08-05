@@ -22,6 +22,7 @@ import { RequestPremium } from "../middlewares/validatePremium";
 import { FirebaseAdmin } from "../configs/firebase";
 import { remoteConfigs } from "../configs/remoteConfigs";
 import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
+import { GroupSetting } from "../entities/GroupSetting";
 
 interface Body {
   name: string;
@@ -43,6 +44,12 @@ interface Data {
     path: string;
   };
 }
+
+const rolesForUpdateConfigs = [
+  ParticipantRole.OWNER,
+  ParticipantRole.ADMIN,
+  ParticipantRole.MANAGER,
+];
 class GroupsController {
   private MAX_GROUPS_PER_USER_DEFAULT: number;
   private MAX_GROUPS_PER_USER_PREMIUM: number;
@@ -416,12 +423,6 @@ class GroupsController {
       GroupsSettingsRepository
     );
 
-    const rolesForUpdateConfigs = [
-      ParticipantRole.OWNER,
-      ParticipantRole.ADMIN,
-      ParticipantRole.MANAGER,
-    ];
-
     if (!group_id) {
       throw new AppError("Group ID not provided", 404);
     }
@@ -443,6 +444,47 @@ class GroupsController {
     );
 
     return res.json(settings);
+  }
+
+  async updateSettings(req: RequestAuthenticated, res: Response) {
+    const { group_id } = req.params;
+    const { settings } = req.body as { settings: GroupSetting[] };
+    const userID = req.userId;
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const groupSettingsRepository = getCustomRepository(
+      GroupsSettingsRepository
+    );
+
+    if (!group_id) {
+      throw new AppError("Group ID not provided", 404);
+    }
+
+    const participant = await participantsRepository.findOne({
+      where: { group_id, user_id: userID, state: ParticipantState.JOINED },
+    });
+
+    if (!participant) {
+      throw new AppError("Participant not found", 404);
+    }
+
+    if (!rolesForUpdateConfigs.includes(participant.role)) {
+      throw new AppError("Participant role invalid");
+    }
+
+    if (!settings) {
+      throw new AppError("Settings not provided", 404);
+    }
+
+    const formatedSettings = settings.map((setting) => ({
+      setting_name: setting.setting_name,
+      setting_value: setting.setting_value,
+    }));
+    const updatedSettings = await groupSettingsRepository.updateSettings(
+      group_id,
+      formatedSettings
+    );
+
+    return res.json(updatedSettings);
   }
 }
 

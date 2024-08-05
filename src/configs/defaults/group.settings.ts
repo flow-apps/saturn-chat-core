@@ -8,7 +8,7 @@ const defaultGroupSettings = {
   },
   accepting_new_users: {
     input_type: "switch",
-    value: false
+    value: true
   },
   minimum_role_for_send_message: {
     input_type: "participant_role",

@@ -42,7 +42,7 @@ class GroupsSettingsRepository extends Repository<GroupSetting> {
 
         const savedSettings = await this.find({ where: { group_id } });
 
-        return savedSettings;
+        return _.sortBy(savedSettings, (o) => o.setting_name);
       }
     }
 
@@ -61,7 +61,7 @@ class GroupsSettingsRepository extends Repository<GroupSetting> {
       })
     );
 
-    return newSettings;
+    return _.sortBy(newSettings, (o) => o.setting_name);
   }
 
   async getOneSetting(group_id: string, setting_name: string) {
@@ -73,8 +73,10 @@ class GroupsSettingsRepository extends Repository<GroupSetting> {
   }
 
   async updateSettings(group_id: string, settings: IUpdateSettings[]) {
-    const newSettingsKeys = settings.map((setting) => setting.setting_name);
-    const permittedSettingsNames = Object.keys(defaultGroupSettings);
+    const newSettingsKeys = settings
+      .map((setting) => setting.setting_name)
+      .sort();
+    const permittedSettingsNames = Object.keys(defaultGroupSettings).sort();
     const isPermitted = _.isEqual(newSettingsKeys, permittedSettingsNames);
 
     if (!isPermitted) throw new Error("Invalid setting name");
@@ -84,15 +86,15 @@ class GroupsSettingsRepository extends Repository<GroupSetting> {
       setting_name: In(newSettingsKeys),
     });
 
-    const newSettings = oldSettings.map((oldSetting) => {
-      settings.map(async (newSetting) => {
-        oldSetting[newSetting.setting_name] = String(newSetting.setting_value);
+    settings.map((newSetting) => {
+      let oldSettingIndex = _.findIndex(oldSettings, {
+        setting_name: newSetting.setting_name,
       });
-      return oldSetting;
+      oldSettings[oldSettingIndex].setting_value = newSetting.setting_value;
     });
 
-    await this.save(newSettings);
-    return newSettings;
+    await this.save(oldSettings);
+    return _.sortBy(oldSettings, (o) => o.setting_name);
   }
 }
 

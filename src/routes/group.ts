@@ -18,14 +18,51 @@ routes.post(
   groupsController.create
 );
 routes.get("/group/:id", authProvider, groupsController.index);
-routes.get("/group/settings/:group_id", authProvider, groupsController.getSettings)
-routes.get("/group/participants/new/:group_id", authProvider, participantsController.new);
-routes.get("/group/participants/list", authProvider, participantsController.list);
-routes.get("/group/participant/:group_id", authProvider, participantsController.index);
-routes.get("/group/participant/kick/:participant_id", authProvider, participantsController.kick);
-routes.get("/group/participant/ban/:participant_id", authProvider, participantsController.ban);
-routes.post("/group/participant/role/set/:participant_id", authProvider, participantsController.setRole);
-routes.delete("/group/participant/exit/:id", authProvider, participantsController.delete)
+routes.get(
+  "/group/settings/:group_id",
+  authProvider,
+  groupsController.getSettings
+);
+routes.patch(
+  "/group/settings/:group_id",
+  authProvider,
+  groupsController.updateSettings
+);
+routes.get(
+  "/group/participants/new/:group_id",
+  authProvider,
+  participantsController.new
+);
+routes.get(
+  "/group/participants/list",
+  authProvider,
+  participantsController.list
+);
+routes.get(
+  "/group/participant/:group_id",
+  authProvider,
+  participantsController.index
+);
+routes.get(
+  "/group/participant/kick/:participant_id",
+  authProvider,
+  participantsController.kick
+);
+routes.get(
+  "/group/participant/ban/:participant_id",
+  authProvider,
+  participantsController.ban
+);
+routes.post(
+  "/group/participant/role/set/:participant_id",
+  authProvider,
+  participantsController.setRole
+);
+routes.delete(
+  "/group/participant/exit/:id",
+  authProvider,
+  participantsController.delete
+);
 routes.get("/groups/list", authProvider, groupsController.list);
 routes.delete("/group/:id", authProvider, groupsController.delete);
 routes.patch("/group/:groupID", authProvider, groupsController.update);
