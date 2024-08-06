@@ -228,7 +228,7 @@ class MessagesService {
       newMessage.group_id
     );
 
-    message.message = this.decryptMessage(message.message);
+    message.message = msgData.message;
 
     if (message.reply_to && message.reply_to.message) {
       message.reply_to.message = this.decryptMessage(message.reply_to.message);
@@ -301,6 +301,12 @@ class MessagesService {
         ],
       });
 
+      if (completedMessage.reply_to && completedMessage.reply_to.message) {
+        completedMessage.reply_to.message = this.decryptMessage(
+          completedMessage.reply_to.message
+        );
+      }
+
       return completedMessage;
     } catch (error) {
       new Error(error);
@@ -350,9 +356,9 @@ class MessagesService {
       }
     );
 
-    completedMessage.message = this.decryptMessage(completedMessage.message);
+    completedMessage.message = msgData.message;
 
-    if (completedMessage.reply_to) {
+    if (completedMessage.reply_to && completedMessage.reply_to.message) {
       completedMessage.reply_to.message = this.decryptMessage(
         completedMessage.reply_to.message
       );
