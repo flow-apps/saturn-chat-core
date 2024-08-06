@@ -81,9 +81,15 @@ class MessagesController {
     const decryptedMessages = await Promise.all(
       messages.map(async (message) => {
         if (message.encrypted) {
-          message.message = messagesService.decryptMessage(message.message);
+          if (message.message) {
+            message.message = messagesService.decryptMessage(message.message);
+          }
 
-          if (message.reply_to && message.reply_to.encrypted) {
+          if (
+            message.reply_to &&
+            message.reply_to.encrypted &&
+            message.reply_to.message
+          ) {
             message.reply_to.message = messagesService.decryptMessage(
               message.reply_to.message
             );
