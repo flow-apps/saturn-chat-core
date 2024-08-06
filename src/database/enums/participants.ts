@@ -5,7 +5,7 @@ enum ParticipantStatus {
 
 enum ParticipantRole {
   PARTICIPANT = "PARTICIPANT",
-  MODERATOR = "MOD",
+  MODERATOR = "MODERATOR",
   MANAGER = "MANAGER",
   ADMIN = "ADMIN",
   OWNER = "OWNER"
