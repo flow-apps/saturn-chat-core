@@ -84,14 +84,16 @@ class MessagesService {
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const participantsUserIds = await participantsRepository
       .find({
-        where: [{
-          group_id: groupID,
-          user_id: options.excludedIds ? Not(options.excludedIds) : undefined,
-          state: ParticipantState.JOINED,
-          status: options.getOnlines
-            ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
-            : ParticipantStatus.OFFLINE,
-        }],
+        where: [
+          {
+            group_id: groupID,
+            user_id: options.excludedIds ? Not(options.excludedIds) : undefined,
+            state: ParticipantState.JOINED,
+            status: options.getOnlines
+              ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
+              : ParticipantStatus.OFFLINE,
+          },
+        ],
         select: ["user_id"],
       })
       .then((parts) => parts.map((p) => p.user_id));
@@ -112,7 +114,9 @@ class MessagesService {
 
   async create(msgData: ICreateMessageProps, isPremium = false) {
     const messageRepository = getCustomRepository(MessagesRepository);
-    const groupsSettingsRepository = getCustomRepository(GroupsSettingsRepository)
+    const groupsSettingsRepository = getCustomRepository(
+      GroupsSettingsRepository
+    );
     const participantsService = new ParticipantsService();
 
     const linkUtils = new LinkUtils();
@@ -123,13 +127,20 @@ class MessagesService {
       msgData.group_id
     );
 
-
     if (!participant || participant.state !== ParticipantState.JOINED) {
       throw new Error("Participant not joined");
     }
 
-    const minimumRoleSendMessage = (await groupsSettingsRepository.getOneSetting(msgData.group_id, "minimum_role_for_send_message")).setting_value;
-    const canSendMessage = checkIsMinimumRole(minimumRoleSendMessage, participant.role);
+    const minimumRoleSendMessage = (
+      await groupsSettingsRepository.getOneSetting(
+        msgData.group_id,
+        "minimum_role_for_send_message"
+      )
+    ).setting_value;
+    const canSendMessage = checkIsMinimumRole(
+      minimumRoleSendMessage,
+      participant.role
+    );
     if (!canSendMessage) {
       throw new Error("Participant cannot send message");
     }
@@ -219,7 +230,7 @@ class MessagesService {
 
     message.message = this.decryptMessage(message.message);
 
-    if (message.reply_to) {
+    if (message.reply_to && message.reply_to.message) {
       message.reply_to.message = this.decryptMessage(message.reply_to.message);
     }
 
