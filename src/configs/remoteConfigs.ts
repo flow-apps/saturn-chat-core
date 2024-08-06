@@ -24,8 +24,6 @@ const remoteConfigsPromised = FirebaseAdmin.remoteConfig()
         .value as any);
     });
 
-    console.log("[Remote Configs] Configurações carregadas:", mappedConfigs);
-
     return mappedConfigs as any;
   })
   .catch(error => {

@@ -16,9 +16,7 @@ async function nicknameRateLimiterMiddleware(
   _next: NextFunction
 ) {
   const nodeEnv = process.env.NODE_ENV;
-
-  console.log("[Rate Limiter] processando Nickname Rate Limiter");
-
+  
   if (["test", "development"].includes(nodeEnv)) {
     return _next();
   }

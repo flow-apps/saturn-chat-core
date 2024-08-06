@@ -89,10 +89,7 @@ class NotificationsController {
 
     if (!userNotification) {
       throw new AppError("Notification token not found", 404);
-    }
-
-    console.log(enable);
-    
+    }    
 
     await userNotificationsRepository.update(userNotification.id, {
       send_notification: enable === "1",

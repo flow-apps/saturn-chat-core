@@ -5,7 +5,7 @@ function startTasks() {
   // removeExpiredInvitesTask.start();
   updateSubcriptionsTask.start();
 
-  console.log("Running all tasks");
+  console.log("Todas as tasks estão rodando");
 }
 
 export { startTasks }
