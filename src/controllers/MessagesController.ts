@@ -16,6 +16,7 @@ import { RequestPremium } from "../middlewares/validatePremium";
 import { remoteConfigs } from "../configs/remoteConfigs";
 import { checkIsMinimumRole } from "../utils/role";
 import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
+import { ArrayUtils } from "../utils/array";
 
 class MessagesController {
   private MAX_FILE_SIZE_PREMIUM: number;
@@ -40,6 +41,7 @@ class MessagesController {
   async list(req: RequestAuthenticated, res: Response) {
     const { groupID } = req.params;
     const { _limit, _page } = req.query;
+    const arrayUtils = new ArrayUtils();
 
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
@@ -52,7 +54,6 @@ class MessagesController {
         user_id: req.userId,
         state: ParticipantState.JOINED,
       },
-      cache: 50000,
     });
 
     if (!participant) {
@@ -65,21 +66,14 @@ class MessagesController {
 
     const messages = await messageRepository.find({
       where: { group_id: groupID },
-      relations: [
-        "author",
-        "author.avatar",
-        "group",
-        "reply_to",
-        "reply_to.author",
-        "reply_to.group",
-      ],
+      relations: ["author", "author.avatar", "reply_to", "reply_to.author"],
       take: Number(_limit),
       skip: Number(_page) * Number(_limit),
       order: { created_at: "DESC" },
     });
 
     const decryptedMessages = await Promise.all(
-      messages.map(async (message) => {
+      arrayUtils.iterator(messages, async (message) => {
         if (message.encrypted) {
           if (message.message) {
             message.message = messagesService.decryptMessage(message.message);
