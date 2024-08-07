@@ -50,7 +50,7 @@ export class CreateParticipantsSettings1722995554844
             name: "FKParticipantID",
             columnNames: ["participant_id"],
             referencedColumnNames: ["id"],
-            referencedTableName: "groups",
+            referencedTableName: "participants",
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
           },
