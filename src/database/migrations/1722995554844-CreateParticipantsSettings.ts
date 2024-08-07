@@ -20,7 +20,6 @@ export class CreateParticipantsSettings1722995554844
           {
             name: "setting_name",
             type: "varchar",
-            isUnique: true,
           },
           {
             name: "setting_value",
