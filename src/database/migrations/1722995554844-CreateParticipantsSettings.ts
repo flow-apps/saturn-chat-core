@@ -1,10 +1,12 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
-export class CreateGroupSettings1722782882489 implements MigrationInterface {
+export class CreateParticipantsSettings1722995554844
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: "groups_settings",
+        name: "participants_settings",
         columns: [
           {
             name: "id",
@@ -12,7 +14,7 @@ export class CreateGroupSettings1722782882489 implements MigrationInterface {
             isPrimary: true,
           },
           {
-            name: "group_id",
+            name: "participant_id",
             type: "varchar",
           },
           {
@@ -35,8 +37,8 @@ export class CreateGroupSettings1722782882489 implements MigrationInterface {
         ],
         foreignKeys: [
           {
-            name: "FKGroupID",
-            columnNames: ["group_id"],
+            name: "FKParticipantID",
+            columnNames: ["participant_id"],
             referencedColumnNames: ["id"],
             referencedTableName: "groups",
             onDelete: "CASCADE",
@@ -49,6 +51,6 @@ export class CreateGroupSettings1722782882489 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable("groups_settings")
+    await queryRunner.dropTable("participants_settings")
   }
 }
