@@ -87,16 +87,32 @@ class MessagesService {
         where: [
           {
             group_id: groupID,
-            user_id: options.excludedIds ? Not(options.excludedIds) : undefined,
+            user_id: options.excludedIds
+              ? Not(In(options.excludedIds))
+              : undefined,
             state: ParticipantState.JOINED,
             status: options.getOnlines
               ? In([ParticipantStatus.ONLINE, ParticipantStatus.OFFLINE])
               : ParticipantStatus.OFFLINE,
           },
         ],
-        select: ["user_id"],
+        select: ["user_id", "participant_settings"],
       })
-      .then((parts) => parts.map((p) => p.user_id));
+      .then((participants) => {
+        const userIDS = participants.map((participant) => {
+          const notificationSetting = participant.participant_settings.find(
+            (setting) => setting.setting_name === "send_notifications"
+          );
+
+          if (
+            !notificationSetting ||
+            notificationSetting.setting_value === "true"
+          ) {
+            return participant.user_id;
+          }
+        });
+        return userIDS;
+      });
 
     const userIds = await userNotifications
       .find({
