@@ -32,6 +32,16 @@ export class CreateGroupSettings1722782882489 implements MigrationInterface {
             name: "input_type",
             type: "varchar",
           },
+          {
+            name: "created_at",
+            type: "timestamp",
+            default: "now()",
+          },
+          {
+            name: "updated_at",
+            type: "timestamp",
+            default: "now()",
+          },
         ],
         foreignKeys: [
           {
