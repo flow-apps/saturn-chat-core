@@ -29,6 +29,16 @@ routes.patch(
   groupsController.updateSettings
 );
 routes.get(
+  "/group/participant/settings/:participant_id",
+  authProvider,
+  participantsController.getSettings
+);
+routes.patch(
+  "/group/participant/settings/:participant_id",
+  authProvider,
+  participantsController.updateSettings
+);
+routes.get(
   "/group/participants/new/:group_id",
   authProvider,
   participantsController.new

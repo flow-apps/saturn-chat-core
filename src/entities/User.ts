@@ -16,7 +16,6 @@ import { Invite } from "./Invite";
 import { Participant } from "./Participant";
 import { UserNotification } from "./UserNotification";
 import { Subscription } from "./Subscription";
-import { ParticipantSetting } from "./ParticipantSetting";
 @Entity({ name: "users" })
 class User {
   @PrimaryColumn()
@@ -55,17 +54,6 @@ class User {
   @OneToMany(() => Group, (group) => group.owner)
   @JoinColumn()
   groups: Group[];
-
-  @OneToMany(
-    () => ParticipantSetting,
-    (participant) => participant.participant,
-    {
-      eager: true,
-      nullable: true,
-    }
-  )
-  @JoinColumn()
-  participant_settings: ParticipantSetting[];
 
   @OneToMany(() => Subscription, (sub) => sub.user)
   @JoinColumn()

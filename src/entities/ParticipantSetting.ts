@@ -31,7 +31,7 @@ class ParticipantSetting {
   @Column()
   input_type: string;
 
-  @ManyToOne(() => Group, (group) => group.group_settings, {
+  @ManyToOne(() => Participant, (part) => part.participant_settings, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     cascade: true,

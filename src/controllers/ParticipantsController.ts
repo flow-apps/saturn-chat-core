@@ -14,6 +14,8 @@ import { ParticipantsService } from "../services/ParticipantsService";
 import { io } from "../websockets";
 
 import { ONESIGNAL } from "../configs.json";
+import { ParticipantsSettingsRepository } from "../repositories/ParticipantsSettingsRepository";
+import { ParticipantSetting } from "../entities/ParticipantSetting";
 
 class ParticipantsController {
   async new(req: RequestAuthenticated, res: Response) {
@@ -33,8 +35,11 @@ class ParticipantsController {
 
   async index(req: RequestAuthenticated, res: Response) {
     const { group_id } = req.params;
-    const { participant_id } = req.query;
+    const { participant_id } = req.query as { participant_id: string };
     const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const participantsSettingsRepository = getCustomRepository(
+      ParticipantsSettingsRepository
+    );
 
     if (!group_id) {
       throw new AppError("Group ID not provided");
@@ -43,11 +48,21 @@ class ParticipantsController {
     const participant =
       await participantsRepository.findParticipantWithPremiumField({
         where: [{ id: participant_id }, { group_id, user_id: req.userId }],
+        loadEagerRelations: true,
         cache: 50000,
       });
 
+
     if (!participant) {
       throw new AppError("Participant not found");
+    }
+
+    const settings = await participantsSettingsRepository.getOrGenerateSettings(
+      participant.id
+    );
+
+    if (!participant.participant_settings) {
+      participant.participant_settings = settings
     }
 
     return res.status(200).json({ participant });
@@ -310,6 +325,86 @@ class ParticipantsController {
       default:
         throw new AppError("Invalid role provided");
     }
+  }
+
+  async getSettings(req: RequestAuthenticated, res: Response) {
+    const { participant_id } = req.params;
+    const userID = req.userId;
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const participantsSettings = getCustomRepository(
+      ParticipantsSettingsRepository
+    );
+
+    if (!participant_id) {
+      throw new AppError("Participant ID not provided", 404);
+    }
+
+    const participant = await participantsRepository.findOne({
+      where: {
+        id: participant_id,
+        user_id: userID,
+        state: ParticipantState.JOINED,
+      },
+    });
+
+    if (!participant) {
+      throw new AppError("Participant not found", 404);
+    }
+
+    if (participant.user_id !== userID) {
+      throw new AppError("Participant invalid");
+    }
+
+    const settings = await participantsSettings.getOrGenerateSettings(
+      participant_id
+    );
+
+    return res.json(settings);
+  }
+
+  async updateSettings(req: RequestAuthenticated, res: Response) {
+    const { participant_id } = req.params;
+    const { settings } = req.body as { settings: ParticipantSetting[] };
+    const userID = req.userId;
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+    const participantsSettings = getCustomRepository(
+      ParticipantsSettingsRepository
+    );
+
+    if (!participant_id) {
+      throw new AppError("Participant ID not provided", 404);
+    }
+
+    const participant = await participantsRepository.findOne({
+      where: {
+        id: participant_id,
+        user_id: userID,
+        state: ParticipantState.JOINED,
+      },
+    });
+
+    if (!participant) {
+      throw new AppError("Participant not found", 404);
+    }
+
+    if (participant.user_id !== userID) {
+      throw new AppError("Participant role invalid");
+    }
+
+    if (!settings) {
+      throw new AppError("Settings not provided", 404);
+    }
+
+    const formatedSettings = settings.map((setting) => ({
+      setting_name: setting.setting_name,
+      setting_value: setting.setting_value,
+    }));
+    const updatedSettings = await participantsSettings.updateSettings(
+      participant_id,
+      formatedSettings
+    );
+
+    return res.json(updatedSettings);
   }
 }
 

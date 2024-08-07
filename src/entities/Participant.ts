@@ -11,8 +11,13 @@ import { Group } from "./Group";
 import { User } from "./User";
 
 import { v4 as uuid } from "uuid";
-import { ParticipantRole, ParticipantState, ParticipantStatus } from "../database/enums/participants";
+import {
+  ParticipantRole,
+  ParticipantState,
+  ParticipantStatus,
+} from "../database/enums/participants";
 import { Message } from "./Message";
+import { ParticipantSetting } from "./ParticipantSetting";
 
 @Entity({ name: "participants" })
 class Participant {
@@ -21,6 +26,13 @@ class Participant {
 
   @Column()
   user_id: string;
+
+  @OneToMany(() => ParticipantSetting, (partS) => partS.participant, {
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn()
+  participant_settings: ParticipantSetting[];
 
   @ManyToOne(() => User, (user) => user.participating, {
     cascade: true,
@@ -43,28 +55,28 @@ class Participant {
   @JoinColumn({ name: "group_id" })
   group: Group;
 
-  @OneToMany(() => Message, message => message.participant)
+  @OneToMany(() => Message, (message) => message.participant)
   @JoinColumn()
-  messages: Message[]
+  messages: Message[];
 
   @Column({
     type: "enum",
     enum: ParticipantStatus,
-    default: ParticipantStatus.OFFLINE
+    default: ParticipantStatus.OFFLINE,
   })
   status: ParticipantStatus;
 
   @Column({
     type: "enum",
     enum: ParticipantState,
-    nullable: true
+    nullable: true,
   })
   state: ParticipantState;
 
   @Column({
     type: "enum",
     enum: ParticipantRole,
-    default: ParticipantRole.PARTICIPANT
+    default: ParticipantRole.PARTICIPANT,
   })
   role: ParticipantRole;
 
