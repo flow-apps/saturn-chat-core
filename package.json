@@ -14,7 +14,8 @@
     "migration:run": "yarn typeorm migration:run",
     "migration:revert": "yarn typeorm migration:revert",
     "migration:generate": "yarn typeorm migration:generate -n",
-    "migration:create": "yarn typeorm migration:create -n"
+    "migration:create": "yarn typeorm migration:create -n",
+    "install": "npm install --legacy-peer-deps --production"
   },
   "dependencies": {
     "@google-cloud/storage": "^5.8.5",
