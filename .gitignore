@@ -9,3 +9,4 @@ uploads
 *.sqlite
 *.log
 dist
+firebase-key.json
