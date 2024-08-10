@@ -1,11 +1,10 @@
 import "dotenv/config";
 import FirebaseAdmin from "firebase-admin";
-import path from "path";
 
-const firebaseKeyPath = path.join(__dirname, "..", "firebase-key.json");
+const json = process.env.FIREBASE_JSON;
 
 FirebaseAdmin.initializeApp({
-  credential: FirebaseAdmin.credential.cert(require(firebaseKeyPath)),
-})
+  credential: FirebaseAdmin.credential.cert(json),
+});
 
-export { FirebaseAdmin, firebaseKeyPath };
+export { FirebaseAdmin };
