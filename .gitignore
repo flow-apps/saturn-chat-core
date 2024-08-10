@@ -5,7 +5,7 @@ build/
 tmp/
 temp/
 .env
-uploads/
+uploads
 *.sqlite
 *.log
 dist
