@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "set NODE_ENV=development&& ts-node-dev --transpile-only --ignore-watch node_modules src/server.ts",
     "start": "node ./dist/src/server.js",
-    "build": "export NODE_OPTIONS=--max-old-space-size=8192&&tsc -p .",
+    "build": "export NODE_OPTIONS=--max_old_space_size=8096&&tsc -p .",
     "test": "set NODE_ENV=test&& jest -i --detectOpenHandles",
     "audit-fix": "yarn-audit-fix",
     "typeorm": "ts-node --transpile-only node_modules/typeorm/cli.js",
