@@ -19,19 +19,19 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
 
-      - name: npm install and build
+      - name: npm install, build, and test
         run: |
-          npm install --legacy-peer-deps
+          npm install
           npm run build --if-present
-
+          npm run test --if-present
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: node-app
           path: release.zip
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: node-app
 
@@ -55,15 +55,15 @@ jobs:
         run: unzip release.zip
       
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_994191C86F91428E8D13AB171C64EB27 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4B9F079494F74079B0C86F7BB6216599 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_52BAFF3185964530A645E5B0AEADBF76 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CDDAA97F570F4ACAA5498BFD7754520B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_EB0B7A5956734933A694ADBE45060D1F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EAA06307BCD14598908E503F6071BAD1 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'saturnchat'
           slot-name: 'Production'
