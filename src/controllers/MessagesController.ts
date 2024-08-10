@@ -203,14 +203,19 @@ class MessagesController {
           throw new AppError("File or message size not permitted");
         }
       }
-
+      const encryptMessage =
+        participant.group.type === GroupType.DIRECT ||
+        participant.group.privacy === "PRIVATE";
+        
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
-        message: messagesService.encryptMessage(body.message),
+        message: encryptMessage
+          ? messagesService.encryptMessage(body.message)
+          : body.message,
         participant_id: participant.id,
         reply_to_id: body.reply_to_id,
-        encrypted: true,
+        encrypted: encryptMessage,
       });
 
       await messageRepository.save(createdMessage);
@@ -241,14 +246,18 @@ class MessagesController {
         })
       );
 
-      createdMessage.message = messagesService.decryptMessage(
-        createdMessage.message
-      );
+      if (createdMessage.encrypted) {
+        createdMessage.message = messagesService.decryptMessage(
+          createdMessage.message
+        );
+      }
 
       if (createdMessage.reply_to) {
-        createdMessage.reply_to.message = messagesService.decryptMessage(
-          createdMessage.reply_to.message
-        );
+        if (createdMessage.reply_to.encrypted) {
+          createdMessage.reply_to.message = messagesService.decryptMessage(
+            createdMessage.reply_to.message
+          );
+        }
       }
 
       return res.json({ files: savedFiles, message_id: createdMessage.id });

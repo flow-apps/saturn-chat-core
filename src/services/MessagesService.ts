@@ -217,10 +217,16 @@ class MessagesService {
       );
     }
 
+    const encryptMessage =
+      participant.group.type === GroupType.DIRECT ||
+      participant.group.privacy === "PRIVATE";
+
     const newMessage = messageRepository.create({
       ...msgData,
-      message: this.encryptMessage(msgData.message),
-      encrypted: true,
+      message: encryptMessage
+        ? this.encryptMessage(msgData.message)
+        : msgData.message,
+      encrypted: encryptMessage,
       participant_id: participant.id,
       links: linksData,
     });
@@ -244,10 +250,15 @@ class MessagesService {
       newMessage.group_id
     );
 
-    message.message = msgData.message;
+    if (encryptMessage) {
+      message.message = msgData.message;
+    }
 
     if (message.reply_to && message.reply_to.message) {
-      message.reply_to.message = this.decryptMessage(message.reply_to.message);
+      if (message.reply_to.encrypted)
+        message.reply_to.message = this.decryptMessage(
+          message.reply_to.message
+        );
     }
 
     return message;
@@ -288,6 +299,10 @@ class MessagesService {
         }
       }
 
+      const encryptMessage =
+        participant.group.type === GroupType.DIRECT ||
+        participant.group.privacy === "PRIVATE";
+
       const data = {
         message: audioData.message,
         author_id: audioData.author_id,
@@ -295,7 +310,7 @@ class MessagesService {
         voice_message_id: audioData.audio.id,
         participant_id: participant.id,
         reply_to_id: audioData.reply_to_id,
-        encrypted: true,
+        encrypted: encryptMessage,
       };
 
       const newMessage = messagesRepository.create(data);
@@ -318,9 +333,11 @@ class MessagesService {
       });
 
       if (completedMessage.reply_to && completedMessage.reply_to.message) {
-        completedMessage.reply_to.message = this.decryptMessage(
-          completedMessage.reply_to.message
-        );
+        if (completedMessage.reply_to.encrypted) {
+          completedMessage.reply_to.message = this.decryptMessage(
+            completedMessage.reply_to.message
+          );
+        }
       }
 
       return completedMessage;
@@ -375,9 +392,11 @@ class MessagesService {
     completedMessage.message = msgData.message;
 
     if (completedMessage.reply_to && completedMessage.reply_to.message) {
-      completedMessage.reply_to.message = this.decryptMessage(
-        completedMessage.reply_to.message
-      );
+      if (completedMessage.reply_to.encrypted) {
+        completedMessage.reply_to.message = this.decryptMessage(
+          completedMessage.reply_to.message
+        );
+      }
     }
 
     return completedMessage;
