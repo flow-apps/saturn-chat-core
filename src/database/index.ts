@@ -1,7 +1,8 @@
-import { Connection, createConnection, getConnectionOptions } from "typeorm";
+import { Connection, createConnection } from "typeorm";
+import ORMConfig from "../../ormconfig";
 
 export default async (): Promise<Connection> => {
-  const defaultOptions = await getConnectionOptions();
+  const defaultOptions = ORMConfig;
 
   const connection = await createConnection(defaultOptions).then(
     async (conn) => {
