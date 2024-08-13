@@ -1,8 +1,7 @@
-import "dotenv/config";
-import path = require("path");
-import { ConnectionOptions } from "typeorm";
+require("dotenv/config");
+const path = require("path");
 
-export const ORMConfig = {
+module.exports = {
   type: "postgres",
   host: process.env.POSTGRES_HOST,
   port: process.env.POSTGRES_PORT,
@@ -17,6 +16,4 @@ export const ORMConfig = {
     entitiesDir: process.env.TYPEORM_ENTITIES_CLI_PATH,
     migrationsDir: process.env.TYPEORM_MIGRATIONS_CLI_PATH,
   },
-} as any as ConnectionOptions;
-
-export default ORMConfig;
+}
