@@ -52,7 +52,6 @@ class ParticipantsController {
         cache: 50000,
       });
 
-
     if (!participant) {
       throw new AppError("Participant not found");
     }
@@ -62,7 +61,7 @@ class ParticipantsController {
     );
 
     if (!participant.participant_settings) {
-      participant.participant_settings = settings
+      participant.participant_settings = settings;
     }
 
     return res.status(200).json({ participant });
@@ -170,7 +169,7 @@ class ParticipantsController {
 
     if (query.notify === "yes") {
       await notificationsService.send({
-        name: "Exit Participant Notification",
+        name: "Kick Participant Notification",
         tokens: [kickedUser.user_id],
         android_channel_id: ONESIGNAL.CHANNELS_IDS.BAN_AND_KICK,
         message: {
@@ -184,12 +183,6 @@ class ParticipantsController {
         },
       });
     }
-
-    io.to(kickedUser.user_id).emit("kicked_group", {
-      group_id: group.id,
-      user_id: kickedUser.id,
-    });
-    io.socketsLeave(group.id);
 
     return res.sendStatus(204);
   }
@@ -241,12 +234,13 @@ class ParticipantsController {
 
     if (query.notify === "yes") {
       await notificationsService.send({
-        name: "Exit Participant Notification",
+        name: "Ban Participant Notification",
         tokens: [bannedUser.user_id],
         android_channel_id: ONESIGNAL.CHANNELS_IDS.BAN_AND_KICK,
         message: {
           headings: {
             en: group.name,
+            pt: group.name,
           },
           contents: {
             pt: `👮‍♂️ Você foi banido do grupo!`,
@@ -255,12 +249,6 @@ class ParticipantsController {
         },
       });
     }
-
-    io.to(bannedUser.user_id).emit("banned_group", {
-      group_id: group.id,
-      user_id: bannedUser.user_id,
-    });
-    io.socketsLeave(group.id);
 
     return res.sendStatus(204);
   }

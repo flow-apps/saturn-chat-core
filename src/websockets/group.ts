@@ -13,7 +13,6 @@ io.on("connection", (socket: ISocketAuthenticated) => {
   const userID = socket.userID;
 
   socket.on("connect_in_chat", async (id: string) => {
-
     console.log(`Socket ${socket.id} conectando no grupo ${id}`);
 
     await socket.join(id);
@@ -59,6 +58,14 @@ io.on("connection", (socket: ISocketAuthenticated) => {
     await participants.exit(participantID);
 
     socket.emit("complete_exit_group");
+  });
+
+  socket.on("kicked_user_register", ({ group_id, user_id }) => {
+    socket.to(group_id).emit("kicked_user", { group_id, user_id });
+  });
+
+  socket.on("banned_user_register", ({ group_id, user_id }) => {
+    socket.to(group_id).emit("banned_user", { group_id, user_id });
   });
 
   socket.on("disconnect", async () => {
