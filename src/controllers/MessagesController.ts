@@ -203,19 +203,13 @@ class MessagesController {
           throw new AppError("File or message size not permitted");
         }
       }
-      const encryptMessage =
-        participant.group.type === GroupType.DIRECT ||
-        participant.group.privacy === "PRIVATE";
 
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
-        message: encryptMessage
-          ? messagesService.encryptMessage(body.message)
-          : body.message,
+        message: body.message,
         participant_id: participant.id,
         reply_to_id: body.reply_to_id,
-        encrypted: encryptMessage,
       });
 
       await messageRepository.save(createdMessage);
