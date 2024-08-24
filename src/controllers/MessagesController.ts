@@ -78,16 +78,16 @@ class MessagesController {
           if (message.message) {
             message.message = messagesService.decryptMessage(message.message);
           }
+        }
 
-          if (
-            message.reply_to &&
-            message.reply_to.encrypted &&
+        if (
+          message.reply_to &&
+          message.reply_to.encrypted &&
+          message.reply_to.message
+        ) {
+          message.reply_to.message = messagesService.decryptMessage(
             message.reply_to.message
-          ) {
-            message.reply_to.message = messagesService.decryptMessage(
-              message.reply_to.message
-            );
-          }
+          );
         }
 
         await messagesService.readMessage(message.id, req.userId, groupID);
@@ -206,7 +206,7 @@ class MessagesController {
       const encryptMessage =
         participant.group.type === GroupType.DIRECT ||
         participant.group.privacy === "PRIVATE";
-        
+
       const createdMessage = messageRepository.create({
         author_id: req.userId,
         group_id: groupID,
