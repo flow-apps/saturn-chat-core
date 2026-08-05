@@ -10,25 +10,10 @@ import cluster from "cluster";
 const availableCPUs = os.availableParallelism();
 console.log(`${availableCPUs} CPUs dispoíveis`);
 
-
-if (cluster.isPrimary && availableCPUs > 1) {
-  console.log(`Process primário ${process.pid} está ativo`);
-
-  for (let i = 0; i < availableCPUs; i++) {
-    cluster.fork();
-  }
-
-  cluster.on("exit", (worker, code, signal) => {
-    console.log(`Processo ${worker.process.pid} caiu. Reiniciando...`);
-    cluster.fork();
-  });
-} else {
-  
-  http.listen(Number(process.env.PORT) || 3000, () =>
-    console.log(
-      `Servidor iniciado na porta ${process.env.PORT || 3000} no processo ${
-        process.pid
-      }`
-    )
-  );
-}
+http.listen(Number(process.env.PORT) || 3000, () =>
+  console.log(
+    `Servidor iniciado na porta ${process.env.PORT || 3000} no processo ${
+      process.pid
+    }`,
+  ),
+);

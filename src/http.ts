@@ -32,7 +32,7 @@ app.use(morgan("tiny"));
 app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(fakePoweredBy);
-app.use(compression({ level: 9 }));
+app.use(compression() as any);
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(
