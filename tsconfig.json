@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "nodenext",
+    "moduleResolution": "node16",
     "outDir": "./dist",
     "rootDirs": ["./src", "./"],
-    "ignoreDeprecations": "6.0",
     "removeComments": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,

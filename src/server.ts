@@ -23,7 +23,8 @@ if (cluster.isPrimary && availableCPUs > 1) {
     cluster.fork();
   });
 } else {
-  http.listen(process.env.PORT || 3000, () =>
+  
+  http.listen(Number(process.env.PORT) || 3000, () =>
     console.log(
       `Servidor iniciado na porta ${process.env.PORT || 3000} no processo ${
         process.pid

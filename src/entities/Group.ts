@@ -4,12 +4,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  getCustomRepository,
   JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryColumn,
+  getRepository,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
@@ -19,7 +19,6 @@ import { Participant } from "./Participant";
 import { Invite } from "./Invite";
 import { ReadMessage } from "./ReadMessage";
 import { StorageManager } from "../services/StorageManager";
-import { MessagesRepository } from "../repositories/MessagesRepository";
 import { io } from "../websockets";
 import { GroupType } from "../database/enums/groups";
 import { Friend } from "./Friend";
@@ -30,8 +29,7 @@ class Group {
   @BeforeRemove()
   async deleteAllFiles() {
     const storage = new StorageManager();
-    const messagesRepository = getCustomRepository(MessagesRepository);
-    const messages = await messagesRepository.find({
+    const messages = await getRepository(Message).find({
       where: { group_id: this.id },
       loadEagerRelations: true,
     });
@@ -61,8 +59,9 @@ class Group {
       })
     );
 
-    io.to(this.id).emit("deleted_group", this.id);
-    io.socketsLeave(this.id);
+      const { io } = require("../websockets");
+      io.to(this.id).emit("deleted_group", this.id);
+      io.socketsLeave(this.id);
   }
 
   @PrimaryColumn()

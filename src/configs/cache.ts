@@ -14,12 +14,6 @@ redisClient.on("error", err => {
   console.error(err)
 })
 
-// import { MemoryCache } from "memory-cache-node"
-
-// const maxItems = 10000
-// const checkItemIntervalSecs = 30
-// const cache = new MemoryCache(checkItemIntervalSecs, maxItems)
-
 const cache = redisClient
 
 export { cache }

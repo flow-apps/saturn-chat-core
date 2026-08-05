@@ -1,8 +1,6 @@
 require("dotenv").config({});
 import { Storage } from "@google-cloud/storage";
-import { JWTInput } from "google-auth-library";
-
-const firebaseJsonKey =  JSON.parse(process.env.FIREBASE_JSON) as JWTInput
+import firebaseJsonKey from "../../firebase-key.json"
 
 const storage = new Storage({
   projectId: process.env.FIREBASE_PROJECT_ID,
