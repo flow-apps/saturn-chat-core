@@ -5,6 +5,7 @@
     "moduleResolution": "Node",
     "outDir": "./dist",
     "rootDirs": ["./src", "./"],
+    "ignoreDeprecations": "6.0",
     "removeComments": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
