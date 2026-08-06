@@ -15,7 +15,7 @@ routes.post(
   "/messages/SendAttachment/:groupID",
   authProvider,
   validatePremium,
-  multer(configMulter(maxFileSizePremium, ["*/*"])).array("attachment"),
+  multer(configMulter(maxFileSizePremium, ["*/*"])).array("attachment") as any,
   messageController.createAttachment
 );
 

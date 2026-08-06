@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "nodenext",
-    "moduleResolution": "node16",
+    "module": "commonjs",
+    "moduleResolution": "node10",
     "outDir": "./dist",
     "rootDirs": ["./src", "./"],
     "removeComments": true,
@@ -14,6 +14,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": false,
+    "skipLibCheck": true
   },
   "include": ["**/*", "./src/firebase-key.json"],
   "exclude": ["node_modules", "__tests__", "jest.*", "build", "**/*spec.ts", "dist"]

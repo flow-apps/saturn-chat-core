@@ -12,7 +12,7 @@ const notificationsController = new NotificationsController();
 
 routes.post(
   "/users",
-  multer(configMulter(5)).single("avatar"),
+  multer(configMulter(5)).single("avatar") as any,
   usersController.create
 );
 routes.get(
@@ -27,7 +27,7 @@ routes.patch("/users/update", authProvider, usersController.update);
 routes.patch(
   "/users/update/avatar",
   authProvider,
-  multer(configMulter(5)).single("avatar"),
+  multer(configMulter(5)).single("avatar") as any,
   usersController.updateAvatar
 );
 routes.post(

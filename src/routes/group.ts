@@ -14,7 +14,7 @@ routes.post(
   "/groups",
   authProvider,
   validatePremium,
-  multer(configMulter(5)).single("group_avatar"),
+  multer(configMulter(5)).single("group_avatar") as any,
   groupsController.create
 );
 routes.get("/group/:id", authProvider, groupsController.index);
@@ -79,7 +79,7 @@ routes.patch("/group/:groupID", authProvider, groupsController.update);
 routes.patch(
   "/group/avatar/:groupID",
   authProvider,
-  multer(configMulter(5)).single("group_avatar"),
+  multer(configMulter(5)).single("group_avatar") as any,
   groupsController.updateAvatar
 );
 
