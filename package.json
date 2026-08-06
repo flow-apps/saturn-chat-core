@@ -14,9 +14,11 @@
     "migration:run": "typeorm migration:run",
     "migration:revert": "typeorm migration:revert",
     "migration:generate": "typeorm migration:generate -n",
-    "migration:create": "typeorm migration:create -n"
+    "migration:create": "typeorm migration:create -n",
+    "migrate:storage": "ts-node ./migrateStorage.ts"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.33.0",
     "@google-cloud/storage": "^5.8.5",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
