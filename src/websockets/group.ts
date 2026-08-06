@@ -48,6 +48,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
 
     participantsRepository.update(data.participant_id, {
       status: ParticipantStatus.OFFLINE,
+      last_seen: new Date(),
     });
     await cacheService.delete(`room_user_${userID}`);
     socket.in(data.group_id).emit("new_user_offline", userID);
@@ -78,6 +79,7 @@ io.on("connection", (socket: ISocketAuthenticated) => {
     if (data.participant_id) {
       participantsRepository.update(data.participant_id, {
         status: ParticipantStatus.OFFLINE,
+        last_seen: new Date(),
       });
     }
 

@@ -40,6 +40,11 @@ export class CreateParticipants1622513674286 implements MigrationInterface {
             type: "timestamp",
             default: "now()",
           },
+          {
+            name: "last_seen",
+            type: "timestamp",
+            default: "now()",
+          },
         ],
         foreignKeys: [
           {

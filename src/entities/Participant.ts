@@ -83,6 +83,9 @@ class Participant {
   @CreateDateColumn()
   participating_since: Date;
 
+  @CreateDateColumn()
+  last_seen: Date;
+
   constructor() {
     if (!this.id) {
       this.id = uuid();
