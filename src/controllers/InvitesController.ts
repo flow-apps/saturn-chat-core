@@ -92,12 +92,12 @@ class InvitesController {
     if (!authorizedRoles.includes(requestedBy.role)) {
       throw new AppError("User not authorized for this action", 403);
     }
-
+    
     const inviteCode = crypto.randomBytes(8).toString("hex");
     const expireDate = dayjs().add(Number(body.expireIn), "days").toDate();
-    const isPermanent = body.isPermanent === "true";
-    const isUnlimitedUsage = body.isUnlimitedUsage === "true";
-    const usageAmount = Number(body.usageAmount);
+    const isPermanent = body.isPermanent == "true";
+    const isUnlimitedUsage = body.isUnlimitedUsage == "true";
+    const usageAmount = body.usageAmount && !isUnlimitedUsage ? Number(body.usageAmount.trim()) : null;    
 
     const invite = invitesRepository.create({
       group_id: body.groupId,
@@ -108,7 +108,7 @@ class InvitesController {
       expire_in: !isPermanent ? expireDate : undefined,
       expire_timezone: body.expireTimezone,
       usage_amount: 0,
-      max_usage_amount: !isUnlimitedUsage ? usageAmount : undefined,
+      max_usage_amount: usageAmount,
     });
 
     await invitesRepository.save(invite);

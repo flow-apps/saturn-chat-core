@@ -85,7 +85,7 @@ class Invite {
   @Column({ default: false })
   is_unlimited_usage: boolean;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, nullable: true })
   max_usage_amount: number;
 
   @Column({ default: 1 })
