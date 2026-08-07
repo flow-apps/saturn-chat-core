@@ -1,6 +1,6 @@
 import fs from "fs";
 import { storage } from "../configs/storage";
-import { join } from "path";
+import { basename, join } from "path";
 import { Bucket } from "@google-cloud/storage";
 import { randomBytes } from "crypto";
 import { clearFilename } from "../utils/clear";
@@ -44,6 +44,21 @@ class StorageManager {
   private provider: "firebase" | "azure";
   private inLocal: boolean;
   private containerName: string;
+
+  private getLocalPublicUrl(pathOrUrl: string) {
+    if (!pathOrUrl) {
+      return "";
+    }
+
+    const filename = basename(pathOrUrl);
+    const apiUrl = (process.env.API_URL || "").replace(/\/$/, "");
+
+    if (!filename) {
+      return `${apiUrl}/uploads`;
+    }
+
+    return `${apiUrl}/uploads/${encodeURIComponent(filename)}`;
+  }
 
   constructor() {
     this.inLocal = process.env.NODE_ENV === "development";
@@ -100,7 +115,7 @@ class StorageManager {
         return this.bucket.file(pathOrUrl).publicUrl();
       }
 
-      return pathOrUrl;
+      return this.getLocalPublicUrl(pathOrUrl);
     }
 
     const blobName = this.toBlobName(pathOrUrl);
@@ -177,7 +192,7 @@ class StorageManager {
     return {
       name: filename,
       original_name,
-      url: `${process.env.API_URL}/uploads/${filename}`,
+      url: this.getLocalPublicUrl(filePath),
       path: filePath,
       size: file.size,
       type: fileType,

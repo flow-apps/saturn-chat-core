@@ -4,6 +4,7 @@ import { GroupType } from "../database/enums/groups";
 import { UsersRepository } from "../repositories/UsersRepository";
 import { MessagesService } from "../services/MessagesService";
 import { NotificationsService } from "../services/NotificationsService";
+import { AudiosRepository } from "../repositories/AudiosRepository";
 
 import { ONESIGNAL } from "../configs.json";
 import { Time } from "../utils/time";
@@ -86,16 +87,26 @@ io.on("connection", async (socket: ISocketPremium) => {
   });
 
   socket.on("new_voice_message", async (data) => {
+    const audiosRepository = getCustomRepository(AudiosRepository);
+    const audio = typeof data.audio === "string"
+      ? await audiosRepository.findOne(data.audio)
+      : data.audio;
+
+    if (!audio) {
+      throw new Error("Audio payload is missing or invalid");
+    }
+
     const newVoiceMessage = await messagesService.createAudio({
-      audio: data.audio,
+      audio,
       author_id: userID,
       group_id: data.group_id,
       message: data.message,
-      reply_to_id: data.reply_to_id,
+      reply_to_id: data.reply_to_id || undefined,
     }, socket.isPremium);
 
     if (!newVoiceMessage)
       return
+
     
     const isDM = newVoiceMessage.group.type === GroupType.DIRECT;
     const groupName = isDM
@@ -108,6 +119,8 @@ io.on("connection", async (socket: ISocketPremium) => {
     const formattedDuration = timeUtils.formatTime(
       newVoiceMessage.voice_message.duration
     );
+  
+    
 
     socket.emit("sended_user_message", {
       msg: newVoiceMessage,

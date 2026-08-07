@@ -219,6 +219,7 @@ class MessagesService {
 
     const newMessage = messageRepository.create({
       ...msgData,
+      reply_to_id: msgData.reply_to_id || undefined,
       participant_id: participant.id,
       links: linksData,
     });
@@ -297,7 +298,7 @@ class MessagesService {
         group_id: audioData.group_id,
         voice_message_id: audioData.audio.id,
         participant_id: participant.id,
-        reply_to_id: audioData.reply_to_id,
+        reply_to_id: audioData.reply_to_id || undefined,
       };
 
       const newMessage = messagesRepository.create(data);
@@ -329,7 +330,7 @@ class MessagesService {
 
       return completedMessage;
     } catch (error) {
-      new Error(error);
+      throw error;
     }
   }
 
