@@ -140,10 +140,11 @@ class GroupsController {
         path: "files/groups/avatars",
       });
 
+      const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
       createdAvatar = groupsAvatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-        url: uploadedAvatar.url,
+        url: signedAvatarUrl || uploadedAvatar.url,
         group_id: groupID,
       });
     }
@@ -196,6 +197,12 @@ class GroupsController {
     const participantsAmount = await participantsRepository.count({
       where: { group_id: group.id, state: ParticipantState.JOINED },
     });
+
+    if (group.group_avatar?.path) {
+      const storage = new StorageManager();
+      const signedAvatarUrl = await storage.getFileAccessUrl(group.group_avatar.path);
+      group.group_avatar.url = signedAvatarUrl || group.group_avatar.url;
+    }
 
     const settigs = await groupsSettingsRepository.getOrGenerateSettings(
       group.id
@@ -283,6 +290,15 @@ class GroupsController {
 
     const groupsWithUnreadMessages = await Promise.all(
       filteredParticipating.map(async (participant) => {
+        if (participant.group.group_avatar?.path) {
+          const storage = new StorageManager();
+          const signedAvatarUrl = await storage.getFileAccessUrl(
+            participant.group.group_avatar.path
+          );
+          participant.group.group_avatar.url =
+            signedAvatarUrl || participant.group.group_avatar.url;
+        }
+
         const totalMessages = await messagesRepository.count({
           where: { group_id: participant.group.id },
         });
@@ -432,10 +448,11 @@ class GroupsController {
 
     await storage.deleteFile(groupAvatar.path);
 
+    const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
     await groupsAvatarsRepository.update(groupAvatar.id, {
       name: uploadedAvatar.name,
       path: uploadedAvatar.path,
-      url: uploadedAvatar.url,
+      url: signedAvatarUrl || uploadedAvatar.url,
     });
 
     return res.sendStatus(204);

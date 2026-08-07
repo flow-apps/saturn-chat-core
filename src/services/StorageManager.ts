@@ -4,7 +4,14 @@ import { join } from "path";
 import { Bucket } from "@google-cloud/storage";
 import { randomBytes } from "crypto";
 import { clearFilename } from "../utils/clear";
-import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
+import {
+  BlobServiceClient,
+  BlobSASPermissions,
+  ContainerClient,
+  generateBlobSASQueryParameters,
+  SASProtocol,
+  StorageSharedKeyCredential,
+} from "@azure/storage-blob";
 import { getRepository } from "typeorm";
 import { File } from "../entities/File";
 import { GroupAvatar } from "../entities/GroupAvatar";
@@ -36,9 +43,11 @@ class StorageManager {
   private containerClient: ContainerClient;
   private provider: "firebase" | "azure";
   private inLocal: boolean;
+  private containerName: string;
 
   constructor() {
     this.inLocal = process.env.NODE_ENV === "development";
+    this.containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || "";
     console.log("[STORAGE] usando bucket local:", this.inLocal);
 
     if (!this.inLocal) {
@@ -50,7 +59,7 @@ class StorageManager {
           process.env.AZURE_STORAGE_CONNECTION_STRING,
         );
         this.containerClient = blobServiceClient.getContainerClient(
-          process.env.AZURE_STORAGE_CONTAINER_NAME,
+          this.containerName,
         );
         console.log("[STORAGE] Usando Azure Blob Storage");
       } else {
@@ -58,6 +67,103 @@ class StorageManager {
         console.log("[STORAGE] Usando Firebase Storage");
       }
     }
+  }
+
+  private toBlobName(pathOrUrl: string) {
+    if (!pathOrUrl) {
+      return "";
+    }
+
+    if (pathOrUrl.startsWith("http")) {
+      try {
+        const url = new URL(pathOrUrl);
+        return decodeURIComponent(url.pathname.replace(/^\/+/, ""));
+      } catch {
+        return pathOrUrl;
+      }
+    }
+
+    return pathOrUrl.replace(/^\/+/, "");
+  }
+
+  async getFileAccessUrl(pathOrUrl: string, expiresInSeconds = 900) {
+    if (!pathOrUrl) {
+      return "";
+    }
+
+    if (this.inLocal || this.provider !== "azure") {
+      if (pathOrUrl.startsWith("http")) {
+        return pathOrUrl;
+      }
+
+      if (this.bucket) {
+        return this.bucket.file(pathOrUrl).publicUrl();
+      }
+
+      return pathOrUrl;
+    }
+
+    const blobName = this.toBlobName(pathOrUrl);
+    const blobClient = this.containerClient.getBlobClient(blobName);
+
+    if (!process.env.AZURE_STORAGE_CONNECTION_STRING) {
+      return blobClient.url;
+    }
+
+    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+    const accountNameMatch = connectionString.match(/AccountName=([^;]+)/i);
+    const accountKeyMatch = connectionString.match(/AccountKey=([^;]+)/i);
+
+    if (!accountNameMatch?.[1] || !accountKeyMatch?.[1]) {
+      return blobClient.url;
+    }
+
+    const sharedKeyCredential = new StorageSharedKeyCredential(
+      accountNameMatch[1],
+      accountKeyMatch[1],
+    );
+
+    const sasToken = generateBlobSASQueryParameters(
+      {
+        containerName: this.containerName,
+        blobName,
+        permissions: BlobSASPermissions.parse("r"),
+        protocol: SASProtocol.Https,
+        startsOn: new Date(Date.now() - 60 * 1000),
+        expiresOn: new Date(Date.now() + expiresInSeconds * 1000),
+      },
+      sharedKeyCredential,
+    ).toString();
+
+    return `${blobClient.url}?${sasToken}`;
+  }
+
+  async downloadFile(pathOrUrl: string) {
+    if (!pathOrUrl) {
+      return Buffer.from("");
+    }
+
+    if (this.inLocal) {
+      const fullPath = pathOrUrl.startsWith("/") ? pathOrUrl : join(process.cwd(), pathOrUrl);
+      return fs.readFileSync(fullPath);
+    }
+
+    if (this.provider === "azure") {
+      const blobName = this.toBlobName(pathOrUrl);
+      const blobClient = this.containerClient.getBlobClient(blobName);
+      const downloadResponse = await blobClient.download();
+      const chunks: Buffer[] = [];
+
+      for await (const chunk of downloadResponse.readableStreamBody) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+
+      return Buffer.concat(chunks);
+    }
+
+    const blobName = this.toBlobName(pathOrUrl);
+    const [buffer] = await this.bucket.file(blobName).download();
+    return buffer;
   }
 
   private async saveInLocal(

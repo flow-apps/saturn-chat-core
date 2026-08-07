@@ -10,6 +10,10 @@ import { ParticipantState } from "../database/enums/participants";
 import { Response } from "express";
 import { User } from "../entities/User";
 import { Group } from "../entities/Group";
+import { FilesRepository } from "../repositories/FilesRepository";
+import { AudiosRepository } from "../repositories/AudiosRepository";
+import { AvatarsRepository } from "../repositories/AvatarsRepository";
+import { StorageManager } from "../services/StorageManager";
 import _ from "lodash";
 
 type TFilterTypes = "all" | "users" | "groups";
@@ -76,6 +80,12 @@ async function getGroups(term: string, _limit: number, _page: number) {
         }
       }
 
+      if (group.group_avatar?.path) {
+        const storage = new StorageManager();
+        const signedAvatarUrl = await storage.getFileAccessUrl(group.group_avatar.path);
+        group.group_avatar.url = signedAvatarUrl || group.group_avatar.url;
+      }
+
       return Object.assign(group, {
         participantsAmount,
         acceptingParticipants,
@@ -102,15 +112,142 @@ async function getUsers(term: string, _limit: number, _page: number) {
   if (!users)
     return []
 
-  const typedUsers: ITypedUsers[] = users.map((user: ITypedUsers) => {
-    user.search_type = "user";
-    return user;
-  });
+  const storage = new StorageManager();
+  const typedUsers: ITypedUsers[] = await Promise.all(
+    users.map(async (user: ITypedUsers) => {
+      if (user.avatar?.path) {
+        const signedAvatarUrl = await storage.getFileAccessUrl(user.avatar.path);
+        user.avatar.url = signedAvatarUrl || user.avatar.url;
+      }
+
+      user.search_type = "user";
+      return user;
+    })
+  );
 
   return typedUsers;
 }
 
 class AppController {
+  async getFileAccessUrl(req: RequestAuthenticated, res: Response) {
+    const { fileId } = req.params;
+    const storage = new StorageManager();
+    const filesRepository = getCustomRepository(FilesRepository);
+    const audiosRepository = getCustomRepository(AudiosRepository);
+    const avatarsRepository = getCustomRepository(AvatarsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+
+    const file = await filesRepository.findOne(fileId);
+    if (file) {
+      if (file.user_id !== req.userId) {
+        const participant = await participantsRepository.findOne({
+          where: {
+            group_id: file.group_id,
+            user_id: req.userId,
+            state: ParticipantState.JOINED,
+          },
+        });
+
+        if (!participant) {
+          throw new AppError("Access denied", 403);
+        }
+      }
+
+      const url = await storage.getFileAccessUrl(file.path);
+      return res.json({ url, expires_in: 900, path: file.path });
+    }
+
+    const audio = await audiosRepository.findOne(fileId);
+    if (audio) {
+      const participant = await participantsRepository.findOne({
+        where: {
+          group_id: audio.group_id,
+          user_id: req.userId,
+          state: ParticipantState.JOINED,
+        },
+      });
+
+      if (!participant) {
+        throw new AppError("Access denied", 403);
+      }
+
+      const url = await storage.getFileAccessUrl(audio.path);
+      return res.json({ url, expires_in: 900, path: audio.path });
+    }
+
+    const avatar = await avatarsRepository.findOne(fileId);
+    if (avatar) {
+      const url = await storage.getFileAccessUrl(avatar.path);
+      return res.json({ url, expires_in: 900, path: avatar.path });
+    }
+
+    throw new AppError("Resource not found", 404);
+  }
+
+  async downloadFile(req: RequestAuthenticated, res: Response) {
+    const { fileId } = req.params;
+    const storage = new StorageManager();
+    const filesRepository = getCustomRepository(FilesRepository);
+    const audiosRepository = getCustomRepository(AudiosRepository);
+    const avatarsRepository = getCustomRepository(AvatarsRepository);
+    const participantsRepository = getCustomRepository(ParticipantsRepository);
+
+    const file = await filesRepository.findOne(fileId);
+    if (file) {
+      if (file.user_id !== req.userId) {
+        const participant = await participantsRepository.findOne({
+          where: {
+            group_id: file.group_id,
+            user_id: req.userId,
+            state: ParticipantState.JOINED,
+          },
+        });
+
+        if (!participant) {
+          throw new AppError("Access denied", 403);
+        }
+      }
+
+      const content = await storage.downloadFile(file.path);
+      res.setHeader("Content-Type", file.type === "audio" ? "audio/mpeg" : "application/octet-stream");
+      res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
+      res.setHeader("Content-Disposition", `inline; filename="${file.original_name}"`);
+      return res.send(content);
+    }
+
+    const audio = await audiosRepository.findOne(fileId);
+    if (audio) {
+      const participant = await participantsRepository.findOne({
+        where: {
+          group_id: audio.group_id,
+          user_id: req.userId,
+          state: ParticipantState.JOINED,
+        },
+      });
+
+      if (!participant) {
+        throw new AppError("Access denied", 403);
+      }
+
+      const content = await storage.downloadFile(audio.path);
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
+      res.setHeader("Content-Disposition", `inline; filename="${audio.name}"`);
+      return res.send(content);
+    }
+
+    const avatar = await avatarsRepository.findOne(fileId);
+    if (avatar) {
+      const content = await storage.downloadFile(avatar.path);
+      res.setHeader("Content-Type", "image/*");
+      res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
+      res.setHeader("Content-Disposition", `inline; filename="${avatar.name}"`);
+      return res.send(content);
+    }
+
+    throw new AppError("Resource not found", 404);
+  }
+
   async search(req: RequestAuthenticated, res: Response) {
     const term = req.params.term.trim().toLowerCase();
     const filter = (req.query.filter || "all") as TFilterTypes;

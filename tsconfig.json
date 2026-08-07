@@ -16,6 +16,6 @@
     "strict": false,
     "skipLibCheck": true
   },
-  "include": ["**/*"],
-  "exclude": ["node_modules", "__tests__", "jest.*", "build", "**/*spec.ts", "dist"]
+  "include": ["**/*", "./src/firebase-key.json"],
+  "exclude": ["node_modules", "dist"]
 }

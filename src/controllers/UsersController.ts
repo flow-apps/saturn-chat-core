@@ -88,8 +88,9 @@ class UsersController {
         path: "files/users/avatars",
       })) as UploadedFile;
 
+      const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
       data.avatar = {
-        url: uploadedAvatar.url,
+        url: signedAvatarUrl || uploadedAvatar.url,
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
       };
@@ -143,6 +144,11 @@ class UsersController {
           return false;
         })
       );
+    }
+
+    if (user.avatar?.path) {
+      const signedAvatarUrl = await new StorageManager().getFileAccessUrl(user.avatar.path);
+      user.avatar.url = signedAvatarUrl || user.avatar.url;
     }
 
     user = Object.assign(user, {
@@ -199,6 +205,11 @@ class UsersController {
       user = Object.assign(user, {
         friendsAmount,
       });
+    }
+
+    if (user.avatar?.path) {
+      const signedAvatarUrl = await new StorageManager().getFileAccessUrl(user.avatar.path);
+      user.avatar.url = signedAvatarUrl || user.avatar.url;
     }
 
     if (user.groups) {
@@ -329,10 +340,11 @@ class UsersController {
     });
 
     if (!userAvatar) {
+      const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
       const createdAvatar = avatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-        url: uploadedAvatar.url,
+        url: signedAvatarUrl || uploadedAvatar.url,
       });
 
       await avatarsRepository.save(createdAvatar);
@@ -348,10 +360,11 @@ class UsersController {
     }
 
     await storage.deleteFile(userAvatar.path);
+    const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
     await avatarsRepository.update(userAvatar.id, {
       name: uploadedAvatar.name,
       path: uploadedAvatar.path,
-      url: uploadedAvatar.url,
+      url: signedAvatarUrl || uploadedAvatar.url,
     });
 
     const updatedUser = await usersRepository.findOne(user.id, {

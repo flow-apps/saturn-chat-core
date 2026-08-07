@@ -176,7 +176,8 @@ class MessagesController {
       });
 
       await audiosRepository.save(audio);
-      return res.json(audio);
+      const signedAudioUrl = await storage.getFileAccessUrl(audio.path);
+      return res.json({ ...audio, url: signedAudioUrl });
     } else if (attachType === "files") {
       const files = req.files as Express.Multer.File[];
 
@@ -235,7 +236,8 @@ class MessagesController {
             });
 
             await filesRepository.save(createdFile);
-            return createdFile;
+            const signedUrl = await storage.getFileAccessUrl(createdFile.path);
+            return { ...createdFile, url: signedUrl };
           }
         })
       );
