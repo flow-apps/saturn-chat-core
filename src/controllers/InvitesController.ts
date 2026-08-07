@@ -97,7 +97,7 @@ class InvitesController {
     const expireDate = dayjs().add(Number(body.expireIn), "days").toDate();
     const isPermanent = body.isPermanent == "true";
     const isUnlimitedUsage = body.isUnlimitedUsage == "true";
-    const usageAmount = body.usageAmount && !isUnlimitedUsage ? Number(body.usageAmount.trim()) : null;    
+    const usageAmount = body.usageAmount && !isUnlimitedUsage ? Number(body.usageAmount) : null;    
 
     const invite = invitesRepository.create({
       group_id: body.groupId,
