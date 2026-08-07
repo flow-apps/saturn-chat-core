@@ -89,7 +89,7 @@ class UsersController {
       })) as UploadedFile;
 
       data.avatar = {
-        url: uploadedAvatar.url,
+        url: "",
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
       };
@@ -339,7 +339,7 @@ class UsersController {
       const createdAvatar = avatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-        url: uploadedAvatar.url,
+        url: "", // Inicializa com string vazia, será atualizada após salvar
       });
 
       await avatarsRepository.save(createdAvatar);
