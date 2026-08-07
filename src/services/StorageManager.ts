@@ -227,8 +227,7 @@ class StorageManager {
         await this.deleteFromFirebase(path);
       }
     } catch (error) {
-      console.log(error);
-      throw new Error("Error on delete file!");
+      console.error(`Failed to delete file at path: ${path}`, error);
     }
   }
 
@@ -254,8 +253,6 @@ class StorageManager {
     const azureBlobServiceClient = BlobServiceClient.fromConnectionString(
       azureStorageConnectionString,
     )
-
-    
 
     const fileRepository = getRepository(File);
     const groupAvatarRepository = getRepository(GroupAvatar);
