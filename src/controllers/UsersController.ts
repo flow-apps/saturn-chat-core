@@ -88,16 +88,22 @@ class UsersController {
         path: "files/users/avatars",
       })) as UploadedFile;
 
-      const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
       data.avatar = {
-        url: signedAvatarUrl || uploadedAvatar.url,
+        url: uploadedAvatar.url,
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
       };
     }
 
-    const user = usersRepository.create({ ...data });
+    let user = usersRepository.create({ ...data });
     await usersRepository.save(user);
+
+    if (user.avatar) {
+      const avatarsRepository = getCustomRepository(AvatarsRepository);
+      const avatarUrl = `${process.env.API_URL || ""}/files/${user.avatar.id}`.replace(/\/$/, "");
+      await avatarsRepository.update(user.avatar.id, { url: avatarUrl });
+      user.avatar.url = avatarUrl;
+    }
     user.password = undefined;
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY);
@@ -146,9 +152,8 @@ class UsersController {
       );
     }
 
-    if (user.avatar?.path) {
-      const signedAvatarUrl = await new StorageManager().getFileAccessUrl(user.avatar.path);
-      user.avatar.url = signedAvatarUrl || user.avatar.url;
+    if (user.avatar?.id) {
+      user.avatar.url = `${process.env.API_URL || ""}/files/${user.avatar.id}`.replace(/\/$/, "");
     }
 
     user = Object.assign(user, {
@@ -207,9 +212,8 @@ class UsersController {
       });
     }
 
-    if (user.avatar?.path) {
-      const signedAvatarUrl = await new StorageManager().getFileAccessUrl(user.avatar.path);
-      user.avatar.url = signedAvatarUrl || user.avatar.url;
+    if (user.avatar?.id) {
+      user.avatar.url = `${process.env.API_URL || ""}/files/${user.avatar.id}`.replace(/\/$/, "");
     }
 
     if (user.groups) {
@@ -340,14 +344,17 @@ class UsersController {
     });
 
     if (!userAvatar) {
-      const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
       const createdAvatar = avatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-        url: signedAvatarUrl || uploadedAvatar.url,
+        url: uploadedAvatar.url,
       });
 
       await avatarsRepository.save(createdAvatar);
+      const avatarUrl = `${process.env.API_URL || ""}/files/${createdAvatar.id}`.replace(/\/$/, "");
+      createdAvatar.url = avatarUrl;
+      await avatarsRepository.save(createdAvatar);
+
       await usersRepository.update(user.id, {
         avatar: createdAvatar,
       });
@@ -360,11 +367,11 @@ class UsersController {
     }
 
     await storage.deleteFile(userAvatar.path);
-    const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
+    const avatarUrl = `${process.env.API_URL || ""}/files/${userAvatar.id}`.replace(/\/$/, "");
     await avatarsRepository.update(userAvatar.id, {
       name: uploadedAvatar.name,
       path: uploadedAvatar.path,
-      url: signedAvatarUrl || uploadedAvatar.url,
+      url: avatarUrl,
     });
 
     const updatedUser = await usersRepository.findOne(user.id, {

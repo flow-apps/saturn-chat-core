@@ -140,11 +140,10 @@ class GroupsController {
         path: "files/groups/avatars",
       });
 
-      const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
       createdAvatar = groupsAvatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-        url: signedAvatarUrl || uploadedAvatar.url,
+        url: uploadedAvatar.url,
         group_id: groupID,
       });
     }
@@ -158,6 +157,11 @@ class GroupsController {
     group.group_settings = generatedSettings;
 
     if (createdAvatar) {
+      await groupsAvatarsRepository.save(createdAvatar);
+      const avatarUrl = `${process.env.API_URL || ""}/files/${createdAvatar.id}`.replace(/\/$/, "");
+      createdAvatar.url = avatarUrl;
+      await groupsAvatarsRepository.update(createdAvatar.id, { url: avatarUrl });
+
       await groupsAvatarsRepository.save(createdAvatar);
       await groupsRepository.update(group.id, {
         group_avatar: createdAvatar,
@@ -198,10 +202,8 @@ class GroupsController {
       where: { group_id: group.id, state: ParticipantState.JOINED },
     });
 
-    if (group.group_avatar?.path) {
-      const storage = new StorageManager();
-      const signedAvatarUrl = await storage.getFileAccessUrl(group.group_avatar.path);
-      group.group_avatar.url = signedAvatarUrl || group.group_avatar.url;
+    if (group.group_avatar?.id) {
+      group.group_avatar.url = `${process.env.API_URL || ""}/files/${group.group_avatar.id}`.replace(/\/$/, "");
     }
 
     const settigs = await groupsSettingsRepository.getOrGenerateSettings(
@@ -290,13 +292,8 @@ class GroupsController {
 
     const groupsWithUnreadMessages = await Promise.all(
       filteredParticipating.map(async (participant) => {
-        if (participant.group.group_avatar?.path) {
-          const storage = new StorageManager();
-          const signedAvatarUrl = await storage.getFileAccessUrl(
-            participant.group.group_avatar.path
-          );
-          participant.group.group_avatar.url =
-            signedAvatarUrl || participant.group.group_avatar.url;
+        if (participant.group.group_avatar?.id) {
+          participant.group.group_avatar.url = `${process.env.API_URL || ""}/files/${participant.group.group_avatar.id}`.replace(/\/$/, "");
         }
 
         const totalMessages = await messagesRepository.count({
@@ -431,7 +428,7 @@ class GroupsController {
     });
 
     if (!groupAvatar) {
-      const createdAvatar = groupsAvatarsRepository.create({
+      let createdAvatar = groupsAvatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
         url: uploadedAvatar.url,
@@ -439,6 +436,10 @@ class GroupsController {
       });
 
       await groupsAvatarsRepository.save(createdAvatar);
+      const avatarUrl = `${process.env.API_URL || ""}/files/${createdAvatar.id}`.replace(/\/$/, "");
+      createdAvatar.url = avatarUrl;
+      await groupsAvatarsRepository.save(createdAvatar);
+
       await groupsRepository.update(group.id, {
         group_avatar: createdAvatar,
       });
@@ -448,11 +449,11 @@ class GroupsController {
 
     await storage.deleteFile(groupAvatar.path);
 
-    const signedAvatarUrl = await storage.getFileAccessUrl(uploadedAvatar.path);
+    const avatarUrl = `${process.env.API_URL || ""}/files/${groupAvatar.id}`.replace(/\/$/, "");
     await groupsAvatarsRepository.update(groupAvatar.id, {
       name: uploadedAvatar.name,
       path: uploadedAvatar.path,
-      url: signedAvatarUrl || uploadedAvatar.url,
+      url: avatarUrl,
     });
 
     return res.sendStatus(204);

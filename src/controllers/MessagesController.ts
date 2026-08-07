@@ -176,7 +176,7 @@ class MessagesController {
       });
 
       await audiosRepository.save(audio);
-      const accessUrlRoute = `${process.env.API_URL || ""}/files/${audio.id}/access-url`.replace(/\/$/, "");
+      const accessUrlRoute = `${process.env.API_URL || ""}/files/${audio.id}`.replace(/\/$/, "");
       return res.json({
         ...audio,
         url: accessUrlRoute,
@@ -240,7 +240,7 @@ class MessagesController {
             });
 
             await filesRepository.save(createdFile);
-            const accessUrlRoute = `${process.env.API_URL || ""}/files/${createdFile.id}/access-url`.replace(/\/$/, "");
+            const accessUrlRoute = `${process.env.API_URL || ""}/files/${createdFile.id}`.replace(/\/$/, "");
             return {
               ...createdFile,
               url: accessUrlRoute,

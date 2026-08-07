@@ -7,7 +7,7 @@ import { GroupType } from "../database/enums/groups";
 import { ParticipantsRepository } from "../repositories/ParticipantsRepository";
 import { remoteConfigs } from "../configs/remoteConfigs";
 import { ParticipantState } from "../database/enums/participants";
-import { Response } from "express";
+import { Response, Request } from "express";
 import { User } from "../entities/User";
 import { Group } from "../entities/Group";
 import { FilesRepository } from "../repositories/FilesRepository";
@@ -15,6 +15,7 @@ import { AudiosRepository } from "../repositories/AudiosRepository";
 import { AvatarsRepository } from "../repositories/AvatarsRepository";
 import { StorageManager } from "../services/StorageManager";
 import _ from "lodash";
+import jwt from "jsonwebtoken";
 
 type TFilterTypes = "all" | "users" | "groups";
 
@@ -80,10 +81,8 @@ async function getGroups(term: string, _limit: number, _page: number) {
         }
       }
 
-      if (group.group_avatar?.path) {
-        const storage = new StorageManager();
-        const signedAvatarUrl = await storage.getFileAccessUrl(group.group_avatar.path);
-        group.group_avatar.url = signedAvatarUrl || group.group_avatar.url;
+      if (group.group_avatar?.id) {
+        group.group_avatar.url = `${process.env.API_URL || ""}/files/${group.group_avatar.id}`.replace(/\/$/, "");
       }
 
       return Object.assign(group, {
@@ -112,12 +111,10 @@ async function getUsers(term: string, _limit: number, _page: number) {
   if (!users)
     return []
 
-  const storage = new StorageManager();
   const typedUsers: ITypedUsers[] = await Promise.all(
     users.map(async (user: ITypedUsers) => {
-      if (user.avatar?.path) {
-        const signedAvatarUrl = await storage.getFileAccessUrl(user.avatar.path);
-        user.avatar.url = signedAvatarUrl || user.avatar.url;
+      if (user.avatar?.id) {
+        user.avatar.url = `${process.env.API_URL || ""}/files/${user.avatar.id}`.replace(/\/$/, "");
       }
 
       user.search_type = "user";
@@ -129,7 +126,26 @@ async function getUsers(term: string, _limit: number, _page: number) {
 }
 
 class AppController {
-  async getFileAccessUrl(req: RequestAuthenticated, res: Response) {
+  private getUserIdFromRequest(req: Request): string | null {
+    const authHeader = req.headers.authorization;
+
+    if (authHeader) {
+      const [, token] = authHeader.split(" ");
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY) as {
+          id: string;
+        };
+        return decoded.id;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  async getFileAccessUrl(req: Request, res: Response) {
     const { fileId } = req.params;
     const storage = new StorageManager();
     const filesRepository = getCustomRepository(FilesRepository);
@@ -137,13 +153,24 @@ class AppController {
     const avatarsRepository = getCustomRepository(AvatarsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
+    const avatar = await avatarsRepository.findOne(fileId);
+    if (avatar) {
+      const url = await storage.getFileAccessUrl(avatar.path);
+      return res.json({ url, expires_in: 900, path: avatar.path });
+    }
+
+    const userId = this.getUserIdFromRequest(req);
+    if (!userId) {
+      throw new AppError("Access denied", 401);
+    }
+
     const file = await filesRepository.findOne(fileId);
     if (file) {
-      if (file.user_id !== req.userId) {
+      if (file.user_id !== userId) {
         const participant = await participantsRepository.findOne({
           where: {
             group_id: file.group_id,
-            user_id: req.userId,
+            user_id: userId,
             state: ParticipantState.JOINED,
           },
         });
@@ -162,7 +189,7 @@ class AppController {
       const participant = await participantsRepository.findOne({
         where: {
           group_id: audio.group_id,
-          user_id: req.userId,
+          user_id: userId,
           state: ParticipantState.JOINED,
         },
       });
@@ -175,16 +202,10 @@ class AppController {
       return res.json({ url, expires_in: 900, path: audio.path });
     }
 
-    const avatar = await avatarsRepository.findOne(fileId);
-    if (avatar) {
-      const url = await storage.getFileAccessUrl(avatar.path);
-      return res.json({ url, expires_in: 900, path: avatar.path });
-    }
-
     throw new AppError("Resource not found", 404);
   }
 
-  async downloadFile(req: RequestAuthenticated, res: Response) {
+  async downloadFile(req: Request, res: Response) {
     const { fileId } = req.params;
     const storage = new StorageManager();
     const filesRepository = getCustomRepository(FilesRepository);
@@ -192,13 +213,27 @@ class AppController {
     const avatarsRepository = getCustomRepository(AvatarsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
+    const avatar = await avatarsRepository.findOne(fileId);
+    if (avatar) {
+      const content = await storage.downloadFile(avatar.path);
+      res.setHeader("Content-Type", "image/*");
+      res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+      res.setHeader("Content-Disposition", `inline; filename="${avatar.name}"`);
+      return res.send(content);
+    }
+
+    const userId = this.getUserIdFromRequest(req);
+    if (!userId) {
+      throw new AppError("Access denied", 401);
+    }
+
     const file = await filesRepository.findOne(fileId);
     if (file) {
-      if (file.user_id !== req.userId) {
+      if (file.user_id !== userId) {
         const participant = await participantsRepository.findOne({
           where: {
             group_id: file.group_id,
-            user_id: req.userId,
+            user_id: userId,
             state: ParticipantState.JOINED,
           },
         });
@@ -209,9 +244,15 @@ class AppController {
       }
 
       const content = await storage.downloadFile(file.path);
-      res.setHeader("Content-Type", file.type === "audio" ? "audio/mpeg" : "application/octet-stream");
+      res.setHeader(
+        "Content-Type",
+        file.type === "audio" ? "audio/mpeg" : "application/octet-stream"
+      );
       res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
-      res.setHeader("Content-Disposition", `inline; filename="${file.original_name}"`);
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename="${file.original_name}"`
+      );
       return res.send(content);
     }
 
@@ -220,7 +261,7 @@ class AppController {
       const participant = await participantsRepository.findOne({
         where: {
           group_id: audio.group_id,
-          user_id: req.userId,
+          user_id: userId,
           state: ParticipantState.JOINED,
         },
       });
@@ -233,15 +274,6 @@ class AppController {
       res.setHeader("Content-Type", "audio/mpeg");
       res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
       res.setHeader("Content-Disposition", `inline; filename="${audio.name}"`);
-      return res.send(content);
-    }
-
-    const avatar = await avatarsRepository.findOne(fileId);
-    if (avatar) {
-      const content = await storage.downloadFile(avatar.path);
-      res.setHeader("Content-Type", "image/*");
-      res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
-      res.setHeader("Content-Disposition", `inline; filename="${avatar.name}"`);
       return res.send(content);
     }
 
