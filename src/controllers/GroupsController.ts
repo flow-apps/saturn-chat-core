@@ -202,10 +202,6 @@ class GroupsController {
       where: { group_id: group.id, state: ParticipantState.JOINED },
     });
 
-    if (group.group_avatar?.id) {
-      group.group_avatar.url = `${process.env.API_URL || ""}/files/${group.group_avatar.id}`.replace(/\/$/, "");
-    }
-
     const settigs = await groupsSettingsRepository.getOrGenerateSettings(
       group.id
     );
@@ -292,10 +288,6 @@ class GroupsController {
 
     const groupsWithUnreadMessages = await Promise.all(
       filteredParticipating.map(async (participant) => {
-        if (participant.group.group_avatar?.id) {
-          participant.group.group_avatar.url = `${process.env.API_URL || ""}/files/${participant.group.group_avatar.id}`.replace(/\/$/, "");
-        }
-
         const totalMessages = await messagesRepository.count({
           where: { group_id: participant.group.id },
         });

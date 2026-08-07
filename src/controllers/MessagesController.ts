@@ -26,11 +26,11 @@ class MessagesController {
 
   constructor() {
     this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
-      remoteConfigs.premium_max_message_length
+      remoteConfigs.premium_max_message_length,
     );
 
     this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
-      remoteConfigs.default_max_message_length
+      remoteConfigs.default_max_message_length,
     );
 
     this.MAX_FILE_SIZE_PREMIUM = Number(remoteConfigs.premium_file_upload);
@@ -42,6 +42,7 @@ class MessagesController {
     const { groupID } = req.params;
     const { _limit, _page } = req.query;
     const arrayUtils = new ArrayUtils();
+    const storage = new StorageManager();
 
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const messageRepository = getCustomRepository(MessagesRepository);
@@ -72,7 +73,7 @@ class MessagesController {
       order: { created_at: "DESC" },
     });
 
-    const decryptedMessages = await Promise.all(
+    const processedMessages = await Promise.all(
       arrayUtils.iterator(messages, async (message) => {
         if (message.encrypted) {
           if (message.message) {
@@ -86,17 +87,17 @@ class MessagesController {
           message.reply_to.message
         ) {
           message.reply_to.message = messagesService.decryptMessage(
-            message.reply_to.message
+            message.reply_to.message,
           );
         }
 
         await messagesService.readMessage(message.id, req.userId, groupID);
 
         return message;
-      })
+      }),
     );
 
-    return res.status(200).json({ messages: decryptedMessages });
+    return res.status(200).json({ messages: processedMessages });
   }
 
   async createAttachment(req: RequestPremium, res: Response) {
@@ -108,7 +109,7 @@ class MessagesController {
     const filesRepository = getCustomRepository(FilesRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
     const groupsSettingsRepository = getCustomRepository(
-      GroupsSettingsRepository
+      GroupsSettingsRepository,
     );
     const messagesService = new MessagesService();
 
@@ -147,12 +148,12 @@ class MessagesController {
     const minimumRoleSendMessage = (
       await groupsSettingsRepository.getOneSetting(
         groupID,
-        "minimum_role_for_send_message"
+        "minimum_role_for_send_message",
       )
     ).setting_value;
     const canSendMessage = checkIsMinimumRole(
       minimumRoleSendMessage,
-      participant.role
+      participant.role,
     );
     if (!canSendMessage) {
       throw new Error("Participant cannot send message");
@@ -176,12 +177,8 @@ class MessagesController {
       });
 
       await audiosRepository.save(audio);
-      const accessUrlRoute = `${process.env.API_URL || ""}/files/${audio.id}`.replace(/\/$/, "");
-      return res.json({
-        ...audio,
-        url: accessUrlRoute,
-        path: audio.path,
-      });
+      audio.url = `${process.env.API_URL || ""}/files/${audio.id}`.replace(/\/$/, "");
+      return res.json(audio);
     } else if (attachType === "files") {
       const files = req.files as Express.Multer.File[];
 
@@ -221,7 +218,7 @@ class MessagesController {
       await messagesService.readMessage(
         createdMessage.id,
         createdMessage.author_id,
-        groupID
+        groupID,
       );
 
       const uploadedFiles = await storage.uploadMultipleFiles({
@@ -240,26 +237,23 @@ class MessagesController {
             });
 
             await filesRepository.save(createdFile);
-            const accessUrlRoute = `${process.env.API_URL || ""}/files/${createdFile.id}`.replace(/\/$/, "");
-            return {
-              ...createdFile,
-              url: accessUrlRoute,
-              path: createdFile.path,
-            };
+            createdFile.url = `${process.env.API_URL || ""}/files/${createdFile.id}`.replace(/\/$/, "");
+
+            return createdFile;
           }
-        })
+        }),
       );
 
       if (createdMessage.encrypted) {
         createdMessage.message = messagesService.decryptMessage(
-          createdMessage.message
+          createdMessage.message,
         );
       }
 
       if (createdMessage.reply_to) {
         if (createdMessage.reply_to.encrypted) {
           createdMessage.reply_to.message = messagesService.decryptMessage(
-            createdMessage.reply_to.message
+            createdMessage.reply_to.message,
           );
         }
       }

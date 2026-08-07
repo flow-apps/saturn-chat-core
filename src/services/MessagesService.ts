@@ -24,6 +24,7 @@ import { remoteConfigs } from "../configs/remoteConfigs";
 import Cryptr from "cryptr";
 import { GroupsSettingsRepository } from "../repositories/GroupsSettingsRepository";
 import { checkIsMinimumRole } from "../utils/role";
+import { ArrayUtils } from "../utils/array";
 
 interface ICreateMessageProps {
   message: string;
@@ -61,10 +62,10 @@ class MessagesService {
 
   constructor() {
     this.MAX_MESSAGE_LENGTH_PREMIUM = Number(
-      remoteConfigs.premium_max_message_length
+      remoteConfigs.premium_max_message_length,
     );
     this.MAX_MESSAGE_LENGTH_DEFAULT = Number(
-      remoteConfigs.default_max_message_length
+      remoteConfigs.default_max_message_length,
     );
   }
 
@@ -78,7 +79,7 @@ class MessagesService {
 
   async getParticipantsUserIds(
     groupID: string,
-    options: IGetUserIDsOptions = {}
+    options: IGetUserIDsOptions = {},
   ) {
     const userNotifications = getCustomRepository(UserNotificationsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
@@ -101,7 +102,7 @@ class MessagesService {
       .then((participants) => {
         const userIDS = participants.map((participant) => {
           const notificationSetting = participant.participant_settings.find(
-            (setting) => setting.setting_name === "send_notifications"
+            (setting) => setting.setting_name === "send_notifications",
           );
 
           if (
@@ -131,7 +132,7 @@ class MessagesService {
   async create(msgData: ICreateMessageProps, isPremium = false) {
     const messageRepository = getCustomRepository(MessagesRepository);
     const groupsSettingsRepository = getCustomRepository(
-      GroupsSettingsRepository
+      GroupsSettingsRepository,
     );
     const participantsService = new ParticipantsService();
 
@@ -140,7 +141,7 @@ class MessagesService {
 
     const participant = await participantsService.index(
       msgData.author_id,
-      msgData.group_id
+      msgData.group_id,
     );
 
     if (!participant || participant.state !== ParticipantState.JOINED) {
@@ -150,12 +151,12 @@ class MessagesService {
     const minimumRoleSendMessage = (
       await groupsSettingsRepository.getOneSetting(
         msgData.group_id,
-        "minimum_role_for_send_message"
+        "minimum_role_for_send_message",
       )
     ).setting_value;
     const canSendMessage = checkIsMinimumRole(
       minimumRoleSendMessage,
-      participant.role
+      participant.role,
     );
     if (!canSendMessage) {
       throw new Error("Participant cannot send message");
@@ -190,7 +191,7 @@ class MessagesService {
       message: Yup.string().max(
         isPremium
           ? this.MAX_MESSAGE_LENGTH_PREMIUM
-          : this.MAX_MESSAGE_LENGTH_DEFAULT
+          : this.MAX_MESSAGE_LENGTH_DEFAULT,
       ),
       group_id: Yup.string().required(),
       author_id: Yup.string().required(),
@@ -213,7 +214,7 @@ class MessagesService {
           const data = await linkUtils.getDataFromLink(link);
 
           if (data) linksData.push(data);
-        })
+        }),
       );
     }
 
@@ -240,7 +241,7 @@ class MessagesService {
     await this.readMessage(
       newMessage.id,
       newMessage.author_id,
-      newMessage.group_id
+      newMessage.group_id,
     );
 
     if (message.encrypted) {
@@ -250,7 +251,7 @@ class MessagesService {
     if (message.reply_to && message.reply_to.message) {
       if (message.reply_to.encrypted)
         message.reply_to.message = this.decryptMessage(
-          message.reply_to.message
+          message.reply_to.message,
         );
     }
 
@@ -264,7 +265,7 @@ class MessagesService {
 
       const participant = await participantsService.index(
         audioData.author_id,
-        audioData.group_id
+        audioData.group_id,
       );
 
       if (!participant || participant.state !== ParticipantState.JOINED) {
@@ -306,7 +307,7 @@ class MessagesService {
       await this.readMessage(
         newMessage.id,
         newMessage.author_id,
-        newMessage.group_id
+        newMessage.group_id,
       );
       const completedMessage = await messagesRepository.findOne(newMessage.id, {
         loadEagerRelations: true,
@@ -323,7 +324,7 @@ class MessagesService {
       if (completedMessage.reply_to && completedMessage.reply_to.message) {
         if (completedMessage.reply_to.encrypted) {
           completedMessage.reply_to.message = this.decryptMessage(
-            completedMessage.reply_to.message
+            completedMessage.reply_to.message,
           );
         }
       }
@@ -340,7 +341,7 @@ class MessagesService {
 
     const participant = await participantsService.index(
       msgData.author_id,
-      msgData.group_id
+      msgData.group_id,
     );
 
     if (!participant || participant.state !== ParticipantState.JOINED) {
@@ -374,7 +375,7 @@ class MessagesService {
           "reply_to.author",
           "reply_to.group",
         ],
-      }
+      },
     );
 
     if (completedMessage.encrypted) {
@@ -384,7 +385,7 @@ class MessagesService {
     if (completedMessage.reply_to && completedMessage.reply_to.message) {
       if (completedMessage.reply_to.encrypted) {
         completedMessage.reply_to.message = this.decryptMessage(
-          completedMessage.reply_to.message
+          completedMessage.reply_to.message,
         );
       }
     }
@@ -446,7 +447,7 @@ class MessagesService {
           await Promise.all(
             message.files.map(async (file) => {
               await storage.deleteFile(file.path);
-            })
+            }),
           );
         }
       });

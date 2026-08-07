@@ -81,10 +81,6 @@ async function getGroups(term: string, _limit: number, _page: number) {
         }
       }
 
-      if (group.group_avatar?.id) {
-        group.group_avatar.url = `${process.env.API_URL || ""}/files/${group.group_avatar.id}`.replace(/\/$/, "");
-      }
-
       return Object.assign(group, {
         participantsAmount,
         acceptingParticipants,
@@ -113,10 +109,6 @@ async function getUsers(term: string, _limit: number, _page: number) {
 
   const typedUsers: ITypedUsers[] = await Promise.all(
     users.map(async (user: ITypedUsers) => {
-      if (user.avatar?.id) {
-        user.avatar.url = `${process.env.API_URL || ""}/files/${user.avatar.id}`.replace(/\/$/, "");
-      }
-
       user.search_type = "user";
       return user;
     })

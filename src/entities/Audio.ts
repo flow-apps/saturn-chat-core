@@ -1,5 +1,6 @@
 import {
   Column,
+  AfterLoad,
   CreateDateColumn,
   Entity,
   PrimaryColumn,
@@ -35,6 +36,16 @@ class Audio {
 
   @CreateDateColumn()
   created_at: Date;
+
+  @AfterLoad()
+  setUrl() {
+    if (this.id) {
+      this.url = `${process.env.API_URL || ""}/files/${this.id}`.replace(
+        /\/$/,
+        ""
+      );
+    }
+  }
 
   constructor() {
     if (!this.id) {

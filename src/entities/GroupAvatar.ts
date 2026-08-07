@@ -1,18 +1,19 @@
 import {
+  AfterLoad,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { Group } from "./Group";
 
 @Entity({ name: "groups_avatars" })
-class GroupAvatar {
+export class GroupAvatar {
   @PrimaryColumn()
-  readonly id: string;
+  id: string;
 
   @Column()
   name: string;
@@ -26,16 +27,22 @@ class GroupAvatar {
   @Column()
   group_id: string;
 
-  @OneToOne(() => Group, (group) => group.group_avatar, {
-    cascade: true,
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
-  })
+  @ManyToOne(() => Group)
   @JoinColumn({ name: "group_id" })
   group: Group;
 
   @CreateDateColumn()
   created_at: Date;
+
+  @AfterLoad()
+  setUrl() {
+    if (this.id) {
+      this.url = `${process.env.API_URL || ""}/files/${this.id}`.replace(
+        /\/$/,
+        ""
+      );
+    }
+  }
 
   constructor() {
     if (!this.id) {
@@ -43,5 +50,3 @@ class GroupAvatar {
     }
   }
 }
-
-export { GroupAvatar };

@@ -152,10 +152,6 @@ class UsersController {
       );
     }
 
-    if (user.avatar?.id) {
-      user.avatar.url = `${process.env.API_URL || ""}/files/${user.avatar.id}`.replace(/\/$/, "");
-    }
-
     user = Object.assign(user, {
       friendsAmount,
     });
@@ -210,10 +206,6 @@ class UsersController {
       user = Object.assign(user, {
         friendsAmount,
       });
-    }
-
-    if (user.avatar?.id) {
-      user.avatar.url = `${process.env.API_URL || ""}/files/${user.avatar.id}`.replace(/\/$/, "");
     }
 
     if (user.groups) {

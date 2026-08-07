@@ -1,10 +1,16 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
+import {
+  AfterLoad,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryColumn,
+} from "typeorm";
 import { v4 as uuid } from "uuid";
 
 @Entity({ name: "avatars" })
-class Avatar {
+export class Avatar {
   @PrimaryColumn()
-  readonly id: string;
+  id: string;
 
   @Column()
   name: string;
@@ -18,11 +24,19 @@ class Avatar {
   @CreateDateColumn()
   created_at: Date;
 
+  @AfterLoad()
+  setUrl() {
+    if (this.id) {
+      this.url = `${process.env.API_URL || ""}/files/${this.id}`.replace(
+        /\/$/,
+        ""
+      );
+    }
+  }
+
   constructor() {
     if (!this.id) {
       this.id = uuid();
     }
   }
 }
-
-export { Avatar };
