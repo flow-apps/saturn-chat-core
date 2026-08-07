@@ -13,6 +13,7 @@ import { Group } from "../entities/Group";
 import { FilesRepository } from "../repositories/FilesRepository";
 import { AudiosRepository } from "../repositories/AudiosRepository";
 import { AvatarsRepository } from "../repositories/AvatarsRepository";
+import { GroupsAvatarsRepository } from "../repositories/GroupsAvatarsRepository";
 import { StorageManager } from "../services/StorageManager";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
@@ -143,18 +144,29 @@ class AppController {
     const filesRepository = getCustomRepository(FilesRepository);
     const audiosRepository = getCustomRepository(AudiosRepository);
     const avatarsRepository = getCustomRepository(AvatarsRepository);
+    const groupsAvatarsRepository = getCustomRepository(GroupsAvatarsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
-    const avatar = await avatarsRepository.findOne(fileId);
-    if (avatar) {
+    const userAvatar = await avatarsRepository.findOne(fileId);
+    if (userAvatar) {
       // Para desenvolvimento local, a URL já é definida pelo @AfterLoad para /files/:id
       if (process.env.NODE_ENV === "development") {
-        return res.json({ url: avatar.url, expires_in: 900, path: avatar.path });
+        return res.json({ url: userAvatar.url, expires_in: 900, path: userAvatar.path });
       }
       // Para armazenamento em nuvem, gera uma URL assinada
-      const url = await storage.getFileAccessUrl(avatar.path);
-      return res.json({ url, expires_in: 900, path: avatar.path });
+      const url = await storage.getFileAccessUrl(userAvatar.path);
+      return res.json({ url, expires_in: 900, path: userAvatar.path });
     }
+
+    const groupAvatar = await groupsAvatarsRepository.findOne(fileId);
+    if (groupAvatar) {
+      if (process.env.NODE_ENV === "development") {
+        return res.json({ url: groupAvatar.url, expires_in: 900, path: groupAvatar.path });
+      }
+      const url = await storage.getFileAccessUrl(groupAvatar.path);
+      return res.json({ url, expires_in: 900, path: groupAvatar.path });
+    }
+
 
     const userId = this.getUserIdFromRequest(req);
     if (!userId) {
@@ -216,16 +228,27 @@ class AppController {
     const filesRepository = getCustomRepository(FilesRepository);
     const audiosRepository = getCustomRepository(AudiosRepository);
     const avatarsRepository = getCustomRepository(AvatarsRepository);
+    const groupsAvatarsRepository = getCustomRepository(GroupsAvatarsRepository);
     const participantsRepository = getCustomRepository(ParticipantsRepository);
 
-    const avatar = await avatarsRepository.findOne(fileId);
-    if (avatar) {
-      const content = await storage.downloadFile(avatar.path);
+    const userAvatar = await avatarsRepository.findOne(fileId);
+    if (userAvatar) {
+      const content = await storage.downloadFile(userAvatar.path);
       res.setHeader("Content-Type", "image/*");
       res.setHeader("Cache-Control", "public, max-age=604800, immutable");
-      res.setHeader("Content-Disposition", `inline; filename="${avatar.name}"`);
+      res.setHeader("Content-Disposition", `inline; filename="${userAvatar.name}"`);
       return res.send(content);
     }
+
+    const groupAvatar = await groupsAvatarsRepository.findOne(fileId);
+    if (groupAvatar) {
+      const content = await storage.downloadFile(groupAvatar.path);
+      res.setHeader("Content-Type", "image/*");
+      res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+      res.setHeader("Content-Disposition", `inline; filename="${groupAvatar.name}"`);
+      return res.send(content);
+    }
+
 
     const userId = this.getUserIdFromRequest(req);
     if (!userId) {
