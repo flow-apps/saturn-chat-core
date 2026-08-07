@@ -176,12 +176,11 @@ class MessagesController {
       });
 
       await audiosRepository.save(audio);
-      const signedAudioUrl = await storage.getFileAccessUrl(audio.path);
+      const accessUrlRoute = `${process.env.API_URL || ""}/files/${audio.id}/access-url`.replace(/\/$/, "");
       return res.json({
         ...audio,
-        url: signedAudioUrl || audio.url,
+        url: accessUrlRoute,
         path: audio.path,
-        
       });
     } else if (attachType === "files") {
       const files = req.files as Express.Multer.File[];
@@ -241,10 +240,10 @@ class MessagesController {
             });
 
             await filesRepository.save(createdFile);
-            const signedUrl = await storage.getFileAccessUrl(createdFile.path);
+            const accessUrlRoute = `${process.env.API_URL || ""}/files/${createdFile.id}/access-url`.replace(/\/$/, "");
             return {
               ...createdFile,
-              url: signedUrl || createdFile.url,
+              url: accessUrlRoute,
               path: createdFile.path,
             };
           }
