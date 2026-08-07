@@ -36,7 +36,7 @@ app.use(compression() as any);
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(
-  "/uploads",
+  "/uploads/files",
   express.static(path.join(__dirname, "..", "uploads", "files"))
 );
 

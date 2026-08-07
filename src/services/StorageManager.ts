@@ -50,14 +50,17 @@ class StorageManager {
       return "";
     }
 
-    const filename = basename(pathOrUrl);
     const apiUrl = (process.env.API_URL || "").replace(/\/$/, "");
+    const normalizedPath = pathOrUrl.replace(/\\/g, "/");
+    const relativePath = normalizedPath
+      .split("/uploads/")
+      .pop()?.replace(/^files\//, "") || basename(normalizedPath);
 
-    if (!filename) {
+    if (!relativePath) {
       return `${apiUrl}/uploads`;
     }
 
-    return `${apiUrl}/uploads/${encodeURIComponent(filename)}`;
+    return `${apiUrl}/uploads/files/${encodeURIComponent(relativePath)}`;
   }
 
   constructor() {
