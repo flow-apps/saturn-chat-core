@@ -45,24 +45,6 @@ class StorageManager {
   private inLocal: boolean;
   private containerName: string;
 
-  private getLocalPublicUrl(pathOrUrl: string) {
-    if (!pathOrUrl) {
-      return "";
-    }
-
-    const apiUrl = (process.env.API_URL || "").replace(/\/$/, "");
-    const normalizedPath = pathOrUrl.replace(/\\/g, "/");
-    const relativePath = normalizedPath
-      .split("/uploads/")
-      .pop()?.replace(/^files\//, "") || basename(normalizedPath);
-
-    if (!relativePath) {
-      return `${apiUrl}/uploads`;
-    }
-
-    return `${apiUrl}/uploads/files/${encodeURIComponent(relativePath)}`;
-  }
-
   constructor() {
     this.inLocal = process.env.NODE_ENV === "development";
     this.containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || "";
@@ -109,16 +91,15 @@ class StorageManager {
       return "";
     }
 
-    if (this.inLocal || this.provider !== "azure") {
+    if (this.inLocal) {
+      // Para desenvolvimento local, o AppController deve retornar a URL /files/:id diretamente.
+      // Este método é para gerar URLs de acesso direto do provedor de armazenamento.
+      return ""; // Indica que nenhuma URL de armazenamento direto é gerada para local.
+    } else if (this.provider === "firebase") {
       if (pathOrUrl.startsWith("http")) {
         return pathOrUrl;
       }
-
-      if (this.bucket) {
-        return this.bucket.file(pathOrUrl).publicUrl();
-      }
-
-      return this.getLocalPublicUrl(pathOrUrl);
+      return this.bucket.file(pathOrUrl).publicUrl();
     }
 
     const blobName = this.toBlobName(pathOrUrl);
@@ -162,7 +143,7 @@ class StorageManager {
     }
 
     if (this.inLocal) {
-      const fullPath = pathOrUrl.startsWith("/") ? pathOrUrl : join(process.cwd(), pathOrUrl);
+      const fullPath = join(process.cwd(), "uploads", pathOrUrl); // Constrói o caminho completo a partir do caminho relativo
       return fs.readFileSync(fullPath);
     }
 
@@ -189,14 +170,15 @@ class StorageManager {
     filename: string,
     original_name: string,
     fileType: string,
+    uploadPath: string, // Este é o 'path' de uploadFile, ex: "files/users/avatars"
   ): Promise<UploadedFile> {
-    const filePath = join(process.cwd(), "uploads", "files", filename);
+    const filePath = join(process.cwd(), "uploads", uploadPath, filename); // Salva no caminho local correto
     fs.writeFileSync(filePath, file.buffer);
     return {
       name: filename,
       original_name,
-      url: this.getLocalPublicUrl(filePath),
-      path: filePath,
+      url: "", // O hook @AfterLoad definirá a URL correta /files/:id
+      path: `${uploadPath}/${filename}`, // Armazena o caminho relativo para consistência
       size: file.size,
       type: fileType,
     };
@@ -216,7 +198,7 @@ class StorageManager {
     fileType: string;
   }): Promise<UploadedFile> {
     return new Promise<UploadedFile>((resolve, reject) => {
-      const uploadFile = this.bucket.file(`files/${path}/${filename}`);
+      const uploadFile = this.bucket.file(`${path}/${filename}`); // Corrigido: path já inclui "files/"
       const fileStream = uploadFile.createWriteStream({
         public: true,
         contentType: file.mimetype,
@@ -260,7 +242,7 @@ class StorageManager {
     originalName: string;
     fileType: string;
   }): Promise<UploadedFile> {
-    const blobName = `files/${path}/${filename}`;
+    const blobName = `${path}/${filename}`; // Corrigido: path já inclui "files/"
     const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
 
     await blockBlobClient.uploadData(file.buffer, {
@@ -288,7 +270,7 @@ class StorageManager {
     const fileType = file.mimetype.split("/")[0];
 
     if (this.inLocal)
-      return await this.saveInLocal(file, filename, originalName, fileType);
+      return await this.saveInLocal(file, filename, originalName, fileType, path);
     try {
       if (this.provider === "azure") {
         return await this.uploadToAzure({

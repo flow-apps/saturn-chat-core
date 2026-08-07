@@ -147,6 +147,11 @@ class AppController {
 
     const avatar = await avatarsRepository.findOne(fileId);
     if (avatar) {
+      // Para desenvolvimento local, a URL já é definida pelo @AfterLoad para /files/:id
+      if (process.env.NODE_ENV === "development") {
+        return res.json({ url: avatar.url, expires_in: 900, path: avatar.path });
+      }
+      // Para armazenamento em nuvem, gera uma URL assinada
       const url = await storage.getFileAccessUrl(avatar.path);
       return res.json({ url, expires_in: 900, path: avatar.path });
     }
@@ -172,6 +177,10 @@ class AppController {
         }
       }
 
+      if (process.env.NODE_ENV === "development") {
+        return res.json({ url: file.url, expires_in: 900, path: file.path });
+      }
+
       const url = await storage.getFileAccessUrl(file.path);
       return res.json({ url, expires_in: 900, path: file.path });
     }
@@ -185,6 +194,10 @@ class AppController {
           state: ParticipantState.JOINED,
         },
       });
+
+      if (process.env.NODE_ENV === "development") {
+        return res.json({ url: audio.url, expires_in: 900, path: audio.path });
+      }
 
       if (!participant) {
         throw new AppError("Access denied", 403);

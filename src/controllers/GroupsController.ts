@@ -143,7 +143,7 @@ class GroupsController {
       createdAvatar = groupsAvatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-        url: "", // Inicializa com string vazia, será atualizada após salvar
+        url: uploadedAvatar.url,
         group_id: groupID,
       });
     }
@@ -161,6 +161,8 @@ class GroupsController {
       const avatarUrl = `${process.env.API_URL || ""}/files/${createdAvatar.id}`.replace(/\/$/, "");
       createdAvatar.url = avatarUrl;
       await groupsAvatarsRepository.update(createdAvatar.id, { url: avatarUrl });
+
+      await groupsAvatarsRepository.save(createdAvatar);
       await groupsRepository.update(group.id, {
         group_avatar: createdAvatar,
       });
@@ -421,7 +423,7 @@ class GroupsController {
       let createdAvatar = groupsAvatarsRepository.create({
         name: uploadedAvatar.name,
         path: uploadedAvatar.path,
-        url: "", // Inicializa com string vazia, será atualizada após salvar
+        url: uploadedAvatar.url,
         group_id: groupID,
       });
 
@@ -429,6 +431,7 @@ class GroupsController {
       const avatarUrl = `${process.env.API_URL || ""}/files/${createdAvatar.id}`.replace(/\/$/, "");
       createdAvatar.url = avatarUrl;
       await groupsAvatarsRepository.save(createdAvatar);
+
       await groupsRepository.update(group.id, {
         group_avatar: createdAvatar,
       });
@@ -436,7 +439,7 @@ class GroupsController {
       return res.sendStatus(204);
     }
 
-    await storage.deleteFile(groupAvatar.path); // Correção: usar groupAvatar.path
+    await storage.deleteFile(groupAvatar.path);
 
     const avatarUrl = `${process.env.API_URL || ""}/files/${groupAvatar.id}`.replace(/\/$/, "");
     await groupsAvatarsRepository.update(groupAvatar.id, {
