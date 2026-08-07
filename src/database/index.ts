@@ -5,7 +5,7 @@ export default async (): Promise<Connection> => {
 
   const connection = await createConnection(defaultOptions).then(
     async (conn) => {
-      await conn.runMigrations().then(() => {
+      await conn.synchronize().then(() => {
         console.log("Migrações rodadas com sucesso!");
       });
 
